@@ -6,6 +6,7 @@ import qualified Data.Set as Set
 import Data.Set (Set)
 import Data.List
 import Cards
+import MLPCCG
 
 type Attributes = Set Attribute
 type Attribute = String

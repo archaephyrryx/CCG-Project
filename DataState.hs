@@ -10,15 +10,14 @@ import Control.Monad		( msum )
 import Control.Monad.Reader	( ask )
 import Control.Monad.State	( get, put )
 import Data.Data		( Data, Typeable )
-import Happstack.Server		( Response, ServerPart, dir
-				, nullDir, nullConf, ok
-				, simpleHTTP, toResponse )
 import Data.Acid		( AcidState, Query, Update
 				, makeAcidic, openLocalState )
 import Data.Acid.Advanced	( query', update' )
 import Data.Acid.Local 		( createCheckpointAndClose )
+import Data.Acid.Memory
+import Data.Acid.Memory.Pure
 import Data.SafeCopy		( base, deriveSafeCopy )
-import Database			( Database, Attribute , Attributes, emptyDB)
+import Database			( Database, Attribute, Attributes, emptyDB )
 import qualified Database as DB
 				  
 import MLPCCG (mlpccg)

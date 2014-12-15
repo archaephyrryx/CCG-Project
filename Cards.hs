@@ -24,7 +24,7 @@ type ProblemReq = ([(Color,Power)],Power)
 
 data Color =    Blue |    Yellow |    Purple |    Pink |    White |    Orange
 	   | NonBlue | NonYellow | NonPurple | NonPink | NonWhite | NonOrange
-	   | Wild deriving (Read)
+	   | Wild deriving (Show, Read)
 
 
 readC :: String -> Color
