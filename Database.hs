@@ -1,42 +1,50 @@
+{-# LANGUAGE DeriveDataTypeable, GeneralizedNewtypeDeriving,
+    TemplateHaskell, TypeFamilies, RecordWildCards,
+	OverloadedStrings #-}
+
 module Database where
 
-import qualified Data.Map as Map
-import Data.Map (Map)
-import qualified Data.Set as Set
-import Data.Set (Set)
-import Data.List
 import Cards
+import Cards.Common
+import Cards.Common.Hint
+import Cards.Common.Stringe
+import Cards.Common.Abbrev
+import Cards.Generic
 import MLPCCG
+import Control.Applicative	( (<$>) )
+import Control.Exception	( bracket )
+import Control.Monad		( msum )
+import Control.Monad.Reader	( ask )
+import Control.Monad.State	( get, put )
+{- import Data.Acid			( AcidState, Query, Update , makeAcidic, openLocalState )
+ - import Data.Acid.Advanced	( query', update' )
+ - import Data.Acid.Local 		( createCheckpointAndClose )
+ - import Data.Acid.Memory
+ - import Data.Acid.Memory.Pure
+ - import Data.SafeCopy		( base, deriveSafeCopy )
+ -}
+import Data.Data		( Data, Typeable )
+import Data.List
+import Data.IxSet
+import qualified Data.Map as Map
+import qualified Data.Set as Set
+import Data.Map (Map)
+import Data.Set (Set)
 
-type Attributes = Set Attribute
-type Attribute = String
-
-newtype Database = Database { assocs :: Map Card Attributes }
-
-instance Show (Database) where
-    show = cardshow show
-
-cardshow :: ShowCard -> Database -> String
-cardshow f x = (show.(map (\(x,y) -> (f x, (unwords.(map show).(Set.toAscList)$y)))).Map.toList.assocs$x)
-
-emptyDB :: Database
-emptyDB = Database Map.empty
-
-addAttrib :: Card -> Attribute -> Database -> Database
-addAttrib c a d = Database (Map.alter (addTag) c (assocs d))
-    where
-	addTag :: Maybe Attributes -> Maybe Attributes
-	addTag Nothing = Just (Set.singleton a)
-	addTag (Just x) = Just (Set.insert a x)
-
-addCards :: Cardlist -> Database -> Database
-addCards xs db = Database (Map.unionWith (flip const) (Map.fromSet (const Set.empty) xs) (assocs db))
-
-initialize :: Cardlist -> Database
-initialize = flip addCards emptyDB
-
-addCard :: Card -> Database -> Database
-addCard c d = Database (Map.insertWith (flip const) c (Set.empty) (assocs d))
-
-addEntry :: Card -> Attributes -> Database -> Database
-addEntry c a d = Database (Map.insertWith Set.union c a (assocs d))
+{-
+ -data GenCard = GenCard { ctype    :: CardType
+ -                       , name     :: Name
+ -                       , set      :: CSet
+ -                       , num      :: Number
+ -                       , rar      :: Rarity
+ -                       , keywords :: Keywords
+ -                       , mcolor    :: Maybe Color
+ -                       , mcost     :: Maybe Cost
+ -                       , mreq      :: Maybe Req
+ -                       , mpower    :: Maybe Power
+ -                       , mboosted  :: Maybe Power
+ -                       , mpoints   :: Maybe Points
+ -                       , mpreqs    :: Maybe ProblemReq
+ -                       , text     :: Text
+ -                       } deriving (Show)
+ -}
