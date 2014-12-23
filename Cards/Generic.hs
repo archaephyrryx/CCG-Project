@@ -1,16 +1,17 @@
-{-# LANGUAGE GeneralizedNewtypeDeriving, RecordWildCards, NamedFieldPuns #-}
+{-# LANGUAGE GeneralizedNewtypeDeriving, RecordWildCards, NamedFieldPuns, DeriveDataTypeable #-}
 
 module Cards.Generic where
 
 import Cards
 import Cards.Common
+import Cards.Pretty
 import Data.List
 import Data.Char
 import Data.Set (Set)
 import Data.Function (on)
 import Data.Maybe
+import Data.Data (Typeable)
 import qualified Data.Set as Set
-
 
 data GenCard = GenCard { ctype    :: CardType
                        , name     :: Name
@@ -26,13 +27,16 @@ data GenCard = GenCard { ctype    :: CardType
                        , mpoints   :: Maybe Points
                        , mpreqs    :: Maybe ProblemReq
                        , text     :: Text
-                       } deriving (Show)
+                       } deriving (Eq, Ord, Typeable)
+
+instance Show GenCard where
+    show = prettyShow.fromGeneric
 
 toGeneric :: Card -> GenCard
 toGeneric c@Mane{..} = let ctype = TMane
                            mcolor = Just color
                            mcost = Nothing
-                           mpower = Nothing
+                           mpower = Just power
                            mreq = Nothing
                            mboosted = Just boosted
                            mpoints = Nothing

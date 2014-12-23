@@ -27,4 +27,3 @@ instance Show Keyword where
     show = shew
 instance Show Text where
     show = shew
-
