@@ -70,7 +70,7 @@ data CSet = Premiere | CanterlotNights | RockNRave | CelestialSolstice | Crystal
 
 data Rarity = Common | Uncommon | Fixed | Rare | UltraRare | Promotional deriving (Enum, Eq, Ord, Show, Read, Typeable)
 
-data CardType = TMane | TFriend | TResource | TEvent | TTroublemaker | TProblem deriving (Eq, Ord, Typeable)
+data CardType = TMane | TFriend | TResource | TEvent | TTroublemaker | TProblem deriving (Enum, Eq, Ord, Typeable)
 
 instance Show CardType where
     show TMane = "Mane"

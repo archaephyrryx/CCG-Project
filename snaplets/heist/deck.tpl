@@ -1,14 +1,5 @@
-<apply template="filter">
-  <bind tag="pagename">
-    SnappleJack: Deck Builder
-  </bind>
-  <bind tag="filter">
-    <dfForm action="/deck">
-      <apply template="select">
-      <div> <dfInputSubmit value="Submit" /> </div>
-    </dfForm>
-  </bind>
-  <bind tag="result">
+<apply template="default">
+  <bind tag="pagename"> SnappleJack: Deck Builder </bind>
+  <deck/>
   <!-- <resolve>${card}</resolve> -->
-  </bind>
 </apply>
