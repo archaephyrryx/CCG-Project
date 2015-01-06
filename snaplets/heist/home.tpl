@@ -1,5 +1,5 @@
 <bind tag=pagename>SnappleJack</bind>
-<apply template="default">
+<apply template="base">
   <h1><pagename/></h1>
   <p>Welcome to <pagename/>, an in-development website for the MLP:CCG.</p>
   <p>This site was inspired by, and modelled on, <a href="http://ponyhead.com">PonyHead</a></p>

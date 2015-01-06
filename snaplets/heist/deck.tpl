@@ -1,5 +1,4 @@
-<apply template="default">
+<apply template="base">
   <bind tag="pagename"> SnappleJack: Deck Builder </bind>
-  <deck/>
-  <!-- <resolve>${card}</resolve> -->
+  <apply template="_deck"/>
 </apply>
