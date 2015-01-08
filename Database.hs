@@ -35,24 +35,6 @@ import qualified Data.Set as Set
 import Data.Map (Map)
 import Data.Set (Set)
 
-{-
- -data GenCard = GenCard { ctype    :: CardType
- -                       , name     :: Name
- -                       , set      :: CSet
- -                       , num      :: Number
- -                       , rar      :: Rarity
- -                       , keywords :: Keywords
- -                       , mcolor    :: Maybe Color
- -                       , mcost     :: Maybe Cost
- -                       , mreq      :: Maybe Req
- -                       , mpower    :: Maybe Power
- -                       , mboosted  :: Maybe Power
- -                       , mpoints   :: Maybe Points
- -                       , mpreqs    :: Maybe ProblemReq
- -                       , text     :: Text
- -                       } deriving (Show)
- -}
-
 -- Index accessor functions
 
 newtype Nameword = Nameword String deriving (Eq, Ord, Typeable)

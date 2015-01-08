@@ -29,8 +29,12 @@ data GenCard = GenCard { ctype    :: CardType
                        , text     :: Text
                        } deriving (Eq, Ord, Typeable)
 
+howshow = fst (show, prettyShow)
+
+genset = setnum.fromGeneric
+
 instance Show GenCard where
-    show = prettyShow.fromGeneric
+    show = howshow.fromGeneric
 
 toGeneric :: Card -> GenCard
 toGeneric c@Mane{..} = let ctype = TMane
