@@ -18,8 +18,11 @@ main = simpleHTTP nullConf $ msum
 handlebar :: ServerPartT IO Response 
 handlebar = page . paginate $ do
     decodeBody (defaultBodyPolicy "/tmp" 0 10000 10000)
-    msum [ card
-         , deck
+    msum [ do dir "card" $ do
+              nullDir $ card
+              trailingSlash $ nullDir $ card
+              path $ \s -> onecard s
+         , dir "deck" $ deck
          , dir "home" $ home
          , home
          ]

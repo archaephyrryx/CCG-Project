@@ -6,7 +6,7 @@
     ScopedTypeVariables, TemplateHaskell, TypeFamilies,
     TypeSynonymInstances #-} 
 
-module Forms where
+module Pages.Reform where
 
 -------------------------------------------------
 import Control.Applicative
@@ -56,6 +56,7 @@ import MLPCCG
 --------------------------------------------------
 import Application
 import Reformation
+import Pages.Common (template)
 ---------------------------------------------------
 
 instance EmbedAsAttr (AppT' IO) (Attr Text Req) where
@@ -182,7 +183,6 @@ pronounce (nam, code) =
     </a> :: Html
   |]
 
-
 empower :: (Maybe String, Maybe Color) -> Html
 empower = reqtify
       
@@ -211,3 +211,24 @@ deckForm =
     <*> labelText "Type"        ++> sv show typeValues   <++ br
     <*> labelText "Rarity"      ++> sv show rarityValues <++ br
     <*  inputSubmit "filter"
+
+
+cardHtml :: Html
+cardHtml = do
+    let action = "/card" :: Text
+    result <- happstackEitherForm (form action) "card" cardForm
+    case result of
+        (Left formHtml) ->
+            template "Card Form" formHtml
+        (Right flt) ->
+            template "Card Result" $ [renderFilter flt]
+    
+deckHtml :: Html
+deckHtml = do
+    let action = "/deck" :: Text
+    result <- happstackEitherForm (form action) "deck" deckForm
+    case result of
+        (Left formHtml) ->
+            template "Card Form" formHtml
+        (Right flt) ->
+            template "Card Result" $ [renderFilter flt]
