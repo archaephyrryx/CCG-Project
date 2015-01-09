@@ -1,11 +1,12 @@
 {-# LANGUAGE DeriveDataTypeable, FlexibleContexts,
     FlexibleInstances, GeneralizedNewtypeDeriving,
     MultiParamTypeClasses, OverlappingInstances,
+    IncoherentInstances,
     OverloadedStrings, QuasiQuotes, RecordWildCards,
     ScopedTypeVariables, TemplateHaskell, TypeFamilies,
     TypeSynonymInstances #-} 
 
-module CCGForms (card', deck') where
+module Forms where
 
 -------------------------------------------------
 import Control.Applicative
@@ -45,20 +46,45 @@ import Data.List                    hiding (insert)
 --------------------------------------------------
 import Cards
 import Cards.Generic
-import Cards.Common
+import Cards.Common hiding (Text)
 import Cards.Common.Color
 import Cards.Common.Stringe
 import Cards.Common.Hint
 import Cards.Common.Abbrev
+import Cards.Common.Values
 import MLPCCG
 --------------------------------------------------
-import Site                       (Html, AppT, AppT', GCL)
+import Application
+import Reformation
 ---------------------------------------------------
 
+instance EmbedAsAttr (AppT' IO) (Attr Text Req) where
+    asAttr (n := v) = asAttr (n := (Lazy.pack . show . val $ v))
+instance EmbedAsAttr (AppT' IO) (Attr Text Cost) where
+    asAttr (n := v) = asAttr (n := (Lazy.pack . show . val $ v))
+instance EmbedAsAttr (AppT' IO) (Attr Text Power) where
+    asAttr (n := v) = asAttr (n := (Lazy.pack . show . val $ v))
+
+newtype AppError = AppCFE (CommonFormError [Input])
+    deriving (Show)
 
 type SimpleForm = Form (AppT IO) [Input] AppError [Html] ()
 
-type AppError = String
+instance (Functor m, Monad m) =>
+         EmbedAsAttr (AppT' m) (Attr Text Strict.Text) where
+    asAttr (n := v) = asAttr (n := Lazy.fromStrict v)
+
+instance (Functor m, Monad m) =>
+         EmbedAsAttr (AppT' m) (Attr Text String) where
+    asAttr (n := v) = asAttr (n := Lazy.pack v)
+
+instance (Functor m, Monad m) => EmbedAsChild (AppT' m) AppError where
+  asChild (AppCFE cfe)      =
+     asChild $ commonFormErrorStr show cfe
+
+instance FormError AppError where
+    type ErrorInputType AppError = [Input]
+    commonFormError = AppCFE
 
 data Filter = CardFilter
                 { powMin :: Power
@@ -81,7 +107,7 @@ data Filter = CardFilter
         deriving (Eq, Ord, Read, Show)
 
 
-applyFilter :: CardFilter -> [GenCard]
+applyFilter :: Filter -> [GenCard]
 applyFilter c@CardFilter{..} =
     toList $ cardDB @>= powMin @<= powMax @>= costMin @<= costMax @>= reqMin @<= reqMax @+ colors @+ sets @+ types @+ rarities
 applyFilter d@DeckFilter{..} =
@@ -97,7 +123,7 @@ renderFilter fil = let gens = applyFilter fil in
         <td>Type</td>
         <td>Cost</td>
         <td>Req.</td>
-        <td>Name/td>
+        <td>Name</td>
         <td>Power</td>
       </tr>
       <% mapM cardLine gens %>
@@ -118,16 +144,16 @@ cardLine g@GenCard{..} =
     </tr> :: Html
   |]
 
-iconic :: CardType -> GLC
+iconic :: CardType -> GCL
 iconic x = let ipath = "res/icns/"++(show x)++".png" in
   [hsx|
     <%>
       <img class="icon" [ "src" := ipath :: Attr Text String ] />
-    </%>
+    </%> :: GCL
   |]
 
 reqtify :: (Maybe String, Maybe Color) -> Html
-reqtify (Nothing,_) = [hsx| |]
+reqtify (Nothing,_) = [hsx|<span/>|]
 reqtify (Just s, c) = 
   [hsx|
     <p [ "style" := ("background-color:"++(colorize c)) :: Attr Text String]>
@@ -135,7 +161,11 @@ reqtify (Just s, c) =
     </p> :: Html
   |]
   where
-    colorize c = fromMaybe "#c4c0bd" ((`lookup`ctab).show <$> c)
+    colorize :: Maybe Color -> String
+    colorize (Nothing) = "#c4c0bd"
+    colorize (Just Wild) = "#c4c0bd"
+    colorize (Just c) = fromJust (lookup (show c) ctab)
+    ctab :: [(String,String)]
     ctab = [ ("Blue","#4dc6ce")
            , ("Orange","#ff8c57")
            , ("Pink","#e17baa")
@@ -158,128 +188,26 @@ empower = reqtify
       
 cardForm :: SimpleForm Filter
 cardForm =
-  cardFilter
-    <$> 
+  CardFilter
+    <$> labelText "Power:"      ++> inputMin (unval 0)
+    <*> labelText "to"          ++> inputMax (unval 42)  <++ br
+    <*> labelText "Cost:"       ++> inputMin (unval 0)
+    <*> labelText "to"          ++> inputMax (unval 42)  <++ br
+    <*> labelText "Requirement:"++> inputMin (unval 0)
+    <*> labelText "to"          ++> inputMax (unval 42)  <++ br
+    <*> labelText "Color"       ++> sv show colorValues  <++ br
+    <*> labelText "Set"         ++> sv show setValues    <++ br
+    <*> labelText "Type"        ++> sv show typeValues   <++ br
+    <*> labelText "Rarity"      ++> sv show rarityValues <++ br
+    <*  inputSubmit "filter"
   
-  
-  
-
-card' :: Html
-card' =
-  [hsx|
-    <form method="post" action="/card">
-      <table id="filter">
-        <tr>
-          <td>
-            <% minmax %>
-          </td>
-          <% selectFilter %>
-        </tr>
-        <% buttons %>
-      </table>
-    </form>
-  |]
-
-deck' :: Html
-deck' =
-  [hsx|
-    <form method="post" action="/deck">
-      <table id="filter">
-        <tr>
-          <% selectFilter %>
-        </tr>
-        <% buttons %>
-      </table>
-    </form>
-  |]
-
-buttons :: Html
-buttons =
-  [hsx|
-    <tr>
-      <td><button type="reset">Reset</button></td>
-      <td><button type="submit">Submit</button></td>
-    </tr> :: Html
-  |]
-
-minmax :: Html
-minmax =
-  [hsx|
-    <div id="minmax">
-      <div>
-        <label for="powRange">Power</label>
-        <div id="powRange">
-          <input name="powmin" placeholder="Min" type="number" min="0" step="1" pattern="[0-9]+"/>
-          to
-          <input name="powmax" placeholder="Max" type="number" min="0" step="1" pattern="[0-9]+"/>
-        </div>
-      </div>
-      <div>
-        <label for="costRange">Cost</label>
-        <div id="costRange">
-          <input name="costmin" placeholder="Min" type="number" min="0" step="1" pattern="[0-9]+"/>
-          to
-          <input name="costmax" placeholder="Max" type="number" min="0" step="1" pattern="[0-9]+"/>
-        </div>
-      </div>
-      <div>
-        <label for="reqRange">Requirement</label>
-        <div id="reqRange">
-          <input name="reqmin" placeholder="Min" type="number" min="0" step="1" pattern="[0-9]+"/>
-          to
-          <input name="reqmax" placeholder="Max" type="number" min="0" step="1" pattern="[0-9]+"/>
-        </div>
-      </div>
-    </div> :: Html
-  |]
-
-selectFilter :: Html
-selectFilter =
-  [hsx|
-    <div id="selectFilter">
-      <td>
-        <label for="setFilter">Set</label>
-        <select name="setFilter" multiple="true">
-          <option value="0">Premiere</option>
-          <option value="1">Canterlot Nights</option>
-          <option value="2">Rock and Rave</option>
-          <option value="3">Celestial Solstice</option>
-          <option value="4">Crystal Games</option>
-        </select>
-      </td>
-      <td>
-        <label for="colorFilter">Color</label>
-        <select name="colorFilter" multiple="true">
-          <option value="0">None</option>
-          <option value="1">Blue</option>
-          <option value="2">Orange</option>
-          <option value="3">Pink</option>
-          <option value="4">Purple</option>
-          <option value="5">White</option>
-          <option value="6">Yellow</option>
-        </select>
-      </td>
-      <td>
-        <label for="typeFilter">Type</label>
-        <select name="typeFilter" multiple="true">
-          <option value="0">Mane</option>
-          <option value="1">Friend</option>
-          <option value="2">Event</option>
-          <option value="3">Resource</option>
-          <option value="4">Troublemaker</option>
-          <option value="5">Problem</option>
-        </select>
-      </td>
-      <td>
-        <label for="rarityFilter">Rarity</label>
-        <select name="rarityFilter" multiple="true">
-          <option value="0">Fixed</option>
-          <option value="1">Common</option>
-          <option value="2">Uncommon</option>
-          <option value="3">Rare</option>
-          <option value="4">Ultra-Rare</option>
-          <option value="5">Promo</option>
-        </select>
-      </td>
-    </div> :: Html
-  |]
+sv f vs = selectMultiple (map (\x -> (x, f x)) vs) (const False)
+      
+deckForm :: SimpleForm Filter
+deckForm =
+  DeckFilter
+    <$> labelText "Color"       ++> sv show colorValues  <++ br
+    <*> labelText "Set"         ++> sv show setValues    <++ br
+    <*> labelText "Type"        ++> sv show typeValues   <++ br
+    <*> labelText "Rarity"      ++> sv show rarityValues <++ br
+    <*  inputSubmit "filter"

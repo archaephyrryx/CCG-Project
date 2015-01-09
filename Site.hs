@@ -4,15 +4,11 @@
     OverlappingInstances,
     QuasiQuotes, OverloadedStrings #-}
 
-module Site ( homePage
-            , cardPage
-            , deckPage
-            , Pager
-            , Paginator
-            , AppT
-            , AppT'
-            , Html
-            , GCL ) where
+module Site ( homePage, home
+            , cardPage, card
+            , deckPage, deck
+            , page, paginate
+            ) where
 
 import Control.Applicative        ((<$>))
 import Control.Monad
@@ -24,44 +20,30 @@ import qualified Data.Text        as Strict
 import qualified Data.Text.Lazy   as Lazy
 import Data.Char                  (toLower)
 import Happstack.Server
-import Happstack.Server.HSP.HTML
 import Happstack.Server.XMLGenT
 import HSP
 import HSP.Monad                  (HSPT(..))
 import Language.Haskell.HSX.QQ    (hsx)
-import CCGForms                   (card', deck')
+import Application
+import Text.Reform.Happstack
+import Text.Reform
+    ( CommonFormError(..), Form, FormError(..), Proof(..), (++>)
+    , (<++), commonFormErrorStr, decimal, prove
+    , transformEither, transform )
+import Text.Reform.Happstack
+import Text.Reform.HSP.Text
+import Forms
 
 sitename = "HappleJack"
 
-type Pager = ServerPartT IO Response
-type Paginator = ServerPartT IO XML
-type AppT m  = XMLGenT (AppT' m)
-type AppT' m = HSPT XML (ServerPartT m)
-type Html = AppT IO XML
-type GCL = GenChildList (AppT' IO)
-
-{-
-instance (Functor m, Monad m) =>
-         EmbedAsAttr (AppT' m) (Attr Text Strict.Text) where
-             asAttr (n := v) = asAttr (n := Lazy.fromStrict v)
-
-instance (Functor m, Monad m) =>
-         EmbedAsChild (AppT' m) Strict.Text where
-             asChild t = asChild (Lazy.fromStrict t)
-
-instance (XMLGenerator m, StringType m ~ Text) =>
-         EmbedAsAttr m (Attr Text String) where
-            asAttr (n := v) = asAttr (n := Lazy.pack v)
--}
-
 homePage :: Pager
-homePage = page home
+homePage = page.paginate $ home
 
 cardPage :: Pager
-cardPage = page card
+cardPage = page.paginate $ card
 
 deckPage :: Pager
-deckPage = page deck
+deckPage = page.paginate $ deck
 
 page :: Paginator -> Pager
 page = (toResponse<$>)
@@ -70,7 +52,10 @@ paginate :: Html -> Paginator
 paginate = unHSPT . unXMLGenT
 
 base :: String -> Html -> Paginator
-base pagename content = paginate $
+base = (paginate.).basic
+
+basic :: String -> Html -> Html
+basic pagename content = 
   [hsx|
     <html>
       <head>
@@ -82,6 +67,23 @@ base pagename content = paginate $
       </head>
       <body>
         <% nav %>
+        <% content %>
+      </body>
+    </html> :: Html
+  |]
+
+template :: String -> [Html] -> Html
+template pagename content =
+  [hsx|
+    <html>
+      <head>
+        <meta http-equiv="content-type" content="text/html;charset=UTF-8"/>
+        <meta charset="utf-8"/>
+        <title> <% pagename %> </title>
+        <meta name="description" content="My Little Pony CCG Metadatabase"/>
+        <meta name="keywords" content="my little pony, mlp, ccg, tcg, enterplay, tabletop, brony"/>
+      </head>
+      <body>
         <% content %>
       </body>
     </html> :: Html
@@ -102,8 +104,8 @@ nav =
     </nav>
   |]
 
-home :: Paginator
-home = base pagename $
+home :: Html
+home = basic pagename $
   [hsx|
     <div>
       <h1><% pagename %></h1>
@@ -118,13 +120,13 @@ home = base pagename $
   where
     pagename = sitename
 
-card :: Paginator
-card = base pagename card'
+card :: Html
+card = basic pagename card''
   where
     pagename = sitename ++ ": Cards"
 
-deck :: Paginator
-deck = base pagename deck'
+deck :: Html
+deck = basic pagename deck''
   where
     pagename = sitename ++ ": Deck Builder"
 
@@ -247,3 +249,25 @@ selectFilter =
       </td>
     </div> :: Html
   |]
+
+card'' :: Html
+card'' = 
+  dir "card" $ do
+    let action = "/card" :: Text
+    result <- happstackEitherForm (form action) "card" cardForm
+    case result of
+        (Left formHtml) ->
+            template "Card Form" formHtml
+        (Right flt) ->
+            template "Card Result" $ [renderFilter flt]
+    
+deck'' :: Html
+deck'' =
+  dir "deck" $ do
+    let action = "/deck" :: Text
+    result <- happstackEitherForm (form action) "deck" deckForm
+    case result of
+        (Left formHtml) ->
+            template "Card Form" formHtml
+        (Right flt) ->
+            template "Card Result" $ [renderFilter flt]

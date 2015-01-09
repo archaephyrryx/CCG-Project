@@ -79,3 +79,20 @@ instance Show CardType where
     show TEvent = "Event"
     show TTroublemaker = "Troublemaker"
     show TProblem = "Problem"
+
+readsT :: ReadS CardType
+readsT s = (`zip`[""]).(:[]) $ case (titleCase s) of
+    "Mane"          -> TMane
+    "Friend"        -> TFriend
+    "Resource"      -> TResource
+    "Event"         -> TEvent
+    "Troublemaker"  -> TTroublemaker
+    "Problem"       -> TProblem
+
+
+titleCase :: String -> String
+titleCase (x:xs) = (toUpper x):(map toLower xs)
+
+instance Read CardType where
+    readsPrec = const readsT
+    

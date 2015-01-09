@@ -92,7 +92,7 @@ typename :: ShowCard
 typename x = (show.cardtype$x)++(':':' ':(name x))
 
 setnum :: ShowCard
-setnum x = (show.set$x)++(show.num$x)
+setnum x = (brief.set$x)++(show.num$x)
 
 instance Eq Card where
     (==) = (==)`on`name
