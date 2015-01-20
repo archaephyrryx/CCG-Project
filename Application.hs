@@ -6,8 +6,7 @@ import Happstack.Server.XMLGenT
 import HSP
 import HSP.Monad (HSPT(..))
 
-type Pager = ServerPartT IO Response
-type Paginator = ServerPartT IO XML
+type Page = ServerPartT IO Response
 type AppT m  = XMLGenT (AppT' m)
 type AppT' m = HSPT XML (ServerPartT m)
 type Html = AppT IO XML

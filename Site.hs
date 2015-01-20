@@ -4,11 +4,7 @@
     OverlappingInstances,
     QuasiQuotes, OverloadedStrings #-}
 
-module Site ( homePage, home
-            , cardPage, card
-            , deckPage, deck
-            , page, paginate
-            ) where
+module Site where
 
 import Control.Applicative        ((<$>))
 import Control.Monad
@@ -32,28 +28,20 @@ import Text.Reform
     , transformEither, transform )
 import Text.Reform.Happstack
 import Text.Reform.HSP.Text
-import Forms
 import qualified Pages.Vanilla as Vanilla
 import qualified Pages.Reform as Reformed
 import Pages.Reform (cardHtml, deckHtml)
 import Pages.Common
+import Pages.Card
+import Cards.Common
 
 sitename = "HappleJack"
 
-homePage :: Pager
-homePage = page.paginate $ home
+homePage :: Page
+homePage = page home
 
-cardPage :: Pager
-cardPage = page.paginate $ card
-
-deckPage :: Pager
-deckPage = page.paginate $ deck
-
-page :: Paginator -> Pager
-page = (toResponse<$>)
-
-paginate :: Html -> Paginator
-paginate = unHSPT . unXMLGenT
+page :: Html -> Page
+page = (toResponse<$>).unHSPT.unXMLGenT
 
 home :: Html
 home = base pagename $
@@ -71,12 +59,12 @@ home = base pagename $
   where
     pagename = sitename
 
-card :: Html
-card = base pagename cardHtml
+card :: Maybe [Color] -> Maybe [CSet] -> Maybe [Rarity] -> Maybe [CardType] -> Html
+card mc ms mr mt = base pagename (cardHtml mc ms mr mt)
   where
     pagename = sitename ++ ": Cards"
 
-deck :: Html
-deck = base pagename deckHtml
+deck :: Maybe [Color] -> Maybe [CSet] -> Maybe [Rarity] -> Maybe [CardType] -> Html
+deck mc ms mr mt = base pagename (deckHtml mc ms mr mt)
   where
     pagename = sitename ++ ": Deck Builder"

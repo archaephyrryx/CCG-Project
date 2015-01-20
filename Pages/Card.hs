@@ -6,6 +6,7 @@
     ScopedTypeVariables, TemplateHaskell, TypeFamilies,
     TypeSynonymInstances #-} 
 
+module Pages.Card (single) where
 -------------------------------------------------
 import Control.Applicative
 import Control.Applicative.Indexed  ( IndexedFunctor(..) , IndexedApplicative(..))
@@ -51,6 +52,7 @@ import Cards.Common.Stringe
 import Cards.Common.Hint
 import Cards.Common.Abbrev
 import Cards.Common.Values
+import Cards.Differentiation
 import MLPCCG
 --------------------------------------------------
 import Application
@@ -58,21 +60,21 @@ import Reformation
 import Pages.Common (template, base)
 ---------------------------------------------------
 
-module Pages.Card (singleCard) where
+instance (Functor m, Monad m) =>
+         EmbedAsAttr (AppT' m) (Attr Text String) where
+    asAttr (n := v) = asAttr (n := Lazy.pack v)
 
-type SetNum :: (CSet, Number)
-type GCR :: GenCard -> Html
+type SetNum = (CSet, Number)
+type GCR = GenCard -> Html
 
 instance Read SetNum where
     readsPrec = const readsSN
 
 readsSN :: ReadS SetNum
-readsSN x = let (s, n) = splitAt 2 x in
-        (readCS s, readN n)
-
+readsSN x = let (s, n) = splitAt 2 x in [((readCS s, readN n),"")]
 
 single :: String -> Html
-single s = let (s,n) = read s :: SetNum
+single x = let (s,n) = read x :: SetNum
            in renderCard (head.toList $ (cardDB @= (s) @= (n)))
 
 renderCard :: GCR
@@ -99,8 +101,8 @@ cardImgs g@GenCard{..} = let urls = curls g in
     </table> :: Html
   |]
 
-curls :: Gencard -> [String]
-curls g@GenCard{..} = let sn = genset g in map (("res/cards/"++sn)++) (suffixes ctype)
+curls :: GenCard -> [String]
+curls g@GenCard{..} = let sn = genset g in map (("/res/cards/"++sn)++) (suffixes ctype)
     where
       suffixes :: CardType -> [String]
       suffixes TMane = [".jpg","b.jpg"]
@@ -151,28 +153,29 @@ cardInfo g@GenCard{..} =
     <div>
       <div class="panel panel-default quick-facts">
         <div class="panel-heading"><h3 class="panel-title">Quick Facts</h3></div>
-		  <div class="panel-body">
-		    <ul>
-              <% info g %>
-		    </ul>
-		  </div>
+        <div class="panel-body">
+          <ul>
+            <% info g %>
+          </ul>
         </div>
       </div>
     </div> :: Html
-    |]
+  |]
 
 info :: GenCard -> GCL
-info g@GenCard{..} = let items = (mfilter mask allitems) in
+info g@GenCard{..} = let items = (maskfilter mask allitems) in
   [hsx|
     <%>
       <% mapM renderi items %>
     </%>
-  ]
+  |]
   where
     mask :: [Bool]
     mask = typemask ctype
     renderi :: (String, GCR) -> Html
     renderi (nam, gcr) = [hsx| <li> <b><% nam %>:</b> <% gcr g %> </li> :: Html |]
+    maskfilter [] [] = []
+    maskfilter (x:xs) (y:ys) = let ts = maskfilter xs ys in if x then y:ts else ts
 
 allitems :: [(String, GCR)]
 allitems = [ ("Type", typeLink)
@@ -198,31 +201,66 @@ typemask x = map (==1) $ case x of
 propLink :: String -> (GenCard -> String) -> (GCR)
 propLink s f g =
   [hsx|
-    <a [ "href" := ("http://ponyhead.com/cards?"++s++"="++(f g)) :: Attr Text String ]>
+    <a [ "href" := ("/card?"++s++"="++(f g)) :: Attr Text String ]>
       <% f g %>
     </a> :: Html
   |]
 
 setLink :: GCR
-setLink = propLink "set" (show.set)
+setLink = propLink "set" (show.gset)
 typeLink :: GCR
 typeLink = propLink "type" (show.ctype)
 rarLink :: GCR
-rarLink = propLink "rarity" (show.rar)
+rarLink = propLink "rarity" (show.grar)
 colLink :: GCR
-colLink = propLink "color" (fromMaybe "Wild" ((show<$>).mcolor))
+colLink = propLink "color" (maybe "Wild" show . mcolor)
 
 
-reqtify = GCR
-reqtify = cbox
+reqtify :: GCR
+reqtify g@GenCard{..} = cbox (show<$>mreq, mcolor)
 empower :: GCR
-empower = reqtify
+empower g@GenCard{..} = cbox (show<$>mpower, mcolor)
+appraise :: GCR
+appraise g@GenCard{..} = cbox (show<$>mcost, mcolor)
+
+conf :: GCR
+conf g@GenCard{ctype=TProblem, ..} =
+  [hsx|
+    <span>
+      <% mapM (\(y,x) -> cbox (pure.show $ x, pure $ y)).fst.fromJust $ mpreqs %>
+    </span> :: Html
+  |]
+conf _ = cbox (Nothing, Nothing)
+conf' :: GCR
+conf' g@GenCard{ctype=TProblem, ..} = (\x -> cbox (Just (show x), Nothing)).snd.fromJust $ mpreqs
+conf' _ = cbox (Nothing, Nothing)
+
+cardTraits :: GCR
+cardTraits g@GenCard{..} =
+  [hsx|
+    <span>
+      <% mapM keyToTrait keywords %>
+    </span> :: Html
+  |]
+
+keyToTrait :: Keyword -> Html
+keyToTrait k =
+  [hsx|
+    <span>
+      <% unbrace (unravel k) %>
+    </span> :: Html
+  |]
+
+unbrace :: String -> String
+unbrace [] = []
+unbrace x | head x == '[' && last x == ']' = init.tail $ x
+          | otherwise = x
 
 cbox :: (Maybe String, Maybe Color) -> Html
 cbox (Nothing,_) = [hsx|<span/>|]
 cbox (Just s, c) = 
   [hsx|
-    <span [ "class" := ("background-color:"++(colorize c)) :: Attr Text String]>
+    <span [ "class" := unwords ["element","label",(colorize c)] :: Attr Text String]>
       <% s %>
     </span> :: Html
   |]
@@ -239,62 +277,3 @@ pronounce (nam, code) =
       <% nam %>
     </a> :: Html
   |]
-
-      
-cardForm :: SimpleForm Filter
-cardForm =
-  CardFilter
-    <$> labelText "Power:"      ++> inputMin (unval 0)
-    <*> labelText "to"          ++> inputMax (unval 42)  <++ br
-    <*> labelText "Cost:"       ++> inputMin (unval 0)
-    <*> labelText "to"          ++> inputMax (unval 42)  <++ br
-    <*> labelText "Requirement:"++> inputMin (unval 0)
-    <*> labelText "to"          ++> inputMax (unval 42)  <++ br
-    <*> labelText "Color"       ++> sv show colorValues  <++ br
-    <*> labelText "Set"         ++> sv show setValues    <++ br
-    <*> labelText "Type"        ++> sv show typeValues   <++ br
-    <*> labelText "Rarity"      ++> sv show rarityValues <++ br
-    <*  inputSubmit "filter"
-  
-sv f vs = selectMultiple (map (\x -> (x, f x)) vs) (const False)
-      
-deckForm :: SimpleForm Filter
-deckForm =
-  DeckFilter
-    <$> labelText "Color"       ++> sv show colorValues  <++ br
-    <*> labelText "Set"         ++> sv show setValues    <++ br
-    <*> labelText "Type"        ++> sv show typeValues   <++ br
-    <*> labelText "Rarity"      ++> sv show rarityValues <++ br
-    <*  inputSubmit "filter"
-
-
-cardHtml :: Html
-cardHtml = do
-    let action = "/card" :: Text
-    result <- happstackEitherForm (form action) "card" cardForm
-    case result of
-        (Left formHtml) ->
-            template "Card Form" formHtml
-        (Right flt) ->
-            template "Card Result" $ [renderFilter flt]
-    
-deckHtml :: Html
-deckHtml = do
-    let action = "/deck" :: Text
-    result <- happstackEitherForm (form action) "deck" deckForm
-    case result of
-        (Left formHtml) ->
-            template "Card Form" formHtml
-        (Right flt) ->
-            template "Card Result" $ [renderFilter flt]
-
-
-{-
- - Mane { name, set, num, rar, keywords, color, power, boosted, text }
- - Friend { name, set, num, rar, keywords, color, cost, req, power, text}
- - Resource { name, set, num, rar, keywords, color, cost, req, power, text }
- - Event { name, set, num, rar, keywords, color, cost, req, power, text }
- - Troublemaker { name, set, num, rar, keywords, power, points, text }
- - Problem { name, set, num, rar, points, keywords, preqs, text }
- -}
-

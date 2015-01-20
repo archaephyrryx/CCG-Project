@@ -1,4 +1,5 @@
-{-# LANGUAGE GeneralizedNewtypeDeriving, RecordWildCards #-}
+{-# LANGUAGE GeneralizedNewtypeDeriving, RecordWildCards,
+    DeriveDataTypeable #-}
 
 module Cards where
 
@@ -12,6 +13,7 @@ import Data.Set (Set)
 import Data.Ord
 import Data.Function (on)
 import Data.Monoid
+import Data.Data (Data, Typeable)
 import qualified Data.Set as Set
 
 type ShowCard = (Card -> String)
@@ -78,7 +80,7 @@ data Card = Mane { name		:: Name
 				 , preqs	:: ProblemReq
 				 , text		:: Text
 				 }
-	  deriving (Show)
+	  deriving (Show, Data, Typeable)
 
 cardtype :: Card -> CardType
 cardtype (Mane{..})		= TMane
@@ -100,7 +102,7 @@ instance Eq Card where
 instance Ord Card where
     compare = (comparing set)`mappend`(comparing num)
 
-
+{-
 cSplit :: String -> [String]
 cSplit "" = []
 cSplit "\t" = ["",""]
@@ -159,3 +161,4 @@ keySplit x | ','`elem`x = let (a,(_:b)) = break (==',') x in (ravel a):(keySplit
 	   | otherwise = [(ravel x)]
 
 parsage = Set.fromList.(map(cardParse.cSplit)).tail.lines
+-}

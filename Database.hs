@@ -10,6 +10,7 @@ import Cards.Common.Hint
 import Cards.Common.Stringe
 import Cards.Common.Abbrev
 import Cards.Common.Color
+import Cards.Parser
 import Cards.Generic
 import Cards.Pretty
 import MLPCCG
@@ -115,6 +116,8 @@ instance Indexable GenCard where
                 , ixFun getBoosted
                 ]
 
+allcards :: Set Card
 allcards = parsage mlpccg
 
+cardDB :: IxSet GenCard
 cardDB = Set.foldr (\x y -> insert (toGeneric x) y) empty (allcards)

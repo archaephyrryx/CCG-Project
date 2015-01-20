@@ -4,6 +4,8 @@
     OverlappingInstances,
     QuasiQuotes, OverloadedStrings #-}
 
+module Pages.Common where
+
 import Control.Monad
 import Data.String                (IsString(fromString))
 import Data.Text.Lazy             (Text)
@@ -16,8 +18,6 @@ import HSP.Monad                  (HSPT(..))
 import Language.Haskell.HSX.QQ    (hsx)
 import Application
 
-module Pages.Common where
-
 base :: String -> Html -> Html
 base pagename content = 
   [hsx|
@@ -28,6 +28,7 @@ base pagename content =
         <title> <% pagename %> </title>
         <meta name="description" content="My Little Pony CCG Metadatabase"/>
         <meta name="keywords" content="my little pony, mlp, ccg, tcg, enterplay, tabletop, brony"/>
+        <link rel="stylesheet" href="/res/style.css"/>
       </head>
       <body>
         <% nav %>
@@ -59,6 +60,7 @@ template pagename content =
         <meta http-equiv="content-type" content="text/html;charset=UTF-8"/>
         <meta charset="utf-8"/>
         <title> <% pagename %> </title>
+        <link rel="stylesheet" href="/res/style.css"/>
         <meta name="description" content="My Little Pony CCG Metadatabase"/>
         <meta name="keywords" content="my little pony, mlp, ccg, tcg, enterplay, tabletop, brony"/>
       </head>

@@ -1,6 +1,6 @@
 {-# LANGUAGE CPP, DeriveDataTypeable, FlexibleContexts,
     GeneralizedNewtypeDeriving, MultiParamTypeClasses,
-    TemplateHaskell, TypeFamilies, RecordWildCards  #-}
+    TemplateHaskell, TypeFamilies, RecordWildCards #-}
 
 module TagState where
 
@@ -10,48 +10,56 @@ import Cards.Common.Abbrev
 import Cards.Common.Color
 import Cards.Common.Hint
 import Cards.Common.Stringe
+import Cards.Differentiation
 import Cards.Generic
-import Cards.Pretty
-import Control.Applicative	( (<$>) )
+import Cards.Safe
+--------------------------------------------
+import Database
+import IxMap
+--------------------------------------------
+import Control.Applicative	( (<$>), (<*>) )
 import Control.Exception	( bracket )
 import Control.Monad		( msum )
 import Control.Monad.Reader	( ask )
 import Control.Monad.State	( get, put )
+--------------------------------------------
 import Data.Acid			( AcidState, Query, Update , makeAcidic, openLocalState )
 import Data.Acid.Advanced	( query', update' )
 import Data.Acid.Local 		( createCheckpointAndClose )
 import Data.Acid.Memory
 import Data.Acid.Memory.Pure
-import Database
+--------------------------------------------
 import Data.Char
 import Data.Data		( Data, Typeable )
 import Data.IxSet
-import Data.List hiding (insert)
-import qualified Data.List (insert) as linsert
 import Data.Maybe
+import Data.Bifunctor
 import Data.SafeCopy		( base, deriveSafeCopy )
 import Data.Map (Map)
 import Data.Set (Set)
-import qualified Data.Map as M
-import qualified Data.Set as S
+import Data.List hiding (insert)
+import qualified Data.List as List
+import qualified Data.Map as Map
+import qualified Data.Set as Set
 
 data Tag = Tag !String
     deriving (Eq, Ord, Data, Typeable)
 
 instance Stringe Tag where
     ravel x = Tag x
-    unravel (Tag !x) = x
+    unravel (Tag x) = x
 
 instance Show Tag where
     show = shew
+$(deriveSafeCopy 0 'base ''Tag)
 
 data Assoc = Assoc { card :: GenCard, tags :: [Tag] }
-    deriving (Eq, Ord, Read, Show, Data, Typeable)
+    deriving (Eq, Ord, Show, Data, Typeable)
 
 instance Indexable Assoc where
     empty = ixSet 
-                [ ixFun (fromGeneric.card) -- non-generic card-based lookup
-                , ixFun (card) -- generic card-based lookup
+                [ ixFun ((:[]).fromGeneric.card) -- non-generic card-based lookup
+                , ixFun ((:[]).card) -- generic card-based lookup
                 , ixFun (getCardType.card)
                 , ixFun (getCardName.card)
                 , ixFun (getNameWords.card)
@@ -67,21 +75,45 @@ instance Indexable Assoc where
                 , ixFun (getBoosted.card)
                 , ixFun ((map unravel).tags) -- String-based tag lookup
                 , ixFun (tags) -- Tag-based tag lookup
+                , ixFun ((:[]).length.tags) -- Number-of-tags lookup
                 ]
-
-emptyDB = fromList (zipWith Assoc (toList cardDB) (repeat [])) -- cardDB with initially blank taglists
-
 
 type AssocList = IxSet Assoc
 
+emptyDB :: AssocList
+emptyDB = fromList (zipWith Assoc (toList cardDB) (repeat [])) -- cardDB with initially blank taglists
+
+showSum :: AssocList -> String
+showSum x = let z = toList (x @= (0 :: Int))
+                m = toList (x @> (0 :: Int))
+            in unlines $ [ "Untagged: "++(show $ length z)
+                         , "Tagged: "++(show $ length m)
+                         ] ++ map (\x -> (gname.card $ x) ++ ": " ++ (unwords.map unravel.tags $ x)) m
+$(deriveSafeCopy 0 'base ''Assoc)
+
 type TagTable = Set Tag
 
-data DataState = DataState { assocs :: AssocList, tags :: TagTable }
-    deriving (Eq, Ord, Read, Show, Data, Typeable)
+data DataState = DataState { assocs :: AssocList, tagt :: TagTable }
+    deriving (Eq, Ord, Data, Typeable)
+
+instance Show DataState where
+    show d@DataState{..} = "Tags: "++(intercalate ", " . map unravel . Set.toList $ tagt)++"\n"++showSum assocs
+
 $(deriveSafeCopy 0 'base ''DataState)
 
 initialDataState :: DataState
 initialDataState = DataState (emptyDB) (Set.empty)
+
+-- Helper functions for ixset, set and list manipulation
+
+-- List INTO Set
+lintos :: Ord a => [a] -> Set a -> Set a
+lintos l s = foldr (Set.insert) s l
+
+-- List insert
+
+linsert :: Ord a => a -> [a] -> [a]
+linsert = List.insert
 
 -- Assoc-level update functions
 
@@ -91,75 +123,101 @@ addTag t (Assoc c ts) = Assoc c (linsert t ts)
 addTags :: [Tag] -> Assoc -> Assoc
 addTags ts (Assoc c tss) = Assoc c (foldr (linsert) tss ts)
 
+swapTag :: Tag -> Tag -> Assoc -> Assoc
+swapTag old new (Assoc c ts) = Assoc c (linsert new (List.delete old ts))
 
 -- AssocList-level update functions
 
-addCardTag :: Card -> Tag -> AssocList -> AssocList
-addCardTag c t al = updateIx old (addTag t old) al
+addCardTag :: GenCard -> Tag -> AssocList -> AssocList
+addCardTag c t al = updateIx (card old) (addTag t old) al
   where
-    (fromJust.getOne $ al @= c) 
+    old = (fromJust.getOne $ al @= c)
 
-addCardTags :: Card -> [Tag] -> AssocList -> AssocList
+addCardTags :: GenCard -> [Tag] -> AssocList -> AssocList
 addCardTags c ts al = updateIx old (addTags ts old) al
   where
-    (fromJust.getOne $ al @= c) 
+    old = (fromJust.getOne $ al @= c)
 
--- Update Functions
+replaceCardTag :: Tag -> Tag -> AssocList -> AssocList
+replaceCardTag old new al = (al &&& al') ||| al'
+  where
+    al' = mapmix (swapTag old new) (al @= old)
 
-updateTag :: Card -> Tag -> Update DataState ()
-updateTag c t =
+-- Atomic Update Functions
+
+-- Adds a tag to a card on condition that the tag is already in the
+-- tag-table. This condition is not checked
+updateETag :: GenCard -> Tag -> Update DataState ()
+updateETag c t  =
     do d@DataState{..} <- get
-	let newTags = (Set.insert t tags)
-	    newAssocs = addCardTag c t assocs
-	put $ d { assocs = newAssocs, tags = newTags }
+       let newAssocs = addCardTag c t assocs
+       put $ d { assocs = newAssocs, tagt = tagt }
 
-
-updateTags :: Card -> [Tag] -> Update 
-updateTags c ts =
+-- Adds tags to a card on condition that the tags are already in the
+-- tag-table. This condition is not checked
+updateETags :: GenCard -> [Tag] -> Update DataState ()
+updateETags c ts  =
     do d@DataState{..} <- get
-	let newTags = (foldr (Set.insert) tags ts)
-	    newAssocs = addCardTags c t assocs
-	put $ d { assocs = newAssocs, tags = newTags }
+       let newAssocs = addCardTags c ts assocs
+       put $ d { assocs = newAssocs, tagt = tagt }
 
-
-addCards :: Cardlist -> Update DataState ()
-addCards cs =
+updateTTag :: Tag -> Update DataState ()
+updateTTag t =
     do d@DataState{..} <- get
-	let newDB = DB.addCards cs database
-	put $ d { database = newDB }
+       let newTags = (Set.insert t tagt)
+       put $ d { assocs = assocs, tagt = newTags }
 
-initialize :: Cardlist -> DataState
-initialize = flip addCards initialDataState
-
-addCard :: Card -> Update DataState ()
-addCard c =
+updateTTags :: [Tag] -> Update DataState ()
+updateTTags ts =
     do d@DataState{..} <- get
-	let newDB = DB.addCard c database
-	put $ d { database = newDB }
+       let newTags = lintos ts tagt
+       put $ d { assocs = assocs, tagt = newTags }
 
-addEntry :: Card -> Attributes -> Update DataState ()
-addEntry c as =
+mergeTTags :: TagTable -> Update DataState ()
+mergeTTags ts =
     do d@DataState{..} <- get
-	let newTags = (Set.union as tags)
-	    newDB = DB.addEntry c database
+       let newTags = Set.union ts tagt
+       put $ d { assocs = assocs, tagt = newTags }
+
+-- Compound Update Functions
+
+updateTag :: GenCard -> Tag -> Update DataState ()
+updateTag c t = updateTTag t >> updateETag c t
+
+updateTags :: GenCard -> [Tag] -> Update DataState ()
+updateTags c ts = updateTTags ts >> updateETags c ts
+
+replaceTag :: Tag -> Maybe Tag -> Update DataState ()
+replaceTag old new =
+    do d@DataState{..} <- get
+       let newTags = (maybe id (Set.insert) new) $ (Set.delete old tagt)
+           newAssocs = (maybe id (replaceCardTag old) new) $ assocs
+       put $ d { assocs = newAssocs, tagt = newTags }
+
+deleteTag :: Tag -> Update DataState ()
+deleteTag old = replaceTag old (Nothing)
+
+massUpdateTags :: ([(GenCard,[Tag])], Set Tag) -> Update DataState ()
+massUpdateTags (cts, tst) = mergeTTags tst >> mapM_ (uncurry updateETags) cts
+
+computeTags :: (GenCard -> [Tag]) -> ([(GenCard,[Tag])], Set Tag)
+computeTags comp =computeCardTags comp $ toList cardDB
+    where
+      computeCardTags :: (GenCard -> [Tag]) -> [GenCard] -> ([(GenCard,[Tag])], Set Tag)
+      computeCardTags comp gs = foldmap (autoTag comp) Set.empty gs
+
+      autoTag :: (GenCard -> [Tag]) -> (GenCard -> ((GenCard,[Tag]), (Set Tag -> Set Tag)))
+      autoTag comp = \g -> let ts = comp g in ((g,ts), (lintos ts))
 
 -- Query Functions
 
-queryCard :: Card -> Query DataState Bool
-queryCard c = (member c.assocs.database) <$> ask
+queryAssocs :: Query DataState AssocList
+queryAssocs = assocs <$> ask
 
-queryCards :: Query DataState Cardlist
-queryCards = (keysSet.assocs.database) <$> ask
+queryCardTags :: Card -> Query DataState [Tag]
+queryCardTags c = (tags . fromJust . getOne . getEQ (toGeneric c) . assocs) <$> ask
 
-queryAssocs :: Card -> Query DataState Attributes
-queryAssocs c = (lookup c.assocs.database) <$> ask
+queryTagTable :: Query DataState TagTable
+queryTagTable = tagt <$> ask
 
-queryAttrs :: Query DataState Attributes
-queryAttrs = tags <$> ask
-
-queryEntries :: (Card -> Attributes -> Bool) -> Query DataState Database
-queryEntries p = ((filterWithKey p).assocs.database) <$> ask
-
-
-
-
+$(makeAcidic ''DataState ['updateETag, 'updateTTag, 'updateTag, 'updateETags, 'updateTTags, 'mergeTTags, 'updateTags, 'replaceTag, 'deleteTag, 'massUpdateTags, 'queryAssocs, 'queryCardTags, 'queryTagTable])

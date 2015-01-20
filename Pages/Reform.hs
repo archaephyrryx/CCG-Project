@@ -186,49 +186,50 @@ pronounce (nam, code) =
 empower :: (Maybe String, Maybe Color) -> Html
 empower = reqtify
       
-cardForm :: SimpleForm Filter
-cardForm =
+cardForm :: Maybe [Color] -> Maybe [CSet] -> Maybe [Rarity] -> Maybe [CardType] -> SimpleForm Filter
+cardForm mc ms mr mt =
   CardFilter
     <$> labelText "Power:"      ++> inputMin (unval 0)
-    <*> labelText "to"          ++> inputMax (unval 42)  <++ br
+    <*> labelText "to"          ++> inputMax (unval 42)     <++ br
     <*> labelText "Cost:"       ++> inputMin (unval 0)
-    <*> labelText "to"          ++> inputMax (unval 42)  <++ br
+    <*> labelText "to"          ++> inputMax (unval 42)     <++ br
     <*> labelText "Requirement:"++> inputMin (unval 0)
-    <*> labelText "to"          ++> inputMax (unval 42)  <++ br
-    <*> labelText "Color"       ++> sv show colorValues  <++ br
-    <*> labelText "Set"         ++> sv show setValues    <++ br
-    <*> labelText "Type"        ++> sv show typeValues   <++ br
-    <*> labelText "Rarity"      ++> sv show rarityValues <++ br
+    <*> labelText "to"          ++> inputMax (unval 42)     <++ br
+    <*> labelText "Color"       ++> sv show colorValues  mc <++ br
+    <*> labelText "Set"         ++> sv show setValues    ms <++ br
+    <*> labelText "Type"        ++> sv show typeValues   mt <++ br
+    <*> labelText "Rarity"      ++> sv show rarityValues mr <++ br
     <*  inputSubmit "filter"
   
-sv f vs = selectMultiple (map (\x -> (x, f x)) vs) (const False)
+sv f vs (Nothing) = selectMultiple (map (\x -> (x, f x)) vs) (const False)
+sv f vs (Just xs) = selectMultiple (map (\x -> (x, f x)) vs) (`elem`xs)
       
-deckForm :: SimpleForm Filter
-deckForm =
+deckForm :: Maybe [Color] -> Maybe [CSet] -> Maybe [Rarity] -> Maybe [CardType] -> SimpleForm Filter
+deckForm mc ms mr mt =
   DeckFilter
-    <$> labelText "Color"       ++> sv show colorValues  <++ br
-    <*> labelText "Set"         ++> sv show setValues    <++ br
-    <*> labelText "Type"        ++> sv show typeValues   <++ br
-    <*> labelText "Rarity"      ++> sv show rarityValues <++ br
+    <$> labelText "Color"       ++> sv show colorValues  mc <++ br
+    <*> labelText "Set"         ++> sv show setValues    ms <++ br
+    <*> labelText "Type"        ++> sv show typeValues   mt <++ br
+    <*> labelText "Rarity"      ++> sv show rarityValues mr <++ br
     <*  inputSubmit "filter"
 
 
-cardHtml :: Html
-cardHtml = do
+cardHtml :: Maybe [Color] -> Maybe [CSet] -> Maybe [Rarity] -> Maybe [CardType] -> Html
+cardHtml mc ms mr mt = do
     let action = "/card" :: Text
-    result <- happstackEitherForm (form action) "card" cardForm
+    result <- happstackEitherForm (form action) "card" (cardForm mc ms mr mt)
     case result of
         (Left formHtml) ->
             template "Card Form" formHtml
         (Right flt) ->
             template "Card Result" $ [renderFilter flt]
     
-deckHtml :: Html
-deckHtml = do
+deckHtml :: Maybe [Color] -> Maybe [CSet] -> Maybe [Rarity] -> Maybe [CardType] -> Html
+deckHtml mc ms mr mt = do
     let action = "/deck" :: Text
-    result <- happstackEitherForm (form action) "deck" deckForm
+    result <- happstackEitherForm (form action) "deck" (deckForm mc ms mr mt)
     case result of
         (Left formHtml) ->
-            template "Card Form" formHtml
+            template "Deck Form" formHtml
         (Right flt) ->
-            template "Card Result" $ [renderFilter flt]
+            template "Deck Result" $ [renderFilter flt]
