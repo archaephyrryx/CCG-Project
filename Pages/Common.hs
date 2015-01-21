@@ -17,6 +17,23 @@ import HSP
 import HSP.Monad                  (HSPT(..))
 import Language.Haskell.HSX.QQ    (hsx)
 import Application
+import Cards.Common hiding (Text)
+import Cards.Common.Hint
+
+instance EmbedAsAttr (AppT' IO) (Attr Text Req) where
+    asAttr (n := v) = asAttr (n := (Lazy.pack . show . val $ v))
+instance EmbedAsAttr (AppT' IO) (Attr Text Cost) where
+    asAttr (n := v) = asAttr (n := (Lazy.pack . show . val $ v))
+instance EmbedAsAttr (AppT' IO) (Attr Text Power) where
+    asAttr (n := v) = asAttr (n := (Lazy.pack . show . val $ v))
+
+instance (Functor m, Monad m) =>
+         EmbedAsAttr (AppT' m) (Attr Text Strict.Text) where
+    asAttr (n := v) = asAttr (n := Lazy.fromStrict v)
+
+instance (Functor m, Monad m) =>
+         EmbedAsAttr (AppT' m) (Attr Text String) where
+    asAttr (n := v) = asAttr (n := Lazy.pack v)
 
 base :: String -> Html -> Html
 base pagename content = 

@@ -30,7 +30,7 @@ import Text.Reform.Happstack
 import Text.Reform.HSP.Text
 import qualified Pages.Vanilla as Vanilla
 import qualified Pages.Reform as Reformed
-import Pages.Reform (cardHtml, deckHtml)
+import Pages.Reform (cardHtml, deckHtml, CFilterSig, DFilterSig)
 import Pages.Common
 import Pages.Card
 import Cards.Common
@@ -59,12 +59,12 @@ home = base pagename $
   where
     pagename = sitename
 
-card :: Maybe [Color] -> Maybe [CSet] -> Maybe [Rarity] -> Maybe [CardType] -> Html
-card mc ms mr mt = base pagename (cardHtml mc ms mr mt)
+card :: CFilterSig
+card x mc ms mr mt = base pagename (cardHtml x mc ms mr mt)
   where
     pagename = sitename ++ ": Cards"
 
-deck :: Maybe [Color] -> Maybe [CSet] -> Maybe [Rarity] -> Maybe [CardType] -> Html
+deck :: DFilterSig
 deck mc ms mr mt = base pagename (deckHtml mc ms mr mt)
   where
     pagename = sitename ++ ": Deck Builder"

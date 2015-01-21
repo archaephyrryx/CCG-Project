@@ -33,6 +33,15 @@
     background-color: #c39bcd
 }
 
+.element.NoColor, .element.Wild {
+    background-color: #c4c0bd
+}
+
+.element.Wild {
+    border: 2px solid gray
+}
+
+
 .element.Event {
     background-color: #c4c0bd!important
 }

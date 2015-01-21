@@ -57,27 +57,15 @@ import MLPCCG
 import Application
 import Reformation
 import Pages.Common (template)
+import Pages.Card (reqtify, empower, pronounce)
 ---------------------------------------------------
-
-instance EmbedAsAttr (AppT' IO) (Attr Text Req) where
-    asAttr (n := v) = asAttr (n := (Lazy.pack . show . val $ v))
-instance EmbedAsAttr (AppT' IO) (Attr Text Cost) where
-    asAttr (n := v) = asAttr (n := (Lazy.pack . show . val $ v))
-instance EmbedAsAttr (AppT' IO) (Attr Text Power) where
-    asAttr (n := v) = asAttr (n := (Lazy.pack . show . val $ v))
 
 newtype AppError = AppCFE (CommonFormError [Input])
     deriving (Show)
 
 type SimpleForm = Form (AppT IO) [Input] AppError [Html] ()
-
-instance (Functor m, Monad m) =>
-         EmbedAsAttr (AppT' m) (Attr Text Strict.Text) where
-    asAttr (n := v) = asAttr (n := Lazy.fromStrict v)
-
-instance (Functor m, Monad m) =>
-         EmbedAsAttr (AppT' m) (Attr Text String) where
-    asAttr (n := v) = asAttr (n := Lazy.pack v)
+type CFilterSig = ([Maybe Power],[Maybe Cost],[Maybe Req]) -> Maybe [Color] -> Maybe [CSet] -> Maybe [Rarity] -> Maybe [CardType] -> Html
+type DFilterSig = Maybe [Color] -> Maybe [CSet] -> Maybe [Rarity] -> Maybe [CardType] -> Html
 
 instance (Functor m, Monad m) => EmbedAsChild (AppT' m) AppError where
   asChild (AppCFE cfe)      =
@@ -88,12 +76,12 @@ instance FormError AppError where
     commonFormError = AppCFE
 
 data Filter = CardFilter
-                { powMin :: Power
-                , powMax :: Power
-                , costMin :: Cost
-                , costMax :: Cost
-                , reqMin :: Req
-                , reqMax :: Req
+                { powMin :: Maybe Power
+                , powMax :: Maybe Power
+                , costMin :: Maybe Cost
+                , costMax :: Maybe Cost
+                , reqMin :: Maybe Req
+                , reqMax :: Maybe Req
                 , colors :: [Color]
                 , sets :: [CSet]
                 , types :: [CardType]
@@ -107,12 +95,20 @@ data Filter = CardFilter
                 }
         deriving (Eq, Ord, Read, Show)
 
+mhfilter :: Filter -> IxSet GenCard -> IxSet GenCard
+mhfilter c@CardFilter{..} = (if isJust powMin then (@>= (fromJust powMin)) else id) . (if isJust powMax then (@<= (fromJust powMax)) else id) . (if isJust costMin then (@>= (fromJust costMin)) else id) . (if isJust costMax then (@<= (fromJust costMax)) else id) . (if isJust reqMin then (@>= (fromJust reqMin)) else id) . (if isJust reqMax then (@<= (fromJust reqMax)) else id)
+
+full :: [a] -> Bool
+full [] = False
+full _ = True
+
+mcfilter :: Filter -> IxSet GenCard -> IxSet GenCard
+mcfilter c@CardFilter{..} = (if full colors then (@+ colors) else id) . (if full sets then (@+ sets) else id) . (if full types then (@+ types) else id) . (if full rarities then (@+ rarities) else id)
+mcfilter d@DeckFilter{..} = (if full colors then (@+ colors) else id) . (if full sets then (@+ sets) else id) . (if full types then (@+ types) else id) . (if full rarities then (@+ rarities) else id)
 
 applyFilter :: Filter -> [GenCard]
-applyFilter c@CardFilter{..} =
-    toList $ cardDB @>= powMin @<= powMax @>= costMin @<= costMax @>= reqMin @<= reqMax @+ colors @+ sets @+ types @+ rarities
-applyFilter d@DeckFilter{..} =
-    toList $ cardDB @+ colors @+ sets @+ types @+ rarities
+applyFilter c@CardFilter{..} = toList $ mcfilter c . mhfilter c $ cardDB
+applyFilter d@DeckFilter{..} = toList $ mcfilter d $ cardDB
 
 renderFilter :: Filter -> Html
 renderFilter fil = let gens = applyFilter fil in
@@ -139,9 +135,9 @@ cardLine g@GenCard{..} =
       <td><% brief rar %></td>
       <td><% iconic ctype %></td>
       <td><% fromMaybe "" (show.val <$> mcost) %></td>
-      <td><% reqtify (show.val <$> mreq,mcolor) %></td>
-      <td><% pronounce (unravel name,genset g) %></td>
-      <td><% empower (show.val <$> mpower,mcolor) %></td>
+      <td><% reqtify g %></td>
+      <td><% pronounce (unravel name, genset $ g)%></td>
+      <td><% empower g %></td>
     </tr> :: Html
   |]
 
@@ -152,55 +148,22 @@ iconic x = let ipath = "res/icns/"++(show x)++".png" in
       <img class="icon" [ "src" := ipath :: Attr Text String ] />
     </%> :: GCL
   |]
-
-reqtify :: (Maybe String, Maybe Color) -> Html
-reqtify (Nothing,_) = [hsx|<span/>|]
-reqtify (Just s, c) = 
-  [hsx|
-    <p [ "style" := ("background-color:"++(colorize c)) :: Attr Text String]>
-      <% s %>
-    </p> :: Html
-  |]
-  where
-    colorize :: Maybe Color -> String
-    colorize (Nothing) = "#c4c0bd"
-    colorize (Just Wild) = "#c4c0bd"
-    colorize (Just c) = fromJust (lookup (show c) ctab)
-    ctab :: [(String,String)]
-    ctab = [ ("Blue","#4dc6ce")
-           , ("Orange","#ff8c57")
-           , ("Pink","#e17baa")
-           , ("Purple","#c39bcd")
-           , ("White","#dfe7e9")
-           , ("Yellow","#f6d673")
-           ]
-
-pronounce :: (String, String) -> Html
-pronounce (nam, code) =
-  [hsx|
-    <a [ "href" := ("card/"++code) :: Attr Text String ]>
-      <% nam %>
-    </a> :: Html
-  |]
-
-empower :: (Maybe String, Maybe Color) -> Html
-empower = reqtify
       
-cardForm :: Maybe [Color] -> Maybe [CSet] -> Maybe [Rarity] -> Maybe [CardType] -> SimpleForm Filter
-cardForm mc ms mr mt =
+cardForm :: ([Maybe Power],[Maybe Cost],[Maybe Req]) -> Maybe [Color] -> Maybe [CSet] -> Maybe [Rarity] -> Maybe [CardType] -> SimpleForm Filter
+cardForm ([mnp,mxp],[mnc,mxc],[mnr,mxr]) mc ms mr mt =
   CardFilter
-    <$> labelText "Power:"      ++> inputMin (unval 0)
-    <*> labelText "to"          ++> inputMax (unval 42)     <++ br
-    <*> labelText "Cost:"       ++> inputMin (unval 0)
-    <*> labelText "to"          ++> inputMax (unval 42)     <++ br
-    <*> labelText "Requirement:"++> inputMin (unval 0)
-    <*> labelText "to"          ++> inputMax (unval 42)     <++ br
+    <$> labelText "Power:"      ++> inputMin mnp
+    <*> labelText "to"          ++> inputMax mxp            <++ br
+    <*> labelText "Cost:"       ++> inputMin mnc
+    <*> labelText "to"          ++> inputMax mxc            <++ br
+    <*> labelText "Requirement:"++> inputMin mnr
+    <*> labelText "to"          ++> inputMax mxr            <++ br
     <*> labelText "Color"       ++> sv show colorValues  mc <++ br
     <*> labelText "Set"         ++> sv show setValues    ms <++ br
     <*> labelText "Type"        ++> sv show typeValues   mt <++ br
     <*> labelText "Rarity"      ++> sv show rarityValues mr <++ br
-    <*  inputSubmit "filter"
-  
+    <*  inputSubmit "Filter"
+
 sv f vs (Nothing) = selectMultiple (map (\x -> (x, f x)) vs) (const False)
 sv f vs (Just xs) = selectMultiple (map (\x -> (x, f x)) vs) (`elem`xs)
       
@@ -211,20 +174,20 @@ deckForm mc ms mr mt =
     <*> labelText "Set"         ++> sv show setValues    ms <++ br
     <*> labelText "Type"        ++> sv show typeValues   mt <++ br
     <*> labelText "Rarity"      ++> sv show rarityValues mr <++ br
-    <*  inputSubmit "filter"
+    <*  inputSubmit "Filter"
 
 
-cardHtml :: Maybe [Color] -> Maybe [CSet] -> Maybe [Rarity] -> Maybe [CardType] -> Html
-cardHtml mc ms mr mt = do
+cardHtml :: CFilterSig
+cardHtml x mc ms mr mt = do
     let action = "/card" :: Text
-    result <- happstackEitherForm (form action) "card" (cardForm mc ms mr mt)
+    result <- happstackEitherForm (form action) "card" (cardForm x mc ms mr mt)
     case result of
         (Left formHtml) ->
             template "Card Form" formHtml
         (Right flt) ->
             template "Card Result" $ [renderFilter flt]
     
-deckHtml :: Maybe [Color] -> Maybe [CSet] -> Maybe [Rarity] -> Maybe [CardType] -> Html
+deckHtml :: DFilterSig
 deckHtml mc ms mr mt = do
     let action = "/deck" :: Text
     result <- happstackEitherForm (form action) "deck" (deckForm mc ms mr mt)

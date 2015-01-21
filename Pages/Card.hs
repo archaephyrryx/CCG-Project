@@ -6,7 +6,7 @@
     ScopedTypeVariables, TemplateHaskell, TypeFamilies,
     TypeSynonymInstances #-} 
 
-module Pages.Card (single) where
+module Pages.Card where
 -------------------------------------------------
 import Control.Applicative
 import Control.Applicative.Indexed  ( IndexedFunctor(..) , IndexedApplicative(..))
@@ -59,10 +59,6 @@ import Application
 import Reformation
 import Pages.Common (template, base)
 ---------------------------------------------------
-
-instance (Functor m, Monad m) =>
-         EmbedAsAttr (AppT' m) (Attr Text String) where
-    asAttr (n := v) = asAttr (n := Lazy.pack v)
 
 type SetNum = (CSet, Number)
 type GCR = GenCard -> Html
@@ -133,8 +129,8 @@ cardText g@GenCard{ctype=TMane, ..} =
     </dl> :: Html
   |]
   where
-    front = unlines (splitOn " <P> " (fromJust (stripPrefix "Front: " (head (splitOn " Back: " (unravel text))))))
-    back = unlines (splitOn " <P> " (last (splitOn " Back: " (unravel text))))
+    front = brunlines (splitOn "<P>" (fromJust (stripPrefix "Front: " (head (splitOn " Back: " (unravel text))))))
+    back = brunlines (splitOn "<P>" (last (splitOn " Back: " (unravel text))))
 cardText g@GenCard{..} =
   [hsx|
     <dl>
@@ -145,7 +141,18 @@ cardText g@GenCard{..} =
     </dl> :: Html
   |]
   where
-    cardtext = unlines (splitOn " <P> " (unravel text))
+    cardtext = brunlines (splitOn "<P>" (unravel text))
+
+brunlines :: [String] -> GCL
+brunlines xs =
+  [hsx|
+    <%>
+      <% mapM brline xs %>
+    </%>
+  |]
+  where
+      brline :: String -> Html
+      brline s = [hsx| <p> <% s %> </p> :: Html |]
 
 cardInfo :: GCR
 cardInfo g@GenCard{..} =
@@ -217,22 +224,21 @@ colLink = propLink "color" (maybe "Wild" show . mcolor)
 
 
 reqtify :: GCR
-reqtify g@GenCard{..} = cbox (show<$>mreq, mcolor)
+reqtify g@GenCard{..} = cbox (show.val<$>mreq, mcolor)
 empower :: GCR
-empower g@GenCard{..} = cbox (show<$>mpower, mcolor)
+empower g@GenCard{..} = cbox (show.val<$>mpower, mcolor)
 appraise :: GCR
-appraise g@GenCard{..} = cbox (show<$>mcost, mcolor)
-
+appraise g@GenCard{..} = cbox (show.val<$>mcost, Nothing)
 conf :: GCR
 conf g@GenCard{ctype=TProblem, ..} =
   [hsx|
     <span>
-      <% mapM (\(y,x) -> cbox (pure.show $ x, pure $ y)).fst.fromJust $ mpreqs %>
+      <% mapM (\(y,x) -> cbox (pure.show.val $ x, pure $ y)).fst.fromJust $ mpreqs %>
     </span> :: Html
   |]
 conf _ = cbox (Nothing, Nothing)
 conf' :: GCR
-conf' g@GenCard{ctype=TProblem, ..} = (\x -> cbox (Just (show x), Nothing)).snd.fromJust $ mpreqs
+conf' g@GenCard{ctype=TProblem, ..} = (\x -> cbox (Just (show.val $ x), Nothing)).snd.fromJust $ mpreqs
 conf' _ = cbox (Nothing, Nothing)
 
 cardTraits :: GCR
