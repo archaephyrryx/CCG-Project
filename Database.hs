@@ -10,6 +10,7 @@ import Cards.Common.Hint
 import Cards.Common.Stringe
 import Cards.Common.Abbrev
 import Cards.Common.Color
+import Cards.Parser
 import Cards.Generic
 import Cards.Pretty
 import MLPCCG
@@ -34,24 +35,6 @@ import qualified Data.Map as Map
 import qualified Data.Set as Set
 import Data.Map (Map)
 import Data.Set (Set)
-
-{-
- -data GenCard = GenCard { ctype    :: CardType
- -                       , name     :: Name
- -                       , set      :: CSet
- -                       , num      :: Number
- -                       , rar      :: Rarity
- -                       , keywords :: Keywords
- -                       , mcolor    :: Maybe Color
- -                       , mcost     :: Maybe Cost
- -                       , mreq      :: Maybe Req
- -                       , mpower    :: Maybe Power
- -                       , mboosted  :: Maybe Power
- -                       , mpoints   :: Maybe Points
- -                       , mpreqs    :: Maybe ProblemReq
- -                       , text     :: Text
- -                       } deriving (Show)
- -}
 
 -- Index accessor functions
 
@@ -133,6 +116,8 @@ instance Indexable GenCard where
                 , ixFun getBoosted
                 ]
 
+allcards :: Set Card
 allcards = parsage mlpccg
 
+cardDB :: IxSet GenCard
 cardDB = Set.foldr (\x y -> insert (toGeneric x) y) empty (allcards)

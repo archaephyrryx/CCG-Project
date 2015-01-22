@@ -17,6 +17,20 @@ instance Abbrev CSet where
     brief = shorten.show
     verbose = show
 
+instance Read CSet where
+    readsPrec = const (readsSet.(map toLower))
+
+readsSet :: ReadS CSet
+readsSet s = (`zip`[""]).(:[]) $ case s of
+      ('p':_)     -> Premiere
+      ('r':_)     -> RockNRave
+      ('c':'r':_) -> CrystalGames
+      ('c':'g':_) -> CrystalGames
+      ('c':'a':_) -> CanterlotNights
+      ('c':'n':_) -> CanterlotNights
+      ('c':'s':_) -> CelestialSolstice
+      ('c':'e':_) -> CelestialSolstice
+
 instance Show CSet where
     show Premiere = "Premiere"
     show CanterlotNights = "Canterlot Nights"

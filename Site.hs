@@ -5,12 +5,28 @@
 
 module Site where
 
+import Control.Applicative        ((<$>))
 import Control.Monad
 import Text.Blaze ((!))
 import Data.Monoid ((<>))
 import Text.Blaze.Html5 (Html)
 import qualified Text.Blaze.Html5 as H
 import qualified Text.Blaze.Html5.Attributes as A
+import Data.List (intercalate)
+import Data.Char                  (toLower)
+import Happstack.Server
+import Application
+import Text.Reform
+    ( CommonFormError(..), Form, FormError(..), Proof(..), (++>)
+    , (<++), commonFormErrorStr, decimal, prove
+    , transformEither, transform )
+import Text.Reform.Blaze
+import qualified Pages.Vanilla as Vanilla
+import qualified Pages.Reform as Reformed
+import Pages.Reform (cardHtml, deckHtml, CFilterSig, DFilterSig)
+import Pages.Common
+import Pages.Card
+import Cards.Common
 
 sitename = "HappleJack"
 
@@ -65,15 +81,15 @@ home = base pagename (H.div $ do
     where
         pagename = sitename
 
-card :: Html
-card = base (pagename ++ ": Cards") card'
-    where
-        pagename = sitename
+card :: CFilterSig
+card x mc ms mr mt = base pagename (cardHtml x mc ms mr mt)
+  where
+    pagename = sitename ++ ": Cards"
 
-deck :: Html
-deck = base (pagename ++ ": Deck Builder") deck'
-    where
-        pagename = sitename
+deck :: DFilterSig
+deck mc ms mr mt = base pagename (deckHtml mc ms mr mt)
+  where
+    pagename = sitename ++ ": Deck Builder"
 
 inputNumber :: String -> String -> H.Html
 inputNumber name placeholder = H.input ! A.type_ "number"

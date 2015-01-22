@@ -1,4 +1,4 @@
-{-# LANGUAGE DeriveDataTypeable #-}
+{-# LANGUAGE DeriveDataTypeable, GeneralizedNewtypeDeriving #-}
 
 module Cards.Common.Color where
 
@@ -8,7 +8,7 @@ import Data.Data (Data, Typeable)
 
 data Color =    Blue |    Yellow |    Purple |    Pink |    White |    Orange
 	       | NonBlue | NonYellow | NonPurple | NonPink | NonWhite | NonOrange
-           | Wild deriving (Show, Read, Eq, Ord, Typeable)
+           | Wild deriving (Show, Read, Eq, Ord, Data, Typeable)
 
 instance Invotomorph Color where
     classX = spect
