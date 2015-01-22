@@ -1,146 +1,99 @@
 {-# LANGUAGE FlexibleContexts, FlexibleInstances,
     MultiParamTypeClasses, ScopedTypeVariables,
     TypeFamilies, TypeSynonymInstances,
-    OverlappingInstances,
-    QuasiQuotes, OverloadedStrings #-}
+    OverlappingInstances, OverloadedStrings #-}
 
 module Pages.Vanilla where
 
-import Control.Applicative        ((<$>))
 import Control.Monad
-import Control.Monad.Identity     (Identity(runIdentity))
-import Data.List (intercalate)
-import Data.String                (IsString(fromString))
-import Data.Text.Lazy             (Text)
-import qualified Data.Text        as Strict
-import qualified Data.Text.Lazy   as Lazy
-import Data.Char                  (toLower)
-import Happstack.Server
-import Happstack.Server.XMLGenT
-import HSP
-import HSP.Monad                  (HSPT(..))
-import Language.Haskell.HSX.QQ    (hsx)
-import Application
+import Data.Char
+import Data.List
+import Data.Monoid ((<>))
+import Pages.Card
 import Pages.Common
+import Text.Blaze ((!))
+import Text.Blaze.Html5 (Html)
+import qualified Text.Blaze.Html5 as H
+import qualified Text.Blaze.Html5.Attributes as A
 
 sitename = "HappleJack"
 
+inputNumber :: String -> String -> H.Html
+inputNumber name placeholder = H.input ! A.type_ "number"
+                                       ! A.min "0"
+                                       ! A.step "1"
+                                       ! A.pattern "\\d+"
+                                       ! A.name (H.toValue name)
+                                       ! A.placeholder (H.toValue placeholder)
+
 cardHtml :: Html
-cardHtml =
-  [hsx|
-    <form method="post" action="/card">
-      <table id="filter">
-        <tr>
-          <td>
-            <% minmax %>
-          </td>
-          <% selectFilter %>
-        </tr>
-        <% buttons %>
-      </table>
-    </form>
-  |]
+cardHtml = H.form ! A.action "/card" ! A.method "post" $ do 
+    H.table ! A.id "filter" $ do
+        H.tr $ do
+          minmax
+          selectFilter
+          
 
 deckHtml :: Html
-deckHtml =
-  [hsx|
-    <form method="post" action="/deck">
-      <table id="filter">
-        <tr>
-          <% selectFilter %>
-        </tr>
-        <% buttons %>
-      </table>
-    </form>
-  |]
-
-buttons :: Html
-buttons =
-  [hsx|
-    <tr>
-      <td><button type="reset">Reset</button></td>
-      <td><button type="submit">Submit</button></td>
-    </tr> :: Html
-  |]
+deckHtml = H.form ! A.action "/deck" ! A.method "post" $ do 
+    H.table ! A.id "filter" $ do
+        H.tr $ do
+           selectFilter 
 
 minmax :: Html
-minmax =
-  [hsx|
-    <div id="minmax">
-      <div>
-        <label for="powRange">Power</label>
-        <div id="powRange">
-          <input name="powmin" placeholder="Min" type="number" min="0" step="1" pattern="[0-9]+"/>
-          to
-          <input name="powmax" placeholder="Max" type="number" min="0" step="1" pattern="[0-9]+"/>
-        </div>
-      </div>
-      <div>
-        <label for="costRange">Cost</label>
-        <div id="costRange">
-          <input name="costmin" placeholder="Min" type="number" min="0" step="1" pattern="[0-9]+"/>
-          to
-          <input name="costmax" placeholder="Max" type="number" min="0" step="1" pattern="[0-9]+"/>
-        </div>
-      </div>
-      <div>
-        <label for="reqRange">Requirement</label>
-        <div id="reqRange">
-          <input name="reqmin" placeholder="Min" type="number" min="0" step="1" pattern="[0-9]+"/>
-          to
-          <input name="reqmax" placeholder="Max" type="number" min="0" step="1" pattern="[0-9]+"/>
-        </div>
-      </div>
-    </div> :: Html
-  |]
+minmax = H.td $ do
+                H.div ! A.id "minmax" $ do
+                    H.label ! A.for "powRange" $ "Power"
+                    H.div ! A.id "powRange" $ do
+                        (inputNumber "powmin" "Min")
+                        "to"
+                        (inputNumber "powmax" "Max")
+                    H.label ! A.for "costRange" $ "Cost"
+                    H.div ! A.id "costRange" $ do
+                        (inputNumber "costmin" "Min")
+                        "to"
+                        (inputNumber "costmax" "Max")
+                    H.label ! A.for "reqRange" $ "Requirement"
+                    H.div ! A.id "reqRange" $ do
+                        (inputNumber "reqmin" "Min")
+                        "to"
+                        (inputNumber "reqmax" "Max")
 
 selectFilter :: Html
-selectFilter =
-  [hsx|
-    <div id="selectFilter">
-      <td>
-        <label for="setFilter">Set</label>
-        <select name="setFilter" multiple="true">
-          <option value="0">Premiere</option>
-          <option value="1">Canterlot Nights</option>
-          <option value="2">Rock and Rave</option>
-          <option value="3">Celestial Solstice</option>
-          <option value="4">Crystal Games</option>
-        </select>
-      </td>
-      <td>
-        <label for="colorFilter">Color</label>
-        <select name="colorFilter" multiple="true">
-          <option value="0">None</option>
-          <option value="1">Blue</option>
-          <option value="2">Orange</option>
-          <option value="3">Pink</option>
-          <option value="4">Purple</option>
-          <option value="5">White</option>
-          <option value="6">Yellow</option>
-        </select>
-      </td>
-      <td>
-        <label for="typeFilter">Type</label>
-        <select name="typeFilter" multiple="true">
-          <option value="0">Mane</option>
-          <option value="1">Friend</option>
-          <option value="2">Event</option>
-          <option value="3">Resource</option>
-          <option value="4">Troublemaker</option>
-          <option value="5">Problem</option>
-        </select>
-      </td>
-      <td>
-        <label for="rarityFilter">Rarity</label>
-        <select name="rarityFilter" multiple="true">
-          <option value="0">Fixed</option>
-          <option value="1">Common</option>
-          <option value="2">Uncommon</option>
-          <option value="3">Rare</option>
-          <option value="4">Ultra-Rare</option>
-          <option value="5">Promo</option>
-        </select>
-      </td>
-    </div> :: Html
-  |]
+selectFilter = do
+            H.td $ do
+                H.label ! A.for "setFilter" $ "Set"
+                H.select ! A.name "setFilter" ! A.multiple "true" $ do
+                    H.option ! A.value "0" $ "Premiere"
+                    H.option ! A.value "1" $ "Canterlot Nights"
+                    H.option ! A.value "2" $ "Rock and Rave"
+                    H.option ! A.value "3" $ "Celestial Solstice"
+                    H.option ! A.value "4" $ "Crystal Games"
+            H.td $ do        
+                H.label ! A.for "colFilter" $ "Color"
+                H.select ! A.name "colFilter" ! A.multiple "true" $ do
+                    H.option ! A.value "0" $ "None"
+                    H.option ! A.value "1" $ "Blue"
+                    H.option ! A.value "2" $ "Yellow"
+                    H.option ! A.value "3" $ "Purple"
+                    H.option ! A.value "4" $ "Pink"
+                    H.option ! A.value "5" $ "Orange"
+                    H.option ! A.value "6" $ "White"
+            H.td $ do        
+                H.label ! A.for "tyepFilter" $ "Type"
+                H.select ! A.name "typeFilter" ! A.multiple "true" $ do
+                    H.option ! A.value "0" $ "Mane"
+                    H.option ! A.value "1" $ "Friend"
+                    H.option ! A.value "2" $ "Resource"
+                    H.option ! A.value "3" $ "Event"
+                    H.option ! A.value "4" $ "Troublemaker"
+                    H.option ! A.value "5" $ "Problem"
+            H.td $ do        
+                H.label ! A.for "rarFilter" $ "Rarity"
+                H.select ! A.name "rarFilter" ! A.multiple "true" $ do
+                    H.option ! A.value "0" $ "Fixed"
+                    H.option ! A.value "1" $ "Common"
+                    H.option ! A.value "2" $ "Uncommon"
+                    H.option ! A.value "3" $ "Rare"
+                    H.option ! A.value "4" $ "Ultra-Rare"
+                    H.option ! A.value "5" $ "Promo"

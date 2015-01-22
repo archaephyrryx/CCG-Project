@@ -5,71 +5,34 @@
 
 module Site where
 
+import Cards.Common hiding (Text)
 import Control.Applicative        ((<$>))
 import Control.Monad
-import Text.Blaze ((!))
+import Data.Char                  (toLower)
+import Data.List (intercalate)
 import Data.Monoid ((<>))
-import Text.Blaze.Html5 (Html)
+import Happstack.Server
+import Pages.Card
+import Pages.Common
+import Pages.Reform
+import Data.Text.Lazy (Text)
+import qualified Pages.Reform as Reformed
+import qualified Pages.Vanilla as Vanilla
 import qualified Text.Blaze.Html5 as H
 import qualified Text.Blaze.Html5.Attributes as A
-import Data.List (intercalate)
-import Data.Char                  (toLower)
-import Happstack.Server
-import Application
+import qualified Data.ByteString.Char8 as C
+import Text.Blaze.Html.Renderer.Utf8 (renderHtml)
+import Text.Blaze.Html5 (Html)
+import Text.Blaze
 import Text.Reform
-    ( CommonFormError(..), Form, FormError(..), Proof(..), (++>)
-    , (<++), commonFormErrorStr, decimal, prove
-    , transformEither, transform )
-import Text.Reform.Blaze
-import qualified Pages.Vanilla as Vanilla
-import qualified Pages.Reform as Reformed
-import Pages.Reform (cardHtml, deckHtml, CFilterSig, DFilterSig)
-import Pages.Common
-import Pages.Card
-import Cards.Common
+import Text.Reform.Happstack
+import Text.Reform.Blaze.String
 
 sitename = "HappleJack"
 
-appTemplate :: String -> [Html] -> Html -> Html
-appTemplate title headers body = 
-    H.html $ do
-        H.head $ do
-            H.title (H.toHtml title)
-            H.meta ! A.httpEquiv "Content-Type"
-                   ! A.content "text/html;charset=utf-8"
-            sequence_ headers
-        H.body $ do
-            body
+page :: Html -> ServerPartT IO Response
+page = ok . blazeResponse
 
-base :: String -> Html -> Html
-base title content =
-    H.html $ do
-        H.head $ do
-            H.title (H.toHtml title)
-            H.meta ! A.httpEquiv "Content-Type"
-                   ! A.content "text/html;charset=utf-8"
-            sequence_ headers
-        H.body $ do
-            nav
-            content
-    where
-        headers = [ H.meta ! A.name "keywords"
-                           ! A.content "my little pony, mlp, ccg, tcg, enterplay, tabletop, brony"
-                  , H.meta ! A.name "description"
-                           ! A.content "My Little Pony CCG Metadatabase"
-                  ]
-
-nav :: Html
-nav = H.nav $ do
-        H.a ! A.href "/home" $ logo
-        H.a ! A.href "/card" $ "Cards"
-        H.a ! A.href "/deck" $ "Deck Builder"
-        H.form $ do
-            H.input ! A.type_ "search" ! A.placeholder "Search"
-    where
-        logo = H.img ! A.class_ "logo" ! A.src "/res/logo.png"
-        
-        
 home :: Html
 home = base pagename (H.div $ do
                         H.h1 $ (H.toHtml $ pagename)
@@ -81,120 +44,24 @@ home = base pagename (H.div $ do
     where
         pagename = sitename
 
-card :: CFilterSig
-card x mc ms mr mt = base pagename (cardHtml x mc ms mr mt)
-  where
-    pagename = sitename ++ ": Cards"
+cardHtml :: Html -> Html
+cardHtml = base (sitename ++ ": Cards")
 
-deck :: DFilterSig
-deck mc ms mr mt = base pagename (deckHtml mc ms mr mt)
-  where
-    pagename = sitename ++ ": Deck Builder"
+deckHtml :: Html -> Html
+deckHtml = base (sitename ++ ": Deck Builder")
 
-inputNumber :: String -> String -> H.Html
-inputNumber name placeholder = H.input ! A.type_ "number"
-                                       ! A.min "0"
-                                       ! A.step "1"
-                                       ! A.pattern "\\d+"
-                                       ! A.name (H.toValue name)
-                                       ! A.placeholder (H.toValue placeholder)
+blazeResponse :: Html -> Response
+blazeResponse html = toResponseBS (C.pack "text/html;charset=UTF-8") $ renderHtml html
 
-card' :: Html
-card' = H.form ! A.action "/card" ! A.method "post" $ do 
-    H.table ! A.id "filter" $ do
-        H.tr $ do
-            H.td $ do
-                H.div ! A.id "minmax" $ do
-                    H.label ! A.for "powRange" $ "Power"
-                    H.div ! A.id "powRange" $ do
-                        (inputNumber "powmin" "Min")
-                        "to"
-                        (inputNumber "powmax" "Max")
-                    H.label ! A.for "costRange" $ "Cost"
-                    H.div ! A.id "costRange" $ do
-                        (inputNumber "costmin" "Min")
-                        "to"
-                        (inputNumber "costmax" "Max")
-                    H.label ! A.for "reqRange" $ "Requirement"
-                    H.div ! A.id "reqRange" $ do
-                        (inputNumber "reqmin" "Min")
-                        "to"
-                        (inputNumber "reqmax" "Max")
-            H.td $ do
-                H.label ! A.for "setFilter" $ "Set"
-                H.select ! A.name "setFilter" ! A.multiple "true" $ do
-                    H.option ! A.value "0" $ "Premiere"
-                    H.option ! A.value "1" $ "Canterlot Nights"
-                    H.option ! A.value "2" $ "Rock and Rave"
-                    H.option ! A.value "3" $ "Celestial Solstice"
-                    H.option ! A.value "4" $ "Crystal Games"
-            H.td $ do        
-                H.label ! A.for "colFilter" $ "Color"
-                H.select ! A.name "colFilter" ! A.multiple "true" $ do
-                    H.option ! A.value "0" $ "None"
-                    H.option ! A.value "1" $ "Blue"
-                    H.option ! A.value "2" $ "Yellow"
-                    H.option ! A.value "3" $ "Purple"
-                    H.option ! A.value "4" $ "Pink"
-                    H.option ! A.value "5" $ "Orange"
-                    H.option ! A.value "6" $ "White"
-            H.td $ do        
-                H.label ! A.for "tyepFilter" $ "Type"
-                H.select ! A.name "typeFilter" ! A.multiple "true" $ do
-                    H.option ! A.value "0" $ "Mane"
-                    H.option ! A.value "1" $ "Friend"
-                    H.option ! A.value "2" $ "Resource"
-                    H.option ! A.value "3" $ "Event"
-                    H.option ! A.value "4" $ "Troublemaker"
-                    H.option ! A.value "5" $ "Problem"
-            H.td $ do        
-                H.label ! A.for "rarFilter" $ "Rarity"
-                H.select ! A.name "rarFilter" ! A.multiple "true" $ do
-                    H.option ! A.value "0" $ "Fixed"
-                    H.option ! A.value "1" $ "Common"
-                    H.option ! A.value "2" $ "Uncommon"
-                    H.option ! A.value "3" $ "Rare"
-                    H.option ! A.value "4" $ "Ultra-Rare"
-                    H.option ! A.value "5" $ "Promo"
+card :: CFilterSig (ServerPart Response)
+card x mc ms mr mt = formHandler "/card" "card" (cardForm x mc ms mr mt)
+    
+deck :: DFilterSig (ServerPart Response)
+deck mc ms mr mt = formHandler "/deck" "deck" (deckForm mc ms mr mt)
 
-
-deck' :: Html
-deck' = H.form ! A.action "/deck" ! A.method "post" $ do 
-    H.table ! A.id "filter" $ do
-        H.tr $ do
-            H.td $ do
-                H.label ! A.for "setFilter" $ "Set"
-                H.select ! A.name "setFilter" ! A.multiple "true" $ do
-                    H.option ! A.value "0" $ "Premiere"
-                    H.option ! A.value "1" $ "Canterlot Nights"
-                    H.option ! A.value "2" $ "Rock and Rave"
-                    H.option ! A.value "3" $ "Celestial Solstice"
-                    H.option ! A.value "4" $ "Crystal Games"
-            H.td $ do        
-                H.label ! A.for "colFilter" $ "Color"
-                H.select ! A.name "colFilter" ! A.multiple "true" $ do
-                    H.option ! A.value "0" $ "None"
-                    H.option ! A.value "1" $ "Blue"
-                    H.option ! A.value "2" $ "Yellow"
-                    H.option ! A.value "3" $ "Purple"
-                    H.option ! A.value "4" $ "Pink"
-                    H.option ! A.value "5" $ "Orange"
-                    H.option ! A.value "6" $ "White"
-            H.td $ do        
-                H.label ! A.for "tyepFilter" $ "Type"
-                H.select ! A.name "typeFilter" ! A.multiple "true" $ do
-                    H.option ! A.value "0" $ "Mane"
-                    H.option ! A.value "1" $ "Friend"
-                    H.option ! A.value "2" $ "Resource"
-                    H.option ! A.value "3" $ "Event"
-                    H.option ! A.value "4" $ "Troublemaker"
-                    H.option ! A.value "5" $ "Problem"
-            H.td $ do        
-                H.label ! A.for "rarFilter" $ "Rarity"
-                H.select ! A.name "rarFilter" ! A.multiple "true" $ do
-                    H.option ! A.value "0" $ "Fixed"
-                    H.option ! A.value "1" $ "Common"
-                    H.option ! A.value "2" $ "Uncommon"
-                    H.option ! A.value "3" $ "Rare"
-                    H.option ! A.value "4" $ "Ultra-Rare"
-                    H.option ! A.value "5" $ "Promo"
+formHandler :: Text -> Text -> SimpleForm Filter -> ServerPart Response
+formHandler act str theForm = do
+    result <- happstackEitherForm (form act) str theForm
+    case result of
+        (Left view) -> page $ cardHtml view
+        (Right a) -> page . cardHtml $ renderFilter a

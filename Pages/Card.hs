@@ -1,38 +1,30 @@
 {-# LANGUAGE DeriveDataTypeable, FlexibleContexts,
     FlexibleInstances, GeneralizedNewtypeDeriving,
     MultiParamTypeClasses, OverlappingInstances,
-    IncoherentInstances,
-    OverloadedStrings, QuasiQuotes, RecordWildCards,
+    IncoherentInstances, OverloadedStrings, RecordWildCards,
     ScopedTypeVariables, TemplateHaskell, TypeFamilies,
     TypeSynonymInstances #-} 
 
 module Pages.Card where
 -------------------------------------------------
-import Control.Applicative
-import Control.Applicative.Indexed  ( IndexedFunctor(..) , IndexedApplicative(..))
 import Control.Monad
+import Control.Applicative
 import Control.Monad.Identity       ( Identity(runIdentity) )
+import Control.Applicative.Indexed  ( IndexedFunctor(..) , IndexedApplicative(..))
 import Data.Char
 import Data.Data		            ( Data, Typeable )
 import Data.Maybe
-import Data.String                  ( IsString(fromString) ) 
-import Data.List.Split
+import Data.Monoid
 import Data.List
-import qualified Data.Text          as Strict
-import qualified Data.Text.Lazy     as Lazy
-import Data.Text.Lazy               ( Text )
+import Data.List.Split
+import Text.Blaze ((!))
+import Text.Blaze.Html5 (Html, toValue, ToValue, toHtml)
+import qualified Text.Blaze.Html5 as H
+import qualified Text.Blaze.Html5.Attributes as A
 import Happstack.Server
-import Happstack.Server.HSP.HTML
-import Happstack.Server.XMLGenT
-import HSP
-import HSP.Monad                    ( HSPT(..) )
-import Language.Haskell.HSX.QQ      ( hsx )
 import Text.Reform.Happstack
-import Text.Reform.HSP.Text
-
+import Text.Reform.Blaze.Text
 import Text.Reform
-    ( CommonFormError(..), Proof(..), (++>), (<++), commonFormErrorStr
-    , Form, FormError(..), decimal, prove, transformEither, transform )
 --------------------------------------------------
 import Database
 import Data.IxSet
@@ -46,7 +38,7 @@ import Control.Monad.State	        ( get, put )
 --------------------------------------------------
 import Cards
 import Cards.Generic
-import Cards.Common hiding (Text)
+import Cards.Common
 import Cards.Common.Color
 import Cards.Common.Stringe
 import Cards.Common.Hint
@@ -55,7 +47,6 @@ import Cards.Common.Values
 import Cards.Differentiation
 import MLPCCG
 --------------------------------------------------
-import Application
 import Reformation
 import Pages.Common (template, base)
 ---------------------------------------------------
@@ -66,36 +57,32 @@ type GCR = GenCard -> Html
 instance Read SetNum where
     readsPrec = const readsSN
 
+instance ToValue Power where
+    toValue = toValue . show . val
+
+instance ToValue Req where
+    toValue = toValue . show . val
+
+instance ToValue Cost where
+    toValue = toValue . show . val
+
+
 readsSN :: ReadS SetNum
 readsSN x = let (s, n) = splitAt 2 x in [((readCS s, readN n),"")]
 
 single :: String -> Html
 single x = let (s,n) = read x :: SetNum
-           in renderCard (head.toList $ (cardDB @= (s) @= (n)))
+           in renderCard (fromJust.getOne $ (cardDB @= (s) @= (n)))
 
 renderCard :: GCR
 renderCard g@GenCard{..} = base (unravel name) $
-  [hsx|
-    <div>
-      <div class="card-imgs">
-        <% cardImgs g %>
-      </div>
-      <div class="card-text">
-        <% cardText g %>
-      </div>
-      <div class="card-info">
-        <% cardInfo g %>
-      </div>
-    </div> :: Html
-  |]
+  H.div $ do
+    H.div ! A.class_ "card-imgs" $ cardImgs g
+    H.div ! A.class_ "card-text" $ cardText g
+    H.div ! A.class_ "card-info" $ cardInfo g
 
 cardImgs :: GCR
-cardImgs g@GenCard{..} = let urls = curls g in
-  [hsx|
-    <table>
-      <% mapM cimage urls %>
-    </table> :: Html
-  |]
+cardImgs g@GenCard{..} = let urls = curls g in H.table $ (mapM_ cimage urls)
 
 curls :: GenCard -> [String]
 curls g@GenCard{..} = let sn = genset g in map (("/res/cards/"++sn)++) (suffixes ctype)
@@ -105,84 +92,52 @@ curls g@GenCard{..} = let sn = genset g in map (("/res/cards/"++sn)++) (suffixes
       suffixes _ = [".jpg"]
 
 cimage :: String -> Html
-cimage s =
-  [hsx|
-    <tr>
-      <td>
-        <a [ "href" := s :: Attr Text String ]><img class="card" [ "src" := s :: Attr Text String ]/></a>
-      </td>
-    </tr> :: Html
-  |]
+cimage s = 
+    H.tr $ do
+      H.td $ do
+        H.a ! A.href (toValue s) $ image
+  where
+    image = H.img ! A.class_ "card" ! A.src (toValue s)
 
 cardText :: GCR
 cardText g@GenCard{ctype=TMane, ..} =
-  [hsx|
-    <dl>
-      <div>
-        <dt>Card Text</dt>
-        <dd><% front %></dd>
-      </div>
-      <div>
-        <dt>Boosted Card Text</dt>
-        <dd><% back %></dd>
-      </div>
-    </dl> :: Html
-  |]
-  where
-    front = brunlines (splitOn "<P>" (fromJust (stripPrefix "Front: " (head (splitOn " Back: " (unravel text))))))
-    back = brunlines (splitOn "<P>" (last (splitOn " Back: " (unravel text))))
-cardText g@GenCard{..} =
-  [hsx|
-    <dl>
-      <div>
-        <dt>Card Text</dt>
-        <dd><% cardtext %></dd>
-      </div>
-    </dl> :: Html
-  |]
-  where
-    cardtext = brunlines (splitOn "<P>" (unravel text))
+  H.dl $ do
+    H.div $ do
+      H.dt $ "Card Text"
+      H.dd $ do
+        mapM_ (H.p.toHtml) $ (splitOn "<P>" (fromJust (stripPrefix "Front: " (head (splitOn " Back: " (unravel text))))))
+    H.div $ do
+      H.dt $ "Boosted Card Text"
+      H.dd $ do
+        mapM_ (H.p.toHtml) $ (splitOn "<P>" (last (splitOn " Back: " (unravel text))))
 
-brunlines :: [String] -> GCL
-brunlines xs =
-  [hsx|
-    <%>
-      <% mapM brline xs %>
-    </%>
-  |]
-  where
-      brline :: String -> Html
-      brline s = [hsx| <p> <% s %> </p> :: Html |]
+cardText g@GenCard{..} =
+  H.dl $ do
+    H.div $ do
+      H.dt $ "Card Text"
+      H.dd $ do
+        mapM_ (H.p.toHtml) $ (splitOn "<P>" (unravel text))
 
 cardInfo :: GCR
 cardInfo g@GenCard{..} =
-  [hsx|
-    <div>
-      <div class="panel panel-default quick-facts">
-        <div class="panel-heading"><h3 class="panel-title">Quick Facts</h3></div>
-        <div class="panel-body">
-          <ul>
-            <% info g %>
-          </ul>
-        </div>
-      </div>
-    </div> :: Html
-  |]
+  H.div $ do
+    H.div ! A.class_ "panel panel-default quick-facts" $ do
+      H.div ! A.class_ "panel-heading" $ do
+        H.h3 ! A.class_ "panel-title" $ "Quick Facts"
+      H.div ! A.class_ "panel-body" $ do
+        H.ul $ info g
 
-info :: GenCard -> GCL
-info g@GenCard{..} = let items = (maskfilter mask allitems) in
-  [hsx|
-    <%>
-      <% mapM renderi items %>
-    </%>
-  |]
+info :: GenCard -> Html
+info g@GenCard{..} = let items = (maskfilter mask allitems)
+                     in mapM_ renderi items
   where
     mask :: [Bool]
     mask = typemask ctype
-    renderi :: (String, GCR) -> Html
-    renderi (nam, gcr) = [hsx| <li> <b><% nam %>:</b> <% gcr g %> </li> :: Html |]
     maskfilter [] [] = []
     maskfilter (x:xs) (y:ys) = let ts = maskfilter xs ys in if x then y:ts else ts
+    renderi :: (String, GCR) -> Html
+    renderi (nam, gcr) =
+        H.li $ (H.b (toHtml nam)) <> (gcr g)
 
 allitems :: [(String, GCR)]
 allitems = [ ("Type", typeLink)
@@ -207,11 +162,7 @@ typemask x = map (==1) $ case x of
 
 propLink :: String -> (GenCard -> String) -> (GCR)
 propLink s f g =
-  [hsx|
-    <a [ "href" := ("/card?"++s++"="++(f g)) :: Attr Text String ]>
-      <% f g %>
-    </a> :: Html
-  |]
+  H.a ! A.href (toValue ("/card?"++s++"="++(f g))) $ (toHtml $  f g)
 
 setLink :: GCR
 setLink = propLink "set" (show.gset)
@@ -229,33 +180,21 @@ empower :: GCR
 empower g@GenCard{..} = cbox (show.val<$>mpower, mcolor)
 appraise :: GCR
 appraise g@GenCard{..} = cbox (show.val<$>mcost, Nothing)
+
 conf :: GCR
 conf g@GenCard{ctype=TProblem, ..} =
-  [hsx|
-    <span>
-      <% mapM (\(y,x) -> cbox (pure.show.val $ x, pure $ y)).fst.fromJust $ mpreqs %>
-    </span> :: Html
-  |]
+  H.span $ do
+    mapM_ (\(y,x) -> cbox (pure.show.val $ x, pure $ y)).fst.fromJust $ mpreqs
 conf _ = cbox (Nothing, Nothing)
 conf' :: GCR
 conf' g@GenCard{ctype=TProblem, ..} = (\x -> cbox (Just (show.val $ x), Nothing)).snd.fromJust $ mpreqs
 conf' _ = cbox (Nothing, Nothing)
 
 cardTraits :: GCR
-cardTraits g@GenCard{..} =
-  [hsx|
-    <span>
-      <% mapM keyToTrait keywords %>
-    </span> :: Html
-  |]
+cardTraits g@GenCard{..} = H.span $ mapM_ keyToTrait keywords
 
 keyToTrait :: Keyword -> Html
-keyToTrait k =
-  [hsx|
-    <span>
-      <% unbrace (unravel k) %>
-    </span> :: Html
-  |]
+keyToTrait = H.span . toHtml . unbrace . unravel
 
 unbrace :: String -> String
 unbrace [] = []
@@ -263,13 +202,8 @@ unbrace x | head x == '[' && last x == ']' = init.tail $ x
           | otherwise = x
 
 cbox :: (Maybe String, Maybe Color) -> Html
-cbox (Nothing,_) = [hsx|<span/>|]
-cbox (Just s, c) = 
-  [hsx|
-    <span [ "class" := unwords ["element","label",(colorize c)] :: Attr Text String]>
-      <% s %>
-    </span> :: Html
-  |]
+cbox (Nothing,_) = H.span $ mempty
+cbox (Just s, c) = H.span ! A.class_ (toValue (unwords ["element","label",(colorize c)])) $ (toHtml s)
   where
     colorize :: Maybe Color -> String
     colorize (Nothing) = "NoColor"
@@ -277,9 +211,4 @@ cbox (Just s, c) =
     colorize (Just c) = show c
     
 pronounce :: (String, String) -> Html
-pronounce (nam, code) =
-  [hsx|
-    <a [ "href" := ("card/"++code) :: Attr Text String ]>
-      <% nam %>
-    </a> :: Html
-  |]
+pronounce (nam, code) = H.a ! A.href (toValue ("card/"++code)) $ (toHtml nam)

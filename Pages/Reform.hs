@@ -1,8 +1,7 @@
 {-# LANGUAGE DeriveDataTypeable, FlexibleContexts,
     FlexibleInstances, GeneralizedNewtypeDeriving,
     MultiParamTypeClasses, OverlappingInstances,
-    IncoherentInstances,
-    OverloadedStrings, QuasiQuotes, RecordWildCards,
+    IncoherentInstances, OverloadedStrings, RecordWildCards,
     ScopedTypeVariables, TemplateHaskell, TypeFamilies,
     TypeSynonymInstances #-} 
 
@@ -16,22 +15,18 @@ import Control.Monad.Identity       ( Identity(runIdentity) )
 import Data.Char
 import Data.Data		            ( Data, Typeable )
 import Data.Maybe
-import Data.String                  ( IsString(fromString) ) 
-import qualified Data.Text          as Strict
-import qualified Data.Text.Lazy     as Lazy
-import Data.Text.Lazy               ( Text )
+import Data.Monoid
+import Text.Blaze ((!))
+import Text.Blaze.Html5 (Html, ToMarkup, toHtml, toMarkup, toValue)
+import Text.Blaze.Internal (MarkupM)
+import qualified Text.Blaze.Html5 as H
+import qualified Text.Blaze.Html5.Attributes as A
+import Data.List
+import Data.Char
 import Happstack.Server
-import Happstack.Server.HSP.HTML
-import Happstack.Server.XMLGenT
-import HSP
-import HSP.Monad                    ( HSPT(..) )
-import Language.Haskell.HSX.QQ      ( hsx )
 import Text.Reform.Happstack
-import Text.Reform.HSP.Text
-
+import Text.Reform.Blaze.String
 import Text.Reform
-    ( CommonFormError(..), Proof(..), (++>), (<++), commonFormErrorStr
-    , Form, FormError(..), decimal, prove, transformEither, transform )
 --------------------------------------------------
 import Database
 import Data.IxSet
@@ -46,7 +41,7 @@ import Data.List                    hiding (insert)
 --------------------------------------------------
 import Cards
 import Cards.Generic
-import Cards.Common hiding (Text)
+import Cards.Common
 import Cards.Common.Color
 import Cards.Common.Stringe
 import Cards.Common.Hint
@@ -54,22 +49,21 @@ import Cards.Common.Abbrev
 import Cards.Common.Values
 import MLPCCG
 --------------------------------------------------
-import Application
 import Reformation
-import Pages.Common (template)
-import Pages.Card (reqtify, empower, pronounce)
+import Pages.Common
+import Pages.Card
 ---------------------------------------------------
 
 newtype AppError = AppCFE (CommonFormError [Input])
     deriving (Show)
 
-type SimpleForm = Form (AppT IO) [Input] AppError [Html] ()
-type CFilterSig = ([Maybe Power],[Maybe Cost],[Maybe Req]) -> Maybe [Color] -> Maybe [CSet] -> Maybe [Rarity] -> Maybe [CardType] -> Html
-type DFilterSig = Maybe [Color] -> Maybe [CSet] -> Maybe [Rarity] -> Maybe [CardType] -> Html
+instance ToMarkup AppError where
+    toMarkup (AppCFE cfe) = toMarkup $ commonFormErrorStr show cfe
 
-instance (Functor m, Monad m) => EmbedAsChild (AppT' m) AppError where
-  asChild (AppCFE cfe)      =
-     asChild $ commonFormErrorStr show cfe
+type SimpleForm = Form (ServerPartT IO) [Input] AppError Html ()
+
+type CFilterSig m = ([Maybe Power],[Maybe Cost],[Maybe Req]) -> Maybe [Color] -> Maybe [CSet] -> Maybe [Rarity] -> Maybe [CardType] -> m
+type DFilterSig m = Maybe [Color] -> Maybe [CSet] -> Maybe [Rarity] -> Maybe [CardType] -> m
 
 instance FormError AppError where
     type ErrorInputType AppError = [Input]
@@ -112,56 +106,43 @@ applyFilter d@DeckFilter{..} = toList $ mcfilter d $ cardDB
 
 renderFilter :: Filter -> Html
 renderFilter fil = let gens = applyFilter fil in
-  [hsx|
-    <table>
-      <tr>
-        <td>#</td>
-        <td>Rarity</td>
-        <td>Type</td>
-        <td>Cost</td>
-        <td>Req.</td>
-        <td>Name</td>
-        <td>Power</td>
-      </tr>
-      <% mapM cardLine gens %>
-    </table> :: Html
-  |]
+    H.table $ do
+      H.tr $ do
+        mapM_ (H.td) headers
+      H.tr $ do
+        mapM_ cardLine gens
+  where
+    headers = ["#","Rarity","Type","Cost","Req.","Name","Power"]
 
 cardLine :: GenCard -> Html
 cardLine g@GenCard{..} =
-  [hsx|
-    <tr>
-      <td><% genset g %></td>
-      <td><% brief rar %></td>
-      <td><% iconic ctype %></td>
-      <td><% fromMaybe "" (show.val <$> mcost) %></td>
-      <td><% reqtify g %></td>
-      <td><% pronounce (unravel name, genset $ g)%></td>
-      <td><% empower g %></td>
-    </tr> :: Html
-  |]
+  H.tr $ do
+    H.td . toHtml . genset $ g
+    H.td . toHtml . brief $ rar
+    H.td . iconic $ ctype
+    H.td . toHtml $ fromMaybe "" (show.val <$> mcost)
+    H.td $ reqtify g
+    H.td $ pronounce (unravel name, genset $ g)
+    H.td $ empower g
 
-iconic :: CardType -> GCL
+iconic :: CardType -> Html
 iconic x = let ipath = "res/icns/"++(show x)++".png" in
-  [hsx|
-    <%>
-      <img class="icon" [ "src" := ipath :: Attr Text String ] />
-    </%> :: GCL
-  |]
+  H.img ! A.class_ "icon"
+        ! A.src (toValue ipath)
       
 cardForm :: ([Maybe Power],[Maybe Cost],[Maybe Req]) -> Maybe [Color] -> Maybe [CSet] -> Maybe [Rarity] -> Maybe [CardType] -> SimpleForm Filter
 cardForm ([mnp,mxp],[mnc,mxc],[mnr,mxr]) mc ms mr mt =
   CardFilter
-    <$> labelText "Power:"      ++> inputMin mnp
-    <*> labelText "to"          ++> inputMax mxp            <++ br
-    <*> labelText "Cost:"       ++> inputMin mnc
-    <*> labelText "to"          ++> inputMax mxc            <++ br
-    <*> labelText "Requirement:"++> inputMin mnr
-    <*> labelText "to"          ++> inputMax mxr            <++ br
-    <*> labelText "Color"       ++> sv show colorValues  mc <++ br
-    <*> labelText "Set"         ++> sv show setValues    ms <++ br
-    <*> labelText "Type"        ++> sv show typeValues   mt <++ br
-    <*> labelText "Rarity"      ++> sv show rarityValues mr <++ br
+    <$> labelString "Power:"      ++> inputMin mnp
+    <*> labelString "to"          ++> inputMax mxp            <++ br
+    <*> labelString "Cost:"       ++> inputMin mnc
+    <*> labelString "to"          ++> inputMax mxc            <++ br
+    <*> labelString "Requirement:"++> inputMin mnr
+    <*> labelString "to"          ++> inputMax mxr            <++ br
+    <*> labelString "Color"       ++> sv show colorValues  mc <++ br
+    <*> labelString "Set"         ++> sv show setValues    ms <++ br
+    <*> labelString "Type"        ++> sv show typeValues   mt <++ br
+    <*> labelString "Rarity"      ++> sv show rarityValues mr <++ br
     <*  inputSubmit "Filter"
 
 sv f vs (Nothing) = selectMultiple (map (\x -> (x, f x)) vs) (const False)
@@ -170,29 +151,11 @@ sv f vs (Just xs) = selectMultiple (map (\x -> (x, f x)) vs) (`elem`xs)
 deckForm :: Maybe [Color] -> Maybe [CSet] -> Maybe [Rarity] -> Maybe [CardType] -> SimpleForm Filter
 deckForm mc ms mr mt =
   DeckFilter
-    <$> labelText "Color"       ++> sv show colorValues  mc <++ br
-    <*> labelText "Set"         ++> sv show setValues    ms <++ br
-    <*> labelText "Type"        ++> sv show typeValues   mt <++ br
-    <*> labelText "Rarity"      ++> sv show rarityValues mr <++ br
+    <$> labelString "Color"       ++> sv show colorValues  mc <++ br
+    <*> labelString "Set"         ++> sv show setValues    ms <++ br
+    <*> labelString "Type"        ++> sv show typeValues   mt <++ br
+    <*> labelString "Rarity"      ++> sv show rarityValues mr <++ br
     <*  inputSubmit "Filter"
 
-
-cardHtml :: CFilterSig
-cardHtml x mc ms mr mt = do
-    let action = "/card" :: Text
-    result <- happstackEitherForm (form action) "card" (cardForm x mc ms mr mt)
-    case result of
-        (Left formHtml) ->
-            template "Card Form" formHtml
-        (Right flt) ->
-            template "Card Result" $ [renderFilter flt]
-    
-deckHtml :: DFilterSig
-deckHtml mc ms mr mt = do
-    let action = "/deck" :: Text
-    result <- happstackEitherForm (form action) "deck" (deckForm mc ms mr mt)
-    case result of
-        (Left formHtml) ->
-            template "Deck Form" formHtml
-        (Right flt) ->
-            template "Deck Result" $ [renderFilter flt]
+labelString :: String -> SimpleForm ()
+labelString = label
