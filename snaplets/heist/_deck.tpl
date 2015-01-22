@@ -1,4 +1,4 @@
-<form method="post" action="/deck">
+<form method="GET" action="/deck">
   <table id="filter">
     <tr>
       <apply template="select-form" />

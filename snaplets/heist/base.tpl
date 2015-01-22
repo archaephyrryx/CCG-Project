@@ -5,7 +5,7 @@
     <title><pagename/></title>
     <meta name="description" content="My Little Pony CCG Metadatabase">
     <meta name="keywords" content="my little pony, mlp, ccg, tcg, enterplay, tabletop, brony">
-    <!-- <link rel="stylesheet" href="ponyhead_files/app.css"> -->
+    <link rel="stylesheet" href="/res/style.css">
   </head>
   <body>
     <div id="wrap">

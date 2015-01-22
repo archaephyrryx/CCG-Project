@@ -1,6 +1,6 @@
 <td>
-  <label for="setFilter">Set</label>
-  <select name="setFilter" multiple="true">
+  <label for="set">Set</label>
+  <select name="set" multiple="true">
     <option value="0">Premiere</option>
     <option value="1">Canterlot Nights</option>
     <option value="2">Rock and Rave</option>
@@ -9,8 +9,8 @@
   </select>
 </td>
 <td>
-  <label for="colorFilter">Color</label>
-  <select name="colorFilter" multiple="true">
+  <label for="color">Color</label>
+  <select name="color" multiple="true">
     <option value="0">None</option>
     <option value="1">Blue</option>
     <option value="2">Orange</option>
@@ -21,8 +21,8 @@
   </select>
 </td>
 <td>
-  <label for="typeFilter">Type</label>
-  <select name="typeFilter" multiple="true">
+  <label for="type">Type</label>
+  <select name="type" multiple="true">
     <option value="0">Mane</option>
     <option value="1">Friend</option>
     <option value="2">Event</option>
@@ -32,8 +32,8 @@
   </select>
 </td>
 <td>
-  <label for="rarityFilter">Rarity</label>
-  <select name="rarityFilter" multiple="true">
+  <label for="rarity">Rarity</label>
+  <select name="rarity" multiple="true">
     <option value="0">Fixed</option>
     <option value="1">Common</option>
     <option value="2">Uncommon</option>
