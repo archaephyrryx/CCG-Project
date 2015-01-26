@@ -5,89 +5,87 @@
 
 module CCGServer.Filtering where
 
+import Cards
+import Cards.Common
+import Cards.Common.Abbrev
+import Cards.Common.Color
+import Cards.Common.Hint
+import Cards.Common.Stringe
+import Cards.Common.Values
+import Cards.Generic
 import Control.Applicative
 import Control.Monad
-import Data.Maybe
-import Data.IORef
-import Data.List
-import Data.IxSet
+import Database
+import Data.Char
 import Data.Data (Data, Typeable)
-import qualified Data.Map as Map
-import Data.Map (Map)
-import qualified	Graphics.UI.Threepenny 			as UI
-import				Graphics.UI.Threepenny.Core
+import Data.IORef
+import Data.IxSet
+import Data.List
+import Data.Maybe
+import MLPCCG
 
-setup :: Window -> UI ()
-setup window = do
-	-- GUI elements
-	return window # set UI.title "Hello World!"
+infix 9 ?
+infix 9 ??
 
-	elType	<- UI.input  # set (attr "placeholder") "Type"
-	elColo	<- UI.input  # set (attr "placeholder") "Color"
-	elCler	<- UI.button # set UI.text "Clear All"
-	result	<- UI.span
+data Filter = CardFilter
+                { powMin :: Maybe Power
+                , powMax :: Maybe Power
+                , costMin :: Maybe Cost
+                , costMax :: Maybe Cost
+                , reqMin :: Maybe Req
+                , reqMax :: Maybe Req
+                , colors :: [Color]
+                , sets :: [CSet]
+                , types :: [CardType]
+                , rarities :: [Rarity]
+                }
+             | DeckFilter
+                { colors :: [Color]
+                , sets :: [CSet]
+                , types :: [CardType]
+                , rarities :: [Rarity]
+                }
+        deriving (Eq, Ord, Read, Show)
 
-	-- GUI Layout
-	
-	let dats = entries
+blankCardFilter :: Filter
+blankCardFilter = let [powMin,powMax] = replicate 2 Nothing
+                      [costMin,costMax] = replicate 2 Nothing
+                      [reqMin,reqMax] = replicate 2 Nothing
+                      colors = []
+                      sets = []
+                      types = []
+                      rarities = []
+                  in CardFilter{..}
 
-	let
-		displayAll = void $ do
-			ftype <- get value elType
-			fcolo <- get value elColo
-			element result # set text (unlines (zipWith prepend ["Type: ","Color: "] [ftype,fcolo]))
-		
-		redoLayout :: UI ()
-		redoLayout = void $ do
-			ftype <- get value elType
-			fcolo <- get value elColo
-			layout <- mkLayout []
-			getBody window # set children [layout]
-			displayAll
-		
-		mkLayout :: [Element] -> UI Element
-		mkLayout xs = column $
-			([row [element elCler], UI.hr, row [element elType, element elColo]]
-			++ (concatMap mkLine xs) ++ [row [element result]])
-			
-		mkLine :: Element -> [UI Element]
-		mkLine x = [row [element x]]
+blankDeckFilter :: Filter
+blankDeckFilter = let colors = []
+                      sets = []
+                      types = []
+                      rarities = []
+                  in DeckFilter{..}
 
-		clearAll :: UI ()
-		clearAll = do
-			element elType # set value ""
-			element elColo # set value ""
-			redoLayout
+(?) :: (a -> (b -> b)) -> Maybe a -> (b -> b)
+f?Nothing = id
+f?_ = f
 
-	on (domEvent "livechange") elType $ \_ -> displayAll
-	on (domEvent "livechange") elColo $ \_ -> displayAll
-	on UI.click elCler $ const $ do
-		clearAll
-		redoLayout
-	redoLayout
+(??) :: ([a] -> (b -> b)) -> [a] -> (b -> b)
+f??[]=id
+f??_ =f
 
-prepend :: String -> String -> String
-prepend x "" = ""
-prepend x y  = x++y
+betwixt :: Hint a => (Maybe a, Maybe a) -> IxSet GenCard -> IxSet GenCard
+betwixt (x,y) = flip getGTE ? x . flip getLTE ? y
 
+mhfilter :: Filter -> IxSet GenCard -> IxSet GenCard
+mhfilter c@CardFilter{..} = betwixt (powMin,powMax) . betwixt (costMin,costMax) . betwixt (reqMin,reqMax)
 
--- IxSets
+full :: [a] -> Bool
+full [] = False
+full _ = True
 
-data Entry = Entry Name Type Color
-newtype Type = Type !String
-newtype Color = Color !String
-newtype Name = Name !String
+mcfilter :: Filter -> IxSet GenCard -> IxSet GenCard
+mcfilter c@CardFilter{..} = flip(@+)??colors . flip(@+)??sets . flip(@+)??types . flip(@+)??rarities
+mcfilter d@DeckFilter{..} = flip(@+)??colors . flip(@+)??sets . flip(@+)??types . flip(@+)??rarities
 
-showName :: Entry -> String
-showName (Entry (Name x) _ _) = x
-
-
-instance Indexable Entry where
-	empty = ixSet
-			  [ ixGen (Proxy :: Proxy Type)
-			  , ixGen (Proxy :: Proxy Color)
-			  , ixGen (Proxy :: Proxy Name)
-			  ]
-
-els = (\x y -> Entry (Type x) (Color y)) <$> ["Main","Event","Spell"] <*> ["Black","White","Grey"]
-entries = foldr insert empty (els)
+applyFilter :: Filter -> IxSet GenCard
+applyFilter c@CardFilter{..} = mcfilter c . mhfilter c $ cardDB
+applyFilter d@DeckFilter{..} = mcfilter d $ cardDB

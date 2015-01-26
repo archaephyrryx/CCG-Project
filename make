@@ -7,7 +7,8 @@ case "$arg" in
 		ghc --make Main.hs -o ccgserver
 		;;
 	clean)
-		rm -rf *.o *.hi */*.o */*.hi ccgserver
+		rm -rf ccgserver
+		find . -regex '.*\.\(hi\|o\)$' | xargs rm
 		;;
 	unpack)
 		tar xzf jpgs.tgz

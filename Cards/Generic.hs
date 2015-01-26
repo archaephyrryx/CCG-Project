@@ -10,7 +10,7 @@ import Data.Char
 import Data.Set (Set)
 import Data.Function (on)
 import Data.Maybe
-import Data.Data (Typeable)
+import Data.Data (Data, Typeable)
 import qualified Data.Set as Set
 
 data GenCard = GenCard { ctype    :: CardType
@@ -27,10 +27,17 @@ data GenCard = GenCard { ctype    :: CardType
                        , mpoints   :: Maybe Points
                        , mpreqs    :: Maybe ProblemReq
                        , text     :: Text
-                       } deriving (Eq, Ord, Typeable)
+                       } deriving (Eq, Ord, Data, Typeable)
+
+howshow =
+        -- show
+        -- prettyShow
+        setnum
+
+genset = setnum.fromGeneric
 
 instance Show GenCard where
-    show = prettyShow.fromGeneric
+    show = howshow.fromGeneric
 
 toGeneric :: Card -> GenCard
 toGeneric c@Mane{..} = let ctype = TMane

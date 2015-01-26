@@ -21,6 +21,6 @@ main :: IO ()
 main = do
 	startGUI defaultConfig
 		{ tpPort	= Just 10000
-		, tpStatic	= Just "../wwwroot"
+		, tpStatic	= Just "./res"
 		} setup
 
