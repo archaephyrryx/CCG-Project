@@ -68,6 +68,13 @@ readN ('f':x) = F (read x)
 readN x@(k:_) | isDigit k = Regular (read x)
               | otherwise = error ("Could not parse Number: "++x)
 
+readsN :: ReadS Number
+readsN s = (`zip`[""]).(:[]) $ readN s
+
+instance Read Number where
+    readsPrec = const readsN
+    
+
 -- Abbreviated strings
 
 data CSet = Premiere | CanterlotNights | RockNRave | CelestialSolstice | CrystalGames deriving (Enum, Eq, Ord, Data, Typeable)

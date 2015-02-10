@@ -3,12 +3,18 @@
 module Cards.Common.Hint where
 
 import Cards.Common
+import Data.Maybe
 
 class Hint a where
 	val :: a -> Int
 	unval :: Int -> a
 	readH :: String -> a
 	readH = unval.read 
+
+readMaybeH :: (Hint a) => String -> Maybe a
+readMaybeH "" = Nothing
+readMaybeH x = Just (readH x)
+
 
 plus :: (Hint a) => a -> a -> a
 plus = (unval.).(.val).(+).val

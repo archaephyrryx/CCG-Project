@@ -3,8 +3,11 @@
 	RecordWildCards, TemplateHaskell, TypeFamilies,
 	OverloadedStrings #-}
 
-module CCGServer.Filtering where
+module App.Filtering where
 
+import App.Core.AppData
+import App.Core.Helper
+import App.Widgets
 import Cards
 import Cards.Common
 import Cards.Common.Abbrev
@@ -23,9 +26,10 @@ import Data.IxSet
 import Data.List
 import Data.Maybe
 import MLPCCG
-
-infix 9 ?
-infix 9 ??
+import qualified Graphics.UI.Threepenny          as UI
+import qualified Graphics.UI.Threepenny.Core     as UI
+import qualified Graphics.UI.Threepenny.Elements as UI
+import Graphics.UI.Threepenny.Core
 
 data Filter = CardFilter
                 { powMin :: Maybe Power
@@ -64,28 +68,43 @@ blankDeckFilter = let colors = []
                       rarities = []
                   in DeckFilter{..}
 
-(?) :: (a -> (b -> b)) -> Maybe a -> (b -> b)
-f?Nothing = id
-f?_ = f
-
-(??) :: ([a] -> (b -> b)) -> [a] -> (b -> b)
-f??[]=id
-f??_ =f
-
-betwixt :: Hint a => (Maybe a, Maybe a) -> IxSet GenCard -> IxSet GenCard
-betwixt (x,y) = flip getGTE ? x . flip getLTE ? y
-
-mhfilter :: Filter -> IxSet GenCard -> IxSet GenCard
-mhfilter c@CardFilter{..} = betwixt (powMin,powMax) . betwixt (costMin,costMax) . betwixt (reqMin,reqMax)
+betwixt :: (Hint a, Typeable a) => (Maybe a, Maybe a) -> (IxSet GenCard -> IxSet GenCard)
+betwixt (x,y) = (getGTE?x) . (getLTE?y)
 
 full :: [a] -> Bool
 full [] = False
 full _ = True
 
-mcfilter :: Filter -> IxSet GenCard -> IxSet GenCard
-mcfilter c@CardFilter{..} = flip(@+)??colors . flip(@+)??sets . flip(@+)??types . flip(@+)??rarities
-mcfilter d@DeckFilter{..} = flip(@+)??colors . flip(@+)??sets . flip(@+)??types . flip(@+)??rarities
+-- | The 'Maybe Hint' Filter
+mhfilter :: Filter -> IxSet GenCard -> IxSet GenCard
+mhfilter c@CardFilter{..} = betwixt (powMin,powMax) . betwixt (costMin,costMax) . betwixt (reqMin,reqMax)
 
+-- | The 'Multi-choice' Filter
+mcfilter :: Filter -> IxSet GenCard -> IxSet GenCard
+mcfilter c@CardFilter{..} = foldr (.) id [flip(@+)??colors, flip(@+)??sets, flip(@+)??types, flip(@+)??rarities]
+mcfilter d@DeckFilter{..} = foldr (.) id [flip(@+)??colors, flip(@+)??sets, flip(@+)??types, flip(@+)??rarities]
+
+-- | The Filter applicator
 applyFilter :: Filter -> IxSet GenCard
 applyFilter c@CardFilter{..} = mcfilter c . mhfilter c $ cardDB
 applyFilter d@DeckFilter{..} = mcfilter d $ cardDB
+
+filterFromElem :: AEL -> UI Filter
+filterFromElem els@FCEL{..} = do
+    powMin   <- readMaybeH <$> get value (getElement minPow)
+    powMax   <- readMaybeH <$> get value (getElement maxPow)
+    costMin  <- readMaybeH <$> get value (getElement minCost)
+    costMax  <- readMaybeH <$> get value (getElement maxCost)
+    reqMin   <- readMaybeH <$> get value (getElement minReq)
+    reqMax   <- readMaybeH <$> get value (getElement maxReq)
+    colors   <- map  (colorValues!!) <$> get selections (getElement selectCol)
+    sets     <- map    (setValues!!) <$> get selections (getElement selectSet)
+    types    <- map   (typeValues!!) <$> get selections (getElement selectTyp)
+    rarities <- map (rarityValues!!) <$> get selections (getElement selectRar)
+    return CardFilter{..}
+filterFromElem els@DBEL{..} = do
+    colors   <- map  (colorValues!!) <$> get selections (getElement selectCol)
+    sets     <- map    (setValues!!) <$> get selections (getElement selectSet)
+    types    <- map   (typeValues!!) <$> get selections (getElement selectTyp)
+    rarities <- map (rarityValues!!) <$> get selections (getElement selectRar)
+    return DeckFilter{..}

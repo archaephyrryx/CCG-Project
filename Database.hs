@@ -55,6 +55,12 @@ instance Hint Boosted where
    val (Boosted x) = x
    unval x = (Boosted x)
 
+newtype SetNum = SetNum String deriving (Eq, Ord, Typeable)
+
+instance Stringe SetNum where
+    ravel x = SetNum x
+    unravel (SetNum x) = x
+
 fromBoosted :: Boosted -> Power
 fromBoosted (Boosted x) = (Power x)
 
@@ -75,6 +81,9 @@ getSet c@GenCard{..} = [set]
 
 getNum :: GenCard -> [Number]
 getNum c@GenCard{..} = [num]
+
+getSetNum :: GenCard -> [SetNum]
+getSetNum c = [ravel . genset $ c]
 
 getRar :: GenCard -> [Rarity]
 getRar c@GenCard{..} = [rar]
@@ -103,11 +112,12 @@ getPoints c@GenCard{..} = fromMaybe ([]) (mpoints >>= return.(:[]))
 
 instance Indexable GenCard where
     empty = ixSet 
-                [ ixFun getCardType
-                , ixFun getCardName
-                , ixFun getNameWords
+                [ ixFun getSetNum
                 , ixFun getSet
                 , ixFun getNum
+                , ixFun getCardName
+                , ixFun getNameWords
+                , ixFun getCardType
                 , ixFun getRar
                 , ixFun getKeyword
                 , ixFun getColor

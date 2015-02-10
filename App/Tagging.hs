@@ -1,6 +1,6 @@
 {-# LANGUAGE TypeSynonymInstances, FlexibleInstances #-}
 
-module CCGServer.Tagging where
+module App.Tagging where
 
 import Control.Applicative
 import Control.Monad

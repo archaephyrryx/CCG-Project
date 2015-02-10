@@ -1,10 +1,11 @@
 #!/bin/bash
 
 arg=${1:-"main"}
+ghc=${2:-"/usr/bin/ghc"}
 
 case "$arg" in
 	main) 
-		ghc --make Main.hs -o ccgserver
+		$ghc --make Main.hs -o ccgserver -rtsopts
 		;;
 	clean)
 		rm -rf ccgserver
