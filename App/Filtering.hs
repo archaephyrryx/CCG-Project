@@ -17,6 +17,7 @@ import Cards.Common.Stringe
 import Cards.Common.Values
 import Cards.Generic
 import Control.Applicative
+import Control.Applicative.Indexed  ( IndexedFunctor(..) , IndexedApplicative(..))
 import Control.Monad
 import Database
 import Data.Char
@@ -89,22 +90,15 @@ applyFilter :: Filter -> IxSet GenCard
 applyFilter c@CardFilter{..} = mcfilter c . mhfilter c $ cardDB
 applyFilter d@DeckFilter{..} = mcfilter d $ cardDB
 
-filterFromElem :: AEL -> UI Filter
-filterFromElem els@FCEL{..} = do
-    powMin   <- readMaybeH <$> get value (getElement minPow)
-    powMax   <- readMaybeH <$> get value (getElement maxPow)
-    costMin  <- readMaybeH <$> get value (getElement minCost)
-    costMax  <- readMaybeH <$> get value (getElement maxCost)
-    reqMin   <- readMaybeH <$> get value (getElement minReq)
-    reqMax   <- readMaybeH <$> get value (getElement maxReq)
-    colors   <- map  (colorValues!!) <$> get selections (getElement selectCol)
-    sets     <- map    (setValues!!) <$> get selections (getElement selectSet)
-    types    <- map   (typeValues!!) <$> get selections (getElement selectTyp)
-    rarities <- map (rarityValues!!) <$> get selections (getElement selectRar)
-    return CardFilter{..}
-filterFromElem els@DBEL{..} = do
-    colors   <- map  (colorValues!!) <$> get selections (getElement selectCol)
-    sets     <- map    (setValues!!) <$> get selections (getElement selectSet)
-    types    <- map   (typeValues!!) <$> get selections (getElement selectTyp)
-    rarities <- map (rarityValues!!) <$> get selections (getElement selectRar)
-    return DeckFilter{..}
+behaveBFilter :: ABL -> Behavior Filter
+behaveBFilter bls@FCBL{..} = CardFilter <$> bPowMin  <*> bPowMax
+                                        <*> bCostMin <*> bCostMax
+                                        <*> bReqMin  <*> bReqMax
+                                        <*> bColSelect
+                                        <*> bSetSelect
+                                        <*> bTypeSelect
+                                        <*> bRaritySelect
+behaveBFilter bls@DBBL{..} = DeckFilter <$> bColSelect 
+                                        <*> bSetSelect
+                                        <*> bTypeSelect
+                                        <*> bRaritySelect

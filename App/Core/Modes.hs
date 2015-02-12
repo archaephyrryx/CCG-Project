@@ -7,28 +7,21 @@ import Cards.Generic
 import Cards
 import Deck
 
-data AppMode = HomeMode
-             | FilterCardMode Filter ViewMode
-             | ShowCardMode GenCard
-             | DeckBuilderMode Filter ViewMode Deck
-     deriving (Show, Eq)
-
-data AppModeS = Home | FilterCard | ShowCard | DeckBuilder
-    deriving (Read, Show, Eq)
-
-modes :: AppMode -> AppModeS
-modes HomeMode = Home
-modes (FilterCardMode _ _) = FilterCard
-modes (ShowCardMode _) = ShowCard
-modes (DeckBuilderMode _ _ _) = DeckBuilder
+data AppMode = Home
+             | FilterCard
+             | ShowCard
+             | DeckBuilder
+     deriving (Read, Show, Eq)
 
 data ViewMode = ListView { n :: Int, pn :: Int }
               | GridView { rs  :: Int, cs :: Int, pn :: Int }
+              | FlatView { pn :: Int }
                 deriving (Read, Show, Eq)
 
 npp :: ViewMode -> Int
 npp l@ListView{n=x,..} = x
 npp g@GridView{..} = rs * cs
+npp f@FlatView{..} = 1
 
 setpage :: Int -> ViewMode -> ViewMode
 setpage x ListView{..} = let pn = x in ListView{..}

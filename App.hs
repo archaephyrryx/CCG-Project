@@ -27,7 +27,7 @@ import TagState
 ------------------------------
 import App.FilterCard
 import App.SingleCard
-import App.Core
+import App.Core.AppData
 import App.Core.Helper
 import App.Core.Modes
 import App.Deck
@@ -48,72 +48,26 @@ setup :: Window -> UI ()
 setup window = void $ do
     return window # UI.set UI.title appfname
     addStyleSheet window "style.css"
-    appmode <- liftIO $ newIORef Home
-
-    butHome <- softLink "Home" Home
-    butCFil <- softLink "Cards" FilterCard
-    butCDec <- softLink "Deck Builder" DeckBuilder
-
-    butHome`linksTo`(liftIO . writeIORef appmode)
-    butCFil`linksTo`(liftIO . writeIORef appmode)
-    butCDec`linksTo`(liftIO . writeIORef appmode)
-
-    content <- UI.div #. "main-content"
-    debug <- UI.div #. "debugger"
-
-    rec elSearch <- searchBar (pure cardDB) (bFilterString) (pure (string . show . gname))
-        bFilterString <- stepper "" . rumors $ userSearch elSearch
-
-    nav <- UI.li #. "nav" #+ [element butHome, element butCFil, element butCDec, element elSearch]
-
-    let
-        redoLayout :: UI ()
-        redoLayout = void $ do
-            layout <- mkLayout []
-            getBody window # UI.set children [layout]
-
-        mkLayout :: [Element] -> UI Element
-        mkLayout xs = UI.div #. "page" #+ [UI.div #. "nav-row" #+ [element nav], UI.div #. "content" #+ [element content], UI.div #. "debug" #+ [element debug]]
-
-    redoLayout
-    let fc@Applet{..} = appletCards
-    i <- initState
-    appRun window (Change Initialize, i)
-
-{-
-setup :: Window -> UI ()
-setup window = void $ do
-    return window # UI.set UI.title appfname
-    addStyleSheet window "style.css"
-    appmode <- liftIO $ newIORef HomeMode
 
     butHome <- UI.button #. "nav-btn" # settext "Home"
     butCFil <- UI.button #. "nav-btn" # settext "Cards"
     butCDec <- UI.button #. "nav-btn" # settext "Deck Builder"
-    content <- UI.div
 
     rec elSearch <- searchBar (pure cardDB) (bFilterString) (pure (string . show . gname))
         bFilterString <- stepper "" . rumors $ userSearch elSearch
 
-
     nav <- UI.li #. "nav" #+ [element butHome, element butCFil, element butCDec, element elSearch]
     -- FilterCard and DeckBuilder only
-    rec selectTyp <- multiSelect (pure   typeValues) bTypSelect (pure (string . show))
-        bTypSelect <- stepper [] . rumors $ userSelections selectTyp
-    rec selectCol <- multiSelect (pure  colorValues) bColSelect (pure (string . show))
-        bColSelect <- stepper [] . rumors $ userSelections selectCol
-    rec selectRar <- multiSelect (pure rarityValues) bRarSelect (pure (string . show))
-        bRarSelect <- stepper [] . rumors $ userSelections selectRar
-    rec selectSet <- multiSelect (pure    setValues) bSetSelect (pure (string . show))
-        bSetSelect <- stepper [] . rumors $ userSelections selectSet
-
-    clearsTyp <- UI.button #. "clear-btn" # settext "clear"
-    clearsCol <- UI.button #. "clear-btn" # settext "clear"
-    clearsRar <- UI.button #. "clear-btn" # settext "clear"
-    clearsSet <- UI.button #. "clear-btn" # settext "clear"
-
-    cdFilter  <- liftIO $ newIORef (blankCardFilter)
-    cdMatches <- liftIO $ newIORef (Data.IxSet.empty)
+    let pss :: Show a => Behavior (a -> UI Element)
+        pss = pure (string . show)
+    rec bTypSelect <- stepper [] . rumors $ userSelections selectTyp
+        (selectTyp, clearsTyp) <- multiSelect bFilterCard (pure   typeValues) bTypSelect pss
+    rec bColSelect <- stepper [] . rumors $ userSelections selectCol
+        (selectCol, clearsCol) <- multiSelect bFilterCard (pure  colorValues) bColSelect pss
+    rec bRarSelect <- stepper [] . rumors $ userSelections selectRar
+        (selectRar, clearsRar) <- multiSelect bFilterCard (pure rarityValues) bRarSelect pss
+    rec bSetSelect <- stepper [] . rumors $ userSelections selectSet
+        (selectSet, clearsSet) <- multiSelect bFilterCard (pure    setValues) bSetSelect pss
 
     -- FilterCard only
     rec (minPow,   maxPow) <- minmax bPowMin  bPowMax  (pure (show . val))
@@ -126,20 +80,25 @@ setup window = void $ do
         bReqMin  <- stepper boundless . rumors $ userMin minReq
         bReqMax  <- stepper boundless . rumors $ userMax maxReq
 
-    cardView <- liftIO $ newIORef (ListView 100 0)
-
-    prevPage <- UI.button #. "page-btn" # settext "<"
-    pageNo   <- UI.span   #. "page-num" # settext "1"
-    nextPage <- UI.button #. "page-btn" # settext ">"
-
-    -- DeckBuilder Only
     
-    deck <- liftIO $ newIORef []
+    rec
+        bPageNo <- stepper 1 $ head <$> unions
+            [ whenE (bFilterCard`afor`bDeckBuilder) eRanger
+            , 1 <$ eAppChange
+            ]
+        pageRange <- ranger bPageNo (pure 1) (cdiv <$> bNumItems <*> (npp <$> bCardView)) (pure show)
 
-    -- ShowCard/CardFilter
+    
+    rec draftCheck <- UI.input # set type_ "checkbox"
+        let eDraftCheckChange = UI.checkedChange draftCheck
 
-    crender <- liftIO $ newIORef (Map.empty)
+        bDeckDraftMode <- stepper False $ head <$> unions
+            [ whenE bDeckBuilder eDraftCheckChange
+            , False <$ eAppMode
+            ]
 
+        element draftCheck # sink checked bDeckDraftMode
+        -- ShowCard/CardFilter
         
     -- Tagging Only
     elPlus    <- UI.button # settext "+"
@@ -147,61 +106,105 @@ setup window = void $ do
     elSave    <- UI.button # settext "Save Changes"
     elDrop    <- UI.button # settext "Discard Changes"
     elMode    <- UI.button # settext "View"
-    elBlank   <- UI.input  # settext  ""
+    elBlank   <- UI.input  # settext ""
     result    <- UI.span
 
-    inputs <- liftIO $ newIORef []
-    mode   <- liftIO $ newIORef View
-    edited <- liftIO $ newIORef False
-    dats   <- liftIO $ newIORef example
+    let eToggle = click elMode
+    bInputs <- accumB [] $ concatenate <$> unions [ ]
+    eItems <- accumE [] $ concatenate <$> unions [ ]
+    bmode   <- accumB View $ (toggle <$ eToggle)
+    let static = (==View) <$> mode
+        dynamic = not <$> static
+    bEdited <- stepper False $ concatenate <$> unions
+        [ True  <$ (whenE dynamic eEdited)
+        , False <$ eSaved
+        ]
+    bDats <- accumB [] $ concatenate <$> unions
+        [ 
+        ]
 
     -- events and behaviors
+
+    let eHome = UI.click butHome
+        eCFil = UI.click butCFil
+        eCDec = UI.click butCDec
+        eAppMode = head <$> unions
+            [ Home <$ eHome
+            , FilterCard <$ eCFil
+            , DeckBuilder <$ eCDec
+            , ShowCard <$ eSCar
+            ]
+
+    bAppMode <- stepper Home eAppMode
+
+    let [bHome,bFilterCard,bDeckBuilder,bShowCard] = ((==) <$>) <$> (map pure [Home,FilterCard,DeckBuilder,ShowCard]) <*> [bAppMode]
+
+    let fcbl = FCBL{..}
+        dbbl = DBBL{..}
+
+        bQCFilter = behaveBFilter fcbl
+        bQDFilter = behaveBFilter dbbl
+
+        modeCases :: Behavior a -> Behavior a -> Behavior a -> Behavior a
+        modeCases bFC bDB bElse = if_ <$> bFilterCard <*> bFC <*> (if_ <$> bDeckBuilder <*> bDB <*> bElse)
+
+        bQFilter = modeCases bQCFilter bQDFilter (pure emptyDeckFilter)
+        bQMatches = applyFilter <$> bQFilter
+
+        bNumItems = size <$> bQMatches
+
+        eLineNumberChange = never
+        eColumnsChange = never
+        eRowsChange = never
+
+    bListLines <- stepper 100 eLineNumberChange
+    bGridRows <- stepper 25 eRowsChange
+    bGridColumns <- stepper 4 eColumnsChange
     
+    let bView = modeCases (ListView<$>bListLines<*>bPageNo) (GridView<$>bGridRows<*>bGridColumns<*>bPageNo) (FlatView<$>bPageNo)
+
+    bDeck <- accumB emptyDeck $ concatenate <$> unions
+        [ addCard <$> eAddNew
+        , incCard <$> bDeckDraftMode <@> eIncCard
+        , decCard <$> eDecCard
+        ]
+
+    
+    bSingle <- stepper 0 $ head <$> unions
+        [ (((+).).(*).pred) <$> bPageNo <*> (npp <$> bCardView) <@> (whenE bFilterCard eSoftClick)
+        , (pred) <$> bPageNo <@ (whenE bShowCard eRanger)
+        , 0 <$ eAppMode
+        ]
+
     -- GUI Layout
+
+    content <- UI.div
+    element content # sink schildren (displayMode <$> bAppMode <*> bView <*> bDeck <*> bSingle <*> bQMatches)
+
+
     let
-        refilter :: UI ()
-        refilter = void $ do
-            updateFilter
-            updateCardMatches
-            redoLayout
-
-        displayAll :: UI ()
-        displayAll = void $ do
-            amode <- liftIO (readIORef appmode)
-            case amode of
-                HomeMode -> do displayHome
-                FilterCardMode f -> do liftIO $ modifyIORef cdFilter (const f)
-                                       updateFilter
-                                       displayFilterCard
-                ShowCardMode g ->  do displayCard
-                DeckBuilderMode f cs -> do liftIO $ modifyIORef cdFilter (const f)
-                                           updateFilter
-                                           displayDeckBuilder
+        displayMode :: AppMode -> ViewMode -> Deck -> GenCard -> IxSet GenCard -> [UI Element]
+        displayMode a v d g x  = case a of
+                Home -> displayHome
+                FilterCard  -> displayFC v x
+                ShowCard    -> displaySC g
+                DeckBuilder -> displayDB v d
         
-        displayHome :: UI ()
-        displayHome = void $ do
-            element content # UI.set children []
-            element content #+ [
-                row [UI.h1 #+ [string appname]]
-              , row [UI.p #+ [UI.string ("Welcome to "++appname++", an in-development project for the MLP:CCG")]]
-              , row [UI.p #+ [UI.string ("This site was inspired by, and modelled on, ")
-                        ,UI.a # UI.set UI.href "http://ponyhead.com" # UI.set UI.text "PonyHead"
-                        ]]
-              , row [UI.p #+ [UI.string ("This is merely one branch of a wider project. Be sure to check out the others.")]
-              ]]
+        displayHome :: [UI Element]
+        displayHome = [ row [UI.h1 #+ [string appname]]
+                      , row [UI.p #+ [UI.string ("Welcome to "++appname++", an in-development project for the MLP:CCG")]]
+                      , row [UI.p #+ [ UI.string ("This site was inspired by, and modelled on, ")
+                                     , UI.a # UI.set UI.href "http://ponyhead.com" # UI.set UI.text "PonyHead"
+                                     ]
+                            ]
+                      , row [UI.p #+ [UI.string ("This is merely one branch of a wider project. Be sure to check out the others.")]]
+                      ]
 
-        displayFilterCard :: UI ()
-        displayFilterCard = void $ do
-            decree
-            tabulate
+        displayFC :: ViewMode -> IxSet GenCard -> [UI Element]
+        displayFC v x = decree >> tabulate
 
-        displayCard :: UI ()
-        displayCard = void $ do
-            amode <- liftIO (readIORef appmode)
-            when (modes amode == ShowCard) $ void $ do
-                let (ShowCardMode g) = amode
-                element content # UI.set children []
-                element content #+ [renderCard g]
+        displaySC :: GenCard -> [UI Element]
+        displaySC g = [renderCard g]
 
         displayDeckBuilder :: UI ()
         displayDeckBuilder = void $ do
@@ -212,45 +215,6 @@ setup window = void $ do
             element content # UI.set children []
             element content #+ [string "Deck builder not written yet."]
 
-        updateFilter :: UI ()
-        updateFilter = void $ do
-            amode <- liftIO (readIORef appmode)
-            case amode of
-                FilterCardMode _ -> updateCardFilter
-                DeckBuilderMode _ _ -> updateDeckFilter
-                _ -> return ()
-
-        updateDeckFilter :: UI ()
-        updateDeckFilter = void $ do
-            ftyp <- map   (typeValues!!) <$> get selections (getElement selectTyp)
-            fcol <- map  (colorValues!!) <$> get selections (getElement selectCol)
-            frar <- map (rarityValues!!) <$> get selections (getElement selectRar)
-            fset <- map    (setValues!!) <$> get selections (getElement selectSet)
-            let newFilter = DeckFilter fcol fset ftyp frar
-            liftIO $ modifyIORef cdFilter (const newFilter)
-            updateCardMatches
-
-        updateCardFilter :: UI ()
-        updateCardFilter = void $ do
-            pmin <- readMaybeH <$> get value (getElement minPow)
-            pmax <- readMaybeH <$> get value (getElement maxPow)
-            cmin <- readMaybeH <$> get value (getElement minCost) 
-            cmax <- readMaybeH <$> get value (getElement maxCost)
-            rmin <- readMaybeH <$> get value (getElement minReq)
-            rmax <- readMaybeH <$> get value (getElement maxReq)
-            ftyp <- map   (typeValues!!) <$> get selections (getElement selectTyp)
-            fcol <- map  (colorValues!!) <$> get selections (getElement selectCol)
-            frar <- map (rarityValues!!) <$> get selections (getElement selectRar)
-            fset <- map    (setValues!!) <$> get selections (getElement selectSet)
-            let newFilter = CardFilter pmin pmax cmin cmax rmin rmax fcol fset ftyp frar
-            liftIO $ modifyIORef cdFilter (const newFilter)
-            updateCardMatches
-
-        updateCardMatches :: UI ()
-        updateCardMatches = void $ do
-            xfilter <- liftIO $ readIORef cdFilter
-            liftIO $ modifyIORef cdMatches (const (applyFilter xfilter))
-
         pronounce :: GenCard -> UI Element
         pronounce g = do
             rends <- liftIO $ readIORef crender
@@ -258,15 +222,10 @@ setup window = void $ do
     
         decree :: UI ()
         decree = do
-            amode <- liftIO (readIORef appmode)
-            when (modes amode == FilterCard) $ do
-                cview <- liftIO (readIORef cardView)
                 let (ListView npp pn) = cview
                 matches <- (take npp . drop (npp*pn) . toList) <$> liftIO (readIORef cdMatches)
                 forM matches (\g -> softLink (gname g) g (setCardMode) >>= \sl -> liftIO $ modifyIORef crender (Map.insert g (getElement sl)) >> return (slHandle sl))
                 return ()
-
-
 
         tabulate :: UI ()
         tabulate = void $ do
@@ -331,6 +290,7 @@ setup window = void $ do
 
         outlaySC :: [UI Element]
         outlaySC = [] 
+
         outlayDB :: Deck -> [UI Element]
         outlayDB d = [ UI.div #. "add-cards" #+ [
                          UI.div #. "card-filter" #+ [
@@ -531,9 +491,43 @@ setup window = void $ do
     singles <- getElementsByClassName window "single-card"
     forM singles (\x -> UI.get value x >>= \code -> on UI.click x $ const $ setCardMode (fromJust.getOne$(cardDB @= (ravel code :: SetNum))))
     redoLayout
--}
 
--- conditional operator: performs function on value depending on test of value
+{-
+setup :: Window -> UI ()
+setup window = void $ do
+    return window # UI.set UI.title appfname
+    addStyleSheet window "style.css"
 
-example = ("Cat",[])
+    {-
+    butHome <- softLink "Home" Home
+    butCFil <- softLink "Cards" FilterCard
+    butCDec <- softLink "Deck Builder" DeckBuilder
+    -}
 
+    {-
+    butHome`linksTo`(liftIO . writeIORef appmode)
+    butCFil`linksTo`(liftIO . writeIORef appmode)
+    butCDec`linksTo`(liftIO . writeIORef appmode)
+    -}
+
+    content <- UI.div #. "main-content"
+    debug <- UI.div #. "debugger"
+
+    rec elSearch <- searchBar (pure cardDB) (bFilterString) (pure (string . show . gname))
+        bFilterString <- stepper "" . rumors $ userSearch elSearch
+
+    nav <- UI.li #. "nav" #+ [element butHome, element butCFil, element butCDec, element elSearch]
+
+    let
+        redoLayout :: UI ()
+        redoLayout = void $ do
+            layout <- mkLayout []
+            getBody window # UI.set children [layout]
+
+        mkLayout :: [Element] -> UI Element
+        mkLayout xs = UI.div #. "page" #+ [UI.div #. "nav-row" #+ [element nav], UI.div #. "content" #+ [element content], UI.div #. "debug" #+ [element debug]]
+
+    redoLayout
+    let fc@Applet{..} = appletCards
+    i <- initState
+    appRun window (Change Initialize, i)

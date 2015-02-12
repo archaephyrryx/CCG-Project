@@ -4,7 +4,9 @@ import Data.Function
 import Control.Monad
 import Control.Arrow hiding ((+++))
 import Data.Maybe
+import Control.Applicative
 import Graphics.UI.Threepenny.Core
+import Reactive.Threepenny
 
 infix 9 ?
 infix 9 ??
@@ -12,6 +14,9 @@ infix 9 ?<
 infix 9 ?+
 infix 9 ?:
 infixr 5 +++
+
+afor :: (Applicative f) -> f Bool -> f Bool -> f Bool
+afor = liftA2 or
 
 (?) :: (a -> (b -> b)) -> Maybe a -> (b -> b)
 f?Nothing = id
@@ -44,6 +49,10 @@ for = flip map
 
 cond :: (a -> Bool) -> (a -> b) -> (a -> b) -> (a -> b)
 cond p f g = \x -> if p x then f x else g x
+
+if_ :: Bool -> a -> a -> a
+if_ True x _ = x
+if_ False _ y = y
 
 settext = set text
 
