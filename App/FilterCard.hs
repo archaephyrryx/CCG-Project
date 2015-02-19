@@ -4,11 +4,6 @@ module App.FilterCard where
 
 import Cards
 import Cards.Common
-import Cards.Common.Abbrev
-import Cards.Common.Color
-import Cards.Common.Hint
-import Cards.Common.Stringe
-import Cards.Common.Values
 import Cards.Differentiation
 import Cards.Generic
 --------------------------

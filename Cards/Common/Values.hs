@@ -1,7 +1,6 @@
 module Cards.Common.Values (setValues, rarityValues, typeValues, colorValues) where
 
-import Cards.Common
-import Cards.Common.Color
+import Cards.Common.Types
 
 setValues :: [CSet]
 setValues = [Premiere, CanterlotNights, RockNRave, CelestialSolstice, CrystalGames]

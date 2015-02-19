@@ -10,11 +10,6 @@ import App.Core.Helper
 import App.Widgets
 import Cards
 import Cards.Common
-import Cards.Common.Abbrev
-import Cards.Common.Color
-import Cards.Common.Hint
-import Cards.Common.Stringe
-import Cards.Common.Values
 import Cards.Generic
 import Control.Applicative
 import Control.Applicative.Indexed  ( IndexedFunctor(..) , IndexedApplicative(..))
@@ -96,9 +91,9 @@ behaveBFilter bls@FCBL{..} = CardFilter <$> bPowMin  <*> bPowMax
                                         <*> bReqMin  <*> bReqMax
                                         <*> bColSelect
                                         <*> bSetSelect
-                                        <*> bTypeSelect
-                                        <*> bRaritySelect
+                                        <*> bTypSelect
+                                        <*> bRarSelect
 behaveBFilter bls@DBBL{..} = DeckFilter <$> bColSelect 
                                         <*> bSetSelect
-                                        <*> bTypeSelect
-                                        <*> bRaritySelect
+                                        <*> bTypSelect
+                                        <*> bRarSelect

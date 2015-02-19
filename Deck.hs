@@ -9,16 +9,13 @@ import Data.List
 import Cards
 import Cards.Generic
 import Cards.Common
-import Cards.Common.Color
-import Cards.Common.Stringe
-import Cards.Common.Hint
-import Cards.Common.Abbrev
-import Cards.Common.Values
 import Cards.Differentiation
 ---------------------------------------------------
 import App.Core.Helper
 ---------------------------------------------------
 
+-- |List-based implementation, to be altered only when the App itself is
+-- working
 type Deck = [Card]
 type DeckP = [Card]
 
@@ -27,6 +24,20 @@ emptyDeck = []
 
 addCard :: Card -> Deck -> Deck
 addCard c = (c:)
+
+incCard :: Bool -> Card -> Deck -> Deck
+incCard dm c d | d`has`c && (dm || (d`hasN`c < 3)) = addCard c d
+               | otherwise = d
+
+decCard :: Card -> Deck -> Deck
+decCard c d = delete c d
+
+has :: Deck -> Card -> Bool
+has d c = c`elem`d
+
+hasN :: Deck -> Card -> Int
+hasN d c | has d c = length (filter (==c) d)
+         | otherwise = 0
 
 hasStarting :: DeckP -> Bool
 hasStarting = any (isPrefixOf "Starting Problem" . unravel . ctext)

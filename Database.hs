@@ -6,12 +6,7 @@ module Database where
 
 import Cards
 import Cards.Common
-import Cards.Common.Hint
-import Cards.Common.Stringe
-import Cards.Common.Abbrev
-import Cards.Common.Color
 import Cards.Differentiation
-import Cards.Common.Values
 import Cards.Parser
 import Cards.Generic
 import Cards.Pretty

@@ -4,9 +4,6 @@
 module Cards where
 
 import Cards.Common
-import Cards.Common.Abbrev
-import Cards.Common.Hint
-import Cards.Common.Stringe
 import Data.List
 import Data.Char
 import Data.Set (Set)

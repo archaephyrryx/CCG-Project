@@ -15,8 +15,13 @@ infix 9 ?+
 infix 9 ?:
 infixr 5 +++
 
-afor :: (Applicative f) -> f Bool -> f Bool -> f Bool
-afor = liftA2 or
+
+pss :: Show a => Behavior (a -> UI Element)
+pss = pure (string . show)
+
+
+afor :: (Applicative f) => f Bool -> f Bool -> f Bool
+afor = liftA2 (||)
 
 (?) :: (a -> (b -> b)) -> Maybe a -> (b -> b)
 f?Nothing = id

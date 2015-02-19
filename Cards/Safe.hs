@@ -4,7 +4,6 @@ module Cards.Safe where
 import Cards
 import Cards.Common
 import Cards.Generic
-import Cards.Common.Color
 import Data.SafeCopy (base, deriveSafeCopy)
 
 $(deriveSafeCopy 0 'base ''Color)

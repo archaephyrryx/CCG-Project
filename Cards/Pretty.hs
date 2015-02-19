@@ -4,10 +4,6 @@ module Cards.Pretty where
 
 import Cards
 import Cards.Common
-import Cards.Common.Hint
-import Cards.Common.Stringe
-import Cards.Common.Abbrev
-import Cards.Common.Color
 import Data.List.Split
 import Data.List
 import Data.Maybe (fromJust)

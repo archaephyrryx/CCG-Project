@@ -13,17 +13,10 @@ import Deck
 import Cards
 import Cards.Generic
 import Cards.Common
-import Cards.Common.Color
-import Cards.Common.Stringe
-import Cards.Common.Hint
-import Cards.Common.Abbrev
-import Cards.Common.Values
 import Cards.Differentiation
 import MLPCCG
 -------------------------------------------------
 import App.Core
-import App.Core.Helper
-import App.Core.Modes
 import App.Widgets
 import App.Renderer.Cards
 import App.Renderer.SingleCard

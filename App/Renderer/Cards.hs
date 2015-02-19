@@ -7,9 +7,6 @@ import Data.List
 --------------------------------------------------
 import Cards.Generic
 import Cards.Common
-import Cards.Common.Color
-import Cards.Common.Hint
-import Cards.Common.Values
 --------------------------------------------------
 import qualified Graphics.UI.Threepenny as UI
 import Graphics.UI.Threepenny.Core

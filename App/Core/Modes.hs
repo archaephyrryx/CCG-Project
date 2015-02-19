@@ -2,7 +2,6 @@
 
 module App.Core.Modes where
 
-import App.Filtering
 import Cards.Generic
 import Cards
 import Deck
