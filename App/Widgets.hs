@@ -6,6 +6,7 @@ module App.Widgets
         , module App.Widgets.SearchBar
         , module App.Widgets.Ranger
         , module App.Widgets.MinMax
+        , module App.Widgets.Cast
         ) where
 
 import App.Core
@@ -15,7 +16,4 @@ import App.Widgets.SearchBar
 import App.Widgets.MultiSelect
 import App.Widgets.MinMax
 import App.Widgets.Ranger
-
-
-schildren = mkWriteAttr $ \i x -> void $ do
-    return x # set children [] #+ i
+import App.Widgets.Cast

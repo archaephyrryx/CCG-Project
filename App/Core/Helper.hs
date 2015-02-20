@@ -19,6 +19,11 @@ infixr 5 +++
 pss :: Show a => Behavior (a -> UI Element)
 pss = pure (string . show)
 
+filtrate :: [Bool] -> [a] -> [a]
+filtrate [] _ = []
+filtrate _ [] = []
+filtrate (p:ps) (x:xs) = (p?:(x:)) $ filtrate ps xs
+
 
 afor :: (Applicative f) => f Bool -> f Bool -> f Bool
 afor = liftA2 (||)
