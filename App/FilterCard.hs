@@ -34,7 +34,23 @@ import App.Widgets
 import App.Filtering
 -----------------------------
 import App.Renderer.FilterCard
+import App.Renderer.Cards
 -----------------------------
+
+theader :: UI Element
+theader = UI.tr #+ (map (\x -> UI.th #+ [string x]) ["#", "Rarity", "Type", "Cost", "Req.", "Name", "Power"])
+
+tabulate :: GenCard -> LiquidLink Int -> UI Element
+tabulate g@GenCard{..} l = UI.tr #+ (map (\x -> UI.td #+ [x]) $
+            [ UI.string $ genset g
+            , UI.string $ brief rar
+            , iconic ctype
+            , UI.string $ fromMaybe "" (show.val <$> mcost)
+            , reqtify g
+            , element l
+            , empower g
+            ])
+{-
 
 powerless :: Maybe Power
 powerless = Nothing
@@ -239,3 +255,5 @@ cardRun window (sig, stat) = do
                 return (sig, stat)
 
     persist stat
+
+-}

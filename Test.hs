@@ -42,7 +42,8 @@ setup window = void $ do
         eMulti = UI.click butMulti
         eLinks = UI.click butLinks
 
-        navigator = [element eHome, element eRanger, element eMulti, element eLinks]
+        navigator :: [UI Element]
+        navigator = [element butHome, element butRanger, element butMulti, element butLinks]
 
     bMode <- stepper "Home" $ head <$> unions
         [ "Home" <$ eHome
@@ -69,7 +70,7 @@ setup window = void $ do
     element sonnet # sink UI.text ((\xs i -> show $ (xs!!i)) <$> shakes <*> bRanger)
 
   --- Mode specific things (multi)
-    rec (multiShake, cBut) <- multiSelect True bAnthology bmShakes (pure ((UI.li #+).(:[]).string))
+    rec (multiShake, cBut) <- multiSelect (pure True) bAnthology bmShakes (pure ((UI.li #+).(:[]).string))
         let tShakes = userSelections multiShake
             eShakes = rumors tShakes
             bShakes = facts tShakes
@@ -79,9 +80,7 @@ setup window = void $ do
   --- Mode specific things (links)
     bMacbeth <- softLink "The Scottish Play" ("Macbeth")
     bHamlet  <- softLink "The Danish Play" ("Hamlet")
-    bPlay <- liquidLink ("Shakespeare's "++) butWhich
-
-
+    bPlay <- liquidLink (pure ("Shakespeare's "++)) butWhich
 
     --- UI actions
 
@@ -94,8 +93,6 @@ setup window = void $ do
     footlight <- UI.span
     element footlight # sink schildren ((:[]).string.("A Taste of "++) <$> bMode)
 
-    content <- UI.div
-    element content # sink schildren (displayMode <$> bMode)
 
     let
         displayMode :: String -> [UI Element]
@@ -116,26 +113,11 @@ setup window = void $ do
 
         displayLinks = [ row [element bMacbeth, element bHamlet, element bPlay] ]
 
+    content <- UI.div
+    element content # sink schildren (displayMode <$> bMode)
 
-
-    
-    let
-
-      redoLayout :: UI ()
-      redoLayout = void $ do
-          shake <- liftIO $ readIORef iShakespeare
-          layout <- mkLayout shake []
-          getBody window # set children [layout]
-    
-      mkLayout :: Int -> [Element] -> UI Element
-      mkLayout n _ = column ([row [element butFoo], row [element softBar], row [uiShaken]]++([UI.ul #+ (map ((UI.li #+).(:[]).string) (take n anthology))]))
-
-      foo :: UI ()
-      foo = softBar`sinksTo`(\x -> do liftIO $ writeIORef iShakespeare x
-                                      redoLayout)
-
-    redoLayout >> foo
-
+    getBody window # set schildren ([column [ row navigator , row [ element headlight ], row [ element content ], row [ element footlight ] ]])
+   
 
 anthology :: [String]
 anthology = [ "Hamlet"

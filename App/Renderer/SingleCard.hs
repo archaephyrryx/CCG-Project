@@ -32,7 +32,7 @@ cardImgs :: GCR
 cardImgs = (UI.table #+).(map cimage.curls)
 
 curls :: GenCard -> [String]
-curls g@GenCard{..} = let sn = genset g in map (("/res/cards/"++sn)++) (suffixes ctype)
+curls g@GenCard{..} = let sn = genset g in map (("res/cards/"++sn)++) (suffixes ctype)
     where
       suffixes :: CardType -> [String]
       suffixes x = id:boost x <*> [suffix]

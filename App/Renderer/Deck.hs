@@ -26,9 +26,8 @@ import Graphics.UI.Threepenny.Elements hiding (map)
 import Graphics.UI.Threepenny.Core
 ---------------------------------------------------
 
-construct :: Deck -> UI Element
-construct d = div #. "decktab" #+ [
-                div #. "mane" #+ [
+construct :: Deck -> [UI Element]
+construct d = [ div #. "mane" #+ [
                   div #. "mane-deck" #+ [
                     h2 #. "mane-title" #+ [mheader nmane]]
                   , hr

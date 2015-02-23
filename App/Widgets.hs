@@ -7,6 +7,7 @@ module App.Widgets
         , module App.Widgets.Ranger
         , module App.Widgets.MinMax
         , module App.Widgets.Cast
+        , schildren
         ) where
 
 import App.Core

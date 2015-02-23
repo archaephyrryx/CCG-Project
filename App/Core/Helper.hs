@@ -9,6 +9,7 @@ import Graphics.UI.Threepenny.Core
 import Reactive.Threepenny
 
 infix 9 ?
+infix 9 !?
 infix 9 ??
 infix 9 ?<
 infix 9 ?+
@@ -19,6 +20,9 @@ infixr 5 +++
 pss :: Show a => Behavior (a -> UI Element)
 pss = pure (string . show)
 
+psss :: (Show a, Enum a) => Behavior (a -> UI Element)
+psss = pure (string . show . succ)
+
 filtrate :: [Bool] -> [a] -> [a]
 filtrate [] _ = []
 filtrate _ [] = []
@@ -27,6 +31,10 @@ filtrate (p:ps) (x:xs) = (p?:(x:)) $ filtrate ps xs
 
 afor :: (Applicative f) => f Bool -> f Bool -> f Bool
 afor = liftA2 (||)
+
+(!?) :: (a -> b) -> b -> Int -> ([a] -> b)
+(f!?y) n xs | n == -1 || n >= length xs = y
+            | otherwise = f (xs!!n)
 
 (?) :: (a -> (b -> b)) -> Maybe a -> (b -> b)
 f?Nothing = id

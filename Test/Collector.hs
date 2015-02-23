@@ -1039,25 +1039,32 @@ setup window = void $ do
 
     inker <- UI.button # settext "+"
     dynItemList <- accumB 5 $ (+1) <$ UI.click inker
-    
-    pager <- UI.button # settext "+"
-    dynPageView <- accumB 5 $ (+1) <$ UI.click pager
 
-    uCask <- liquidCast (flip take [0..999] <$> dynItemList) 10 (numers!!) (\_ x -> row [ element x ])
-    uCase <- softCast [0..999] dynPageView (numers!!) (\_ x -> row [ element x ])
+    inker' <- UI.button # settext "+"
+    dynItemList' <- accumB 5 $ (+1) <$ UI.click inker'
+    
+    rec
+        uCask <- liquidCast (flip take [0..999] <$> dynItemList) 10 (numers!!) (\_ x -> row [ element x ])
+        proRanger <- ranger bCur bFirst bLast (pss)
+        let tRanger = userLoc proRanger
+            eRanger = rumors tRanger
+            bRanger = facts tRanger
+            bFirst = pure 0
+            bLast = pred.(`cdiv`10) <$> dynItemList'
+        bCur <- stepper 0 $ eRanger
+        uPro <- derangedCask (flip take [0..999] <$> dynItemList') 10 proRanger (pure (numers!!)) (pure (const element)) (pure id)
 
     let eCask = rumors . userActive $ uCask
-        eCase = rumors . userActive $ uCase
-    
+        ePro = rumors . userActive $ uPro
 
     bCask <- stepper (-1) $ eCask
-    bCase <- stepper (-1) $ eCase
+    bPro <- stepper (-1) $ ePro
 
     val <- UI.h1
     element val # sink UI.text ((cond (>=0) (lettrs!!) (const "")) <$> bCask)
     val' <- UI.h1
-    element val' # sink UI.text ((cond (>=0) (lettrs!!) (const "")) <$> bCase)
+    element val' # sink UI.text ((cond (>=0) (lettrs!!) (const "")) <$> bPro)
 
     getBody window #+ [ column ([ row [element val , element inker] ]++[element uCask])
-                      , column ([ row [element val', element pager] ]++[element uCase])
+                      , column ([ row [element val', element inker'] ]++[element uPro, element proRanger])
                       ]
