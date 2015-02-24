@@ -1,6 +1,6 @@
-{-# LANGUAGE TypeSynonymInstances, FlexibleInstances #-}
+{-# LANGUAGE TypeSynonymInstances, FlexibleInstances, DoRec #-}
 
-module Main where
+module Test.Res where
 
 import Control.Applicative
 import Control.Monad
@@ -12,7 +12,9 @@ import qualified Data.Map as Map
 import Data.Map (Map)
 import qualified	Graphics.UI.Threepenny 			as UI
 import				Graphics.UI.Threepenny.Core
-import App
+import App.Widgets
+import Cards.Differentiation
+import Database
 
 main :: IO ()
 main = do
@@ -21,3 +23,9 @@ main = do
 		, tpStatic	= Just "res/"
 		} setup
 
+setup :: Window -> UI ()
+setup window = void $ do
+    return window # UI.set UI.title "Test"
+
+    foo <- UI.image # set UI.src "static/icns/Friend.png"
+    getBody window #+ [element foo]

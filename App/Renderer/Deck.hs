@@ -63,8 +63,9 @@ dheader n = UI.span #+ [string $ "Draw Deck ("++(show n)++"/45)"]
 con :: [(Card,Int)] -> UI Element
 con xs = div #. "card-box" #+ (map (\x -> div #. "card-line" #+ [cline x]) xs)
   where
-    cline (c,n) = UI.span #. "cline" #+ (((++[UI.span #. "ccount badge" #+ [string (show n)]])?+n) $ [UI.span #. "ctab" #+ (ctab c), UI.span #. "cname" #+ [string . cname $ c]])
+    cline (c,n) = UI.span #. "cline" #+ (account [ UI.span #. "ctab" #+ (ctab c) , UI.span #. "cname" #+ [string . cname $ c]])
       where
+        account = ((++[UI.span #. "ccount badge" #+ [string (show n)]])?+n)
         ctab :: Card -> [UI Element]
         ctab = cond ((==TProblem).cardtype) (conf.toGeneric) (empower.toGeneric)
           where
@@ -82,7 +83,6 @@ render :: ViewMode -> [GenCard] -> [UI Element]
 render g@GridView{..} matches =
   let trows = for (take rs.chunksOf cs$matches) (\gs -> UI.tr #+ (map (\x -> UI.td #+ [x]) $ map procure gs))
   in [ UI.table #+ (trows) ]
-
 
 procure :: GCR
 procure = head.map cimage.curls

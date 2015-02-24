@@ -35,6 +35,9 @@ decCard c d = delete c d
 has :: Deck -> Card -> Bool
 has d c = c`elem`d
 
+lacks :: Deck -> Card -> Bool
+lacks d c = c`notElem`d
+
 hasN :: Deck -> Card -> Int
 hasN d c | has d c = length (filter (==c) d)
          | otherwise = 0

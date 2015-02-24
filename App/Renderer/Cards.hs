@@ -16,7 +16,7 @@ type GCR = GenCard -> UI Element
 type GCR' = GenCard -> [UI Element]
 
 iconic :: CardType -> UI Element
-iconic x = let ipath = "res/icns/"++(show x)++".png" in
+iconic x = let ipath = "static/icns/"++(show x)++".png" in
           UI.img #. "icon" # UI.set UI.src ipath
 
 reqtify :: GCR
