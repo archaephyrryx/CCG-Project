@@ -25,8 +25,14 @@ emptyDeck = []
 addCard :: Card -> Deck -> Deck
 addCard c = (c:)
 
+dLim :: Card -> Int
+dLim c@Mane{..} = 1
+dLim c@Problem{..} = 2
+dLim _ = 3
+
+
 incCard :: Bool -> Card -> Deck -> Deck
-incCard dm c d | d`has`c && (dm || (d`hasN`c < 3)) = addCard c d
+incCard dm c d | d`has`c && (dm || d`hasN`c < dLim c) = addCard c d
                | otherwise = d
 
 decCard :: Card -> Deck -> Deck

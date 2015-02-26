@@ -23,16 +23,17 @@ import Database
 import TagState
 ------------------------------
 import App.FilterCard
---import App.SingleCard
+import App.SingleCard
+import App.Home
+import App.Deck
+------------------------------
 import App.Renderer.FilterCard
 import App.Renderer.SingleCard
 import App.Renderer.Deck
-import App.Core.AppData
-import App.Core.Helper
-import App.Core.Modes
---import App.Deck
+------------------------------
 import App.Filtering
 import App.Widgets
+import App.Core
 ------------------------------
 import qualified Graphics.UI.Threepenny          as UI
 import qualified Graphics.UI.Threepenny.Core     as UI
@@ -63,12 +64,18 @@ welcomeText =
 hlink :: String -> String -> UI Element
 hlink url str = UI.a # UI.set UI.href url # settext str
 
+glue :: UI Element
+glue = string " "
+
 homeFoot :: UI Element
-homeFoot = UI.span #+ (map (\(x,y) -> UI.span #+ [x, y]) (
-              [ (string "Developer:", hlink "https://github.com/archaephyrryx" "Archaephyrryx")
-              , (string "Project code on", hlink "https://github.com/archaephyrryx/CCG-Project/tree/threepenny" "GitHub")
-              , (string "Sister projects also on", hlink "https://github.com/archaephyrr://github.com/archaephyrryx/CCG-Project/" "GitHub")
-              ]))
+homeFoot = UI.span #. "footer" #+ [ devel , code , proj ]
+    where
+        devel = UI.p #. "" [string "Developer:", glue, arch]
+            where arch = hlink "https://github.com/archaephyrryx" "Archaephyrryx"
+        code =  UI.p #. "" [string "Project code on", glue, gitpage]
+            where gitpage = hlink "https://github.com/archaephyrryx/CCG-Project/tree/threepenny" "GitHub"
+        proj = UI.p #. "" [string "Sister projects also on", glue, githome ]
+            where githome = hlink "https://github.com/archaephyrr://github.com/archaephyrryx/CCG-Project/" "GitHub"
               
 
 setup :: Window -> UI ()
@@ -265,8 +272,6 @@ setup window = void $ do
     deckSide <- UI.div
     element deckSide # sink schildren (construct <$> bDeck)
 
-    scIO <- UI.div
-
 
     let
         noop :: UI Element
@@ -330,4 +335,4 @@ setup window = void $ do
     element sidebar # sink schildren (displaySideBar <$> bMode)
     element dbg # sink schildren (displayDebugger <$> bMode)
 
-    getBody window # UI.set schildren ([column [ row navigator, row [element header], row [column [ element content, element sidebar ]], row [element footer], row [element dbg]]])
+    getBody window # UI.set schildren ([column [ row navigator, row [element header], row [column [ element content ], column [ element sidebar ]], row [element footer], row [element dbg]]])

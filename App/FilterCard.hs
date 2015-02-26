@@ -50,7 +50,6 @@ tabulate g@GenCard{..} l = UI.tr #+ (map (\x -> UI.td #+ [x]) $
             , element l
             , empower g
             ])
-{-
 
 powerless :: Maybe Power
 powerless = Nothing
@@ -61,199 +60,131 @@ priceless = Nothing
 boundless :: Maybe Req
 boundless = Nothing
 
-appletCards :: Applet
-appletCards = Applet FilterCard initCardState cardRun
+setup :: Window -> UI ()
+setup window = void $ do
+    return window # UI.set UI.title appname
+    UI.addStyleSheet window "style.css"
 
-initCardState :: UI AppState
-initCardState = do
-    rec selectTyp <- multiSelect "Type" True (pure   typeValues) bTypSelect (pure (string . show))
-        bTypSelect <- stepper [] . rumors $ userSelections selectTyp
-    rec selectCol <- multiSelect "Color" True (pure  colorValues) bColSelect (pure (string . show))
-        bColSelect <- stepper [] . rumors $ userSelections selectCol
-    rec selectRar <- multiSelect "Rarity" True (pure rarityValues) bRarSelect (pure (string . show))
-        bRarSelect <- stepper [] . rumors $ userSelections selectRar
-    rec selectSet <- multiSelect "Set" True (pure    setValues) bSetSelect (pure (string . show))
-        bSetSelect <- stepper [] . rumors $ userSelections selectSet
-    rec (minPow,   maxPow) <- minmax bPowMin  bPowMax  (pure (show . val))
-        bPowMin  <- stepper powerless . rumors $ userMin minPow
-        bPowMax  <- stepper powerless . rumors $ userMax maxPow
-    rec (minCost, maxCost) <- minmax bCostMin bCostMax (pure (show . val))
-        bCostMin <- stepper priceless . rumors $ userMin minCost
-        bCostMax <- stepper priceless . rumors $ userMax maxCost
-    rec (minReq, maxReq)   <- minmax bReqMin  bReqMax  (pure (show . val))
-        bReqMin  <- stepper boundless . rumors $ userMin minReq
-        bReqMax  <- stepper boundless . rumors $ userMax maxReq
+      rec
+        (selectTyp, clearsTyp) <- multiSelect bMulti bTypeValues   bTypSelect (pure ((UI.li #+).(:[]).string.show))
+        (selectCol, clearsCol) <- multiSelect bMulti bColorValues  bColSelect (pure ((UI.li #+).(:[]).string.show))
+        (selectSet, clearsSet) <- multiSelect bMulti bSetValues    bSetSelect (pure ((UI.li #+).(:[]).string.show))
+        (selectRar, clearsRar) <- multiSelect bMulti bRarityValues bRarSelect (pure ((UI.li #+).(:[]).string.show))
 
-    prevPage <- UI.button #. "page-btn" # settext "<"
-    pageNo   <- UI.span   #. "page-num" # settext "1"
-    nextPage <- UI.button #. "page-btn" # settext ">"
+        let tSelectType   = userSelections selectTyp
+            tSelectColor  = userSelections selectCol
+            tSelectSet    = userSelections selectSet
+            tSelectRarity = userSelections selectRar
 
-    let qfilter = blankCardFilter
-        cardView = ListView 100 0
-        appMode = FilterCardMode qfilter cardView
-        appElems = FCEL{..}
-        appRules = FCBL{..}
-    return AppState{..}
+            eSelectType   = rumors tSelectType
+            eSelectColor  = rumors tSelectColor
+            eSelectSet    = rumors tSelectSet
+            eSelectRarity = rumors tSelectRarity
 
+            bSelectType   = facts tSelectType
+            bSelectColor  = facts tSelectColor
+            bSelectSet    = facts tSelectSet
+            bSelectRarity = facts tSelectRarity
 
-updateS :: Filter -> AppState -> AppState
-updateS nf as@AppState{appMode=(FilterCardMode _ v), ..} =
-    let appMode = FilterCardMode nf v
-    in AppState{..}
-
-
-
-cardRun :: Window -> SigStateT
-cardRun window (sig, stat) = do
-    iSig <- liftIO $ newIORef sig
-    iMatches <- liftIO $ newIORef cardDB
-    content <- head <$> getElementsByClassName window "main-content"
-    nav <- head <$> getElementsByClassName window "nav"
-    dbg <- head <$> getElementsByClassName window "debugger"
-    let
-        sigHandle :: SigStateT
-        sigHandle (g,t) = case g of 
-            Continue -> return (g,t)
-            Change Initialize -> initialize t
-            Change Rerender -> rerender t
-            Change Update -> update t
-            Change Next -> goNextPage t
-            Change Prev -> goPrevPage t
-
-        update :: AppState -> UI (AppSignal, AppState)
-        update stat@AppState{..} = do
-            newFilter <- filterFromElem appElems
-            let newMatches = applyFilter newFilter
-            liftIO $ writeIORef iMatches (newMatches)
-            return (Change Rerender, (updateS newFilter $ stat))
-
-        pronounce :: GenCard -> UI Element
-        pronounce g = do
-            let setCardMode = \g -> liftIO $ writeIORef iSig (Switch (ShowCardMode g))
-            sl <- softLink (gname g) g
-            sl`linksTo`setCardMode
-            --on UI.click (getElement sl) $ setCardMode g
-            element sl
+            eClearTyp = UI.click clearsTyp
+            eClearCol = UI.click clearsCol
+            eClearSet = UI.click clearsSet
+            eClearRar = UI.click clearsRar
         
-        rerender :: AppState -> UI (AppSignal, AppState)
-        rerender st = do
-            let (FilterCardMode _ (ListView npp pn)) = appMode st
-            matches <- (take npp . drop (npp*pn) . toList) <$> liftIO (readIORef iMatches)
-            element content # UI.set children [] #+ (render matches pronounce)
-            d <- debug st
-            element dbg # UI.set children d
-            return (Continue, st)
+        bTypSelect <- stepper [] $ head <$> unions [eSelectType,   [] <$ eClearTyp]
+        bColSelect <- stepper [] $ head <$> unions [eSelectColor,  [] <$ eClearCol]
+        bSetSelect <- stepper [] $ head <$> unions [eSelectSet,    [] <$ eClearSet]
+        bRarSelect <- stepper [] $ head <$> unions [eSelectRarity, [] <$ eClearRar]
 
-        initialize :: AppState -> UI (AppSignal, AppState)
-        initialize st = do let a@FCEL{..} = appElems st
-                           dbg <- debug st
-                           layout <- mkLayout dbg a
-                           on UI.click prevPage $ \_ -> liftIO $ writeIORef iSig (Change Prev)
-                           on UI.click nextPage $ \_ -> liftIO $ writeIORef iSig (Change Next)
-                           getBody window # UI.set children [layout]
-                           firstPage =<< snd <$> rerender st
+        let 
+            namedMultiSelect :: String -> Element -> MultiSelect a -> UI Element
+            namedMultiSelect s cler sel = column [ row [ UI.bold #+ [ string s ], element cler ], row [ element sel ] ]
 
-        mkLayout :: [Element] -> AEL -> UI Element
-        mkLayout xs ael = UI.div #. "page" #+ [UI.div #. "nav-row" #+ [element nav], UI.div #. "content" #+ outlay ael, UI.div #. "debug" #+ [element dbg]]
+            uiSelectTyp = namedMultiSelect "Type"   clearsTyp selectTyp
+            uiSelectCol = namedMultiSelect "Color"  clearsCol selectCol
+            uiSelectSet = namedMultiSelect "Set"    clearsSet selectSet
+            uiSelectRar = namedMultiSelect "Rarity" clearsRar selectRar
 
-        mkLine :: [Element] -> [UI Element]
-        mkLine xs = map element xs
+            selectAll :: [UI Element] -> UI Element
+            selectAll xs = row (map (\x -> column [ x ]) xs)
 
-        outlay :: AEL -> [UI Element]
-        outlay a@FCEL{..} =
-                [ UI.div #. "card-filter" #+ [
-                     UI.div #. "min-max" #+ [
-                         UI.div #. "power-min-max" #+ [element minPow , UI.bold #+ [string "to"], element maxPow ]
-                       , UI.div #. "cost-min-max"  #+ [element minCost, UI.bold #+ [string "to"], element maxCost]
-                       , UI.div #. "req-min-max"   #+ [element minReq , UI.bold #+ [string "to"], element maxReq ]
-                       ]
-                     , UI.div #. "select-filter" #+ [
-                         UI.div #. "type-select" #+ [element selectTyp]
-                       , UI.div #. "color-select" #+  [element selectCol]
-                       , UI.div #. "rarity-select" #+ [element selectRar]
-                       , UI.div #. "set-select" #+  [element selectSet]
-                       ]
-                   ]
-                   , UI.div #. "filtered-cards" #+ [element content]
-                   , UI.div #. "page-nav" #+ [element prevPage, element pageNo, element nextPage]
-                 ]
+            uiSelects = selectAll [uiSelectTyp, uiSelectCol, uiSelectSet, uiSelectRar]
 
-        debug :: AppState -> UI [Element]
-        debug st@AppState{..} = do
-            let bs@FCBL{..} = appRules
-                f x = show <$> currentValue x
-            mapM (\x -> liftIO x >>= string) ((show <$> readIORef iSig):[f bColSelect,f bRarSelect,f bSetSelect,f bPowMin,f bPowMax,f bCostMin,f bCostMax,f bReqMin,f bReqMax])
- 
+  --- Mode specific things (FilterCard and DeckBuilder)
 
-        firstPage :: AppState -> UI (AppSignal, AppState)
-        firstPage st@AppState{..} = do
-            matches <- liftIO $ readIORef iMatches
-            let FilterCardMode f l@ListView{..} = appMode
-                a@FCEL{..} = appElems
-                l' = setpage 0 l
-                ub = Data.IxSet.size matches  
-                mpn = ub`cdiv`(npp l)
-            prevPage <- element prevPage # UI.set UI.enabled False
-            pageNo <- element pageNo # settext "1"
-            nextPage <- element nextPage # UI.set UI.enabled (mpn > 1)
-            let appMode = FilterCardMode f l'
-                appElems = FCEL{..}
-                st' = AppState{..}
-            return (Change Rerender, st')
+    rec
+        (minPow, maxPow) <- minmax bPowMin bPowMax (pure (show.val))
+        (minCost, maxCost) <- minmax bCostMin bCostMax (pure (show.val))
+        (minReq, maxReq) <- minmax bReqMin  bReqMax (pure (show.val))
 
-        goNextPage :: AppState -> UI (AppSignal, AppState)
-        goNextPage st@AppState{..} = do
-            matches <- liftIO $ readIORef iMatches
-            let FilterCardMode f l@ListView{..} = appMode
-                ub = Data.IxSet.size matches  
-                a@FCEL{..} = appElems
-                mpn = ub`cdiv`(npp l)
-            if (pn < mpn)
-              then do
-                let l' = incpage l
-                prevPage <- element prevPage # UI.set UI.enabled True
-                pageNo <- element pageNo # settext (show (pn + 2))
-                nextPage <- element nextPage # UI.set UI.enabled ((pn+1) < mpn)
-                let appMode = FilterCardMode f l'
-                    appElems = FCEL{..}
-                    st' = AppState{..}
-                return (Change Rerender, st')
-              else do
-                return (Continue, st)
+        bPowMax  <- stepper powerless $ head <$> unions [ rumors . userMin $ minPow , Nothing <$ eModeChange ]
+        bPowMin  <- stepper powerless $ head <$> unions [ rumors . userMax $ maxPow , Nothing <$ eModeChange ]
+        bCostMax <- stepper priceless $ head <$> unions [ rumors . userMin $ minCost, Nothing <$ eModeChange ]
+        bCostMin <- stepper priceless $ head <$> unions [ rumors . userMax $ maxCost, Nothing <$ eModeChange ]
+        bReqMax  <- stepper boundless $ head <$> unions [ rumors . userMin $ minReq , Nothing <$ eModeChange ]
+        bReqMin  <- stepper boundless $ head <$> unions [ rumors . userMax $ maxReq , Nothing <$ eModeChange ]
+        
+        let
+            namedMinMax :: String -> Min a -> Max a -> UI Element
+            namedMinMax s mmin mmax = column [ row [ UI.bold #+ [ string s ] ], row [ element mmin, string "to", element mmax ] ]
 
-        goPrevPage :: AppState -> UI (AppSignal, AppState)
-        goPrevPage st@AppState{..} = do 
-            let FilterCardMode f l@ListView{..} = appMode
-                a@FCEL{..} = appElems
-            if (pn > 0)
-              then do
-                let l' = decpage l
-                nextPage <- element nextPage # UI.set UI.enabled True
-                pageNo <- element pageNo # settext (show pn)
-                prevPage <- element prevPage # UI.set UI.enabled (pn > 1)
-                let appMode = FilterCardMode f l'
-                    appElems = FCEL{..}
-                    st' = AppState{..}
-                return (Change Rerender, st')
-              else do
-                return (Continue, st)
+            uiPowRange = namedMinMax "Power" minPow maxPow
+            uiCostRange = namedMinMax "Cost" minCost maxCost
+            uiReqRange = namedMinMax "Requirement" minReq maxReq
 
-        persist :: AppState -> UI (AppSignal, AppState)
-        persist stat = do
-            sig <- liftIO $ readIORef iSig
-            if (remain sig)
-              then do
-                (sig',stat') <- sigHandle (sig,stat)
-                sig'' <- liftIO $ readIORef iSig
-                if (sig'' == sig)
-                  then do
-                    liftIO $ writeIORef iSig (sig')
-                    persist stat'
-                  else do
-                    persist stat'
-              else
-                return (sig, stat)
+            freeRange :: [UI Element] -> UI Element
+            freeRange xs = column (map (\x -> row [ x ]) xs)
 
-    persist stat
+            uiRanges = freeRange [uiPowRange, uiCostRange, uiReqRange]
 
--}
+
+        let fcbl = FCBL{..}
+
+        let pageSize = 100
+            bcView = ListView <$> (pure pageSize) <*> bCur
+
+        stRanger <- ranger bCur bFirst bLast (psss)
+        let tRanger = userLoc stRanger
+            eRanger = rumors   tRanger
+            bRanger = facts    tRanger
+            bFirst = pure 0
+            bLast = (pred).(`cdiv`pageSize) <$> bNoMatches
+        bCur <- stepper 0 $ head <$> unions [ eRanger, 0 <$ eModeChange ]
+
+        let 
+            bcLabel = pure gname
+            
+            bcRower = pure tabulate
+
+            bcAggra = pure (theader:)
+            
+        qList <- derangedCask bQMatches pageSize stRanger bLabel bRower bAggra
+
+        let tResults = if_  <$> (tidings bMulti never) <*> (userActive qList) <*> (userActive qGrid)
+            eResults = rumors     tResults
+        bResults <- stepper (-1) $ eResults
+
+    scSelect <- UI.span
+    element scSelect # sink UI.text ((gname!?"Nothing selected") <$> bResults <*> bQMatches)
+
+    scIndex <- UI.span
+    element scIndex # sink UI.text (show <$> bResults)
+
+    deckSide <- UI.div
+    element deckSide # sink schildren (construct <$> bDeck)
+
+
+    let
+        noop :: UI Element
+        noop = UI.a
+
+        fcHeader :: UI Element
+        fcHeader = row [ column [ uiRanges ], column [ uiSelects ] ]
+        fcContent :: UI Element
+        fcContent = element qList
+        fcFooter :: UI Element
+        fcFooter = element stRanger
+        fcSideBar :: UI Element
+        fcSideBar = noop
+        fcDebugger :: UI Element
+        fcDebugger = row [element scSelect, element scIndex]

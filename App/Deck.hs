@@ -30,166 +30,122 @@ import Graphics.UI.Threepenny.Elements hiding (map)
 import Graphics.UI.Threepenny.Core
 ---------------------------------------------------
 
-appletDeck :: Applet
-appletDeck = Applet DeckBuilder initDeckState deckRun
+    rec
+        (selectTyp, clearsTyp) <- multiSelect bMulti bTypeValues   bTypSelect (pure ((UI.li #+).(:[]).string.show))
+        (selectCol, clearsCol) <- multiSelect bMulti bColorValues  bColSelect (pure ((UI.li #+).(:[]).string.show))
+        (selectSet, clearsSet) <- multiSelect bMulti bSetValues    bSetSelect (pure ((UI.li #+).(:[]).string.show))
+        (selectRar, clearsRar) <- multiSelect bMulti bRarityValues bRarSelect (pure ((UI.li #+).(:[]).string.show))
 
-initDeckState :: UI AppState
-initDeckState = do
-    rec selectTyp <- multiSelect "Type" False (pure   typeValues) bTypSelect (pure (string . show))
-        bTypSelect <- stepper [] . rumors $ userSelections selectTyp
-    rec selectCol <- multiSelect "Color" False (pure  colorValues) bColSelect (pure (string . show))
-        bColSelect <- stepper [] . rumors $ userSelections selectCol
-    rec selectRar <- multiSelect "Rarity" False (pure rarityValues) bRarSelect (pure (string . show))
-        bRarSelect <- stepper [] . rumors $ userSelections selectRar
-    rec selectSet <- multiSelect "Set" False (pure    setValues) bSetSelect (pure (string . show))
-        bSetSelect <- stepper [] . rumors $ userSelections selectSet
+        let tSelectType   = userSelections selectTyp
+            tSelectColor  = userSelections selectCol
+            tSelectSet    = userSelections selectSet
+            tSelectRarity = userSelections selectRar
 
-    prevPage <- UI.button #. "page-btn" # settext "<"
-    pageNo   <- UI.span   #. "page-num" # settext "1"
-    nextPage <- UI.button #. "page-btn" # settext ">"
+            eSelectType   = rumors tSelectType
+            eSelectColor  = rumors tSelectColor
+            eSelectSet    = rumors tSelectSet
+            eSelectRarity = rumors tSelectRarity
 
-    let qfilter = blankDeckFilter
-        deck = emptyDeck
-        view = (GridView 10 5 0)
-        appMode = DeckBuilderMode qfilter view deck
-        appElems = DBEL{..}
-        appRules = DBBL{..}
-    return AppState{..}
+            bSelectType   = facts tSelectType
+            bSelectColor  = facts tSelectColor
+            bSelectSet    = facts tSelectSet
+            bSelectRarity = facts tSelectRarity
 
-updateS :: Filter -> Maybe GenCard -> AppState -> AppState
-updateS nf ac as@AppState{appMode=(DeckBuilderMode _ v d), ..} =
-    let appMode = DeckBuilderMode nf v (((addCard.fromGeneric)?ac)$d)
-    in AppState{..}
-
-deckRun :: Window -> SigStateT
-deckRun window (sig, stat) = do
-    iSig <- liftIO $ newIORef sig
-    iMatches <- liftIO $ newIORef cardDB
-    iAddCard <- liftIO $ newIORef Nothing
-    content <- head <$> getElementsByClassName window "main-content"
-    nav <- head <$> getElementsByClassName window "nav"
-    let
-        sigHandle :: SigStateT
-        sigHandle (g,t) = case g of 
-            Continue -> return (g,t)
-            Change Initialize -> initialize t
-            Change Rerender -> rerender t
-            Change Update -> update t
-            Change Next -> goNextPage t
-            Change Prev -> goPrevPage t
-
-        update :: AppState -> UI (AppSignal, AppState)
-        update stat@AppState{..} = do
-            newFilter <- filterFromElem appElems
-            let newMatches = applyFilter newFilter
-            liftIO $ writeIORef iMatches (newMatches)
-            madCard <- liftIO $ readIORef iAddCard
-            let stat' = updateS newFilter madCard stat
-            return (Change Rerender, stat')
+            eClearTyp = UI.click clearsTyp
+            eClearCol = UI.click clearsCol
+            eClearSet = UI.click clearsSet
+            eClearRar = UI.click clearsRar
         
-        rerender :: AppState -> UI (AppSignal, AppState)
-        rerender st = do
-            liftIO $ writeIORef iAddCard (Nothing)
-            let (DeckBuilderMode _ g@GridView{..} deck) = appMode st
-            matches <- toList <$> liftIO (readIORef iMatches)
-            element content # UI.set children [] #+ (render g matches)
-            return (Continue, st)
+        bTypSelect <- stepper [] $ head <$> unions [eSelectType,   [] <$ eClearTyp]
+        bColSelect <- stepper [] $ head <$> unions [eSelectColor,  [] <$ eClearCol]
+        bSetSelect <- stepper [] $ head <$> unions [eSelectSet,    [] <$ eClearSet]
+        bRarSelect <- stepper [] $ head <$> unions [eSelectRarity, [] <$ eClearRar]
 
-        initialize :: AppState -> UI (AppSignal, AppState)
-        initialize st = do let a@DBEL{..} = appElems st
-                               (DeckBuilderMode _ _ deck) = appMode st
-                           layout <- mkLayout [] a deck
-                           on UI.click prevPage $ \_ -> liftIO $ writeIORef iSig (Change Prev)
-                           on UI.click nextPage $ \_ -> liftIO $ writeIORef iSig (Change Next)
-                           getBody window # UI.set children [layout]
-                           firstPage =<< snd <$> rerender st
+        let 
+            namedMultiSelect :: String -> Element -> MultiSelect a -> UI Element
+            namedMultiSelect s cler sel = column [ row [ UI.bold #+ [ string s ], element cler ], row [ element sel ] ]
 
-        mkLayout :: [Element] -> AEL -> Deck -> UI Element
-        mkLayout xs ael d = UI.div #. "page" #+ [UI.div #. "nav-row" #+ [element nav], UI.div #. "content" #+ outlay ael d]
+            uiSelectTyp = namedMultiSelect "Type"   clearsTyp selectTyp
+            uiSelectCol = namedMultiSelect "Color"  clearsCol selectCol
+            uiSelectSet = namedMultiSelect "Set"    clearsSet selectSet
+            uiSelectRar = namedMultiSelect "Rarity" clearsRar selectRar
 
+            selectAll :: [UI Element] -> UI Element
+            selectAll xs = row (map (\x -> column [ x ]) xs)
 
-        outlay :: AEL -> Deck -> [UI Element]
-        outlay a@DBEL{..} d = [ UI.div #. "add-cards" #+ [
-                              UI.div #. "card-filter" #+ [
-                                UI.div #. "select-filter" #+ [
-                                  UI.div #. "type-select" #+ [element selectTyp]
-                                , UI.div #. "color-select" #+  [element selectCol]
-                                , UI.div #. "rarity-select" #+ [element selectRar]
-                                , UI.div #. "set-select" #+  [element selectSet]
-                                ]
-                              ]
-                            , UI.div #. "filtered-cards" #+ [element content]
-                            ]
-                          , UI.div #. "deck-sidebar" #+ [construct d]
-                          ]
+            uiSelects = selectAll [uiSelectTyp, uiSelectCol, uiSelectSet, uiSelectRar]
 
-        firstPage :: AppState -> UI (AppSignal, AppState)
-        firstPage st@AppState{..} = do
-            matches <- liftIO (readIORef iMatches)
-            let DeckBuilderMode f l@GridView{..} d = appMode
-                a@DBEL{..} = appElems
-                l' = setpage 0 l
-                ub = Data.IxSet.size matches
-                mpn = ub`cdiv`(npp l)
-            prevPage <- element prevPage # UI.set UI.enabled False
-            pageNo <- element pageNo # settext "1"
-            nextPage <- element nextPage # UI.set UI.enabled (mpn > 1)
-            let appMode = DeckBuilderMode f l' d
-                appElems = DBEL{..}
-                st' = AppState{..}
-            return (Change Rerender, st')
+        let dbbl = DBBL{..}
 
-        goNextPage :: AppState -> UI (AppSignal, AppState)
-        goNextPage st@AppState{..} = do
-            matches <- liftIO (readIORef iMatches)
-            let DeckBuilderMode f l@GridView{..} d = appMode
-                ub = Data.IxSet.size matches
-                a@DBEL{..} = appElems
-                mpn = ub`cdiv`(npp l)
-            if (pn < mpn)
-              then do
-                let l' = incpage l
-                prevPage <- element prevPage # UI.set UI.enabled True
-                pageNo <- element pageNo # settext (show (pn + 2))
-                nextPage <- element nextPage # UI.set UI.enabled ((pn+1) < mpn)
-                let appMode = DeckBuilderMode f l' d
-                    appElems = DBEL{..}
-                    st' = AppState{..}
-                return (Change Rerender, st')
-              else do
-                return (Continue, st)
+        let rowSize = 25
+            colSize = 4
+            bdView = GridView <$> (pure rowSize) <*> (pure colSize) <*> bCur
 
-        goPrevPage :: AppState -> UI (AppSignal, AppState)
-        goPrevPage st@AppState{..} = do 
-            let DeckBuilderMode f l@GridView{..} d = appMode
-                a@DBEL{..} = appElems
-            if (pn > 0)
-              then do
-                let l' = decpage l
-                nextPage <- element nextPage # UI.set UI.enabled True
-                pageNo <- element pageNo # settext (show pn)
-                prevPage <- element prevPage # UI.set UI.enabled (pn > 1)
-                let appMode = DeckBuilderMode f l' d
-                    appElems = DBEL{..}
-                    st' = AppState{..}
-                return (Change Rerender, st')
-              else do
-                return (Continue, st)
+        stRanger <- ranger bCur bFirst bLast (psss)
+        let tRanger = userLoc stRanger
+            eRanger = rumors   tRanger
+            bRanger = facts    tRanger
+            bFirst = pure 0
+            bLast = (pred).(`cdiv`pageSize) <$> bNoMatches
+        bCur <- stepper 0 $ head <$> unions [ eRanger, 0 <$ eModeChange ]
 
-        persist :: AppState -> UI (AppSignal, AppState)
-        persist stat = do
-            sig <- liftIO $ readIORef iSig
-            if (remain sig)
-              then do
-                (sig',stat') <- sigHandle (sig,stat)
-                sig'' <- liftIO $ readIORef iSig
-                if (sig'' == sig)
-                  then do
-                    liftIO $ writeIORef iSig (sig')
-                    persist stat'
-                  else do
-                    persist stat'
-              else
-                return (sig, stat)
+        let 
+            bLinker = pure (head.curls)
 
-    persist stat
+            bdRower = pure (\x y -> element y)
+
+            bdAggra = pure (map (UI.tr #+) . chunksOf colSize . map (\x -> UI.td #+ [x]))
+            
+        (qGrid,obscurae) <- oculus bQMatches pageSize stRanger bLabel bRower bAggra
+
+        let tResults = if_  <$> (tidings bMulti never) <*> (userActive qList) <*> (userActive qGrid)
+            eResults = rumors     tResults
+        bResults <- stepper (-1) $ eResults
+
+        rec
+            draftCheck <- UI.input # UI.set UI.type_ "checkbox"
+            element draftCheck # sink UI.checked bDMode
+            bDMode <- stepper False $ UI.checkedChange draftCheck
+
+        let uiDraft = row [ UI.bold #+ [ UI.string "Draft Mode:" ], element draftCheck ]
+
+        let eObscure = (map (rumors.ebbLink) obscurae)
+            eOccult = head <$> unions (eObscure++[ (-1) <$ eRanger])
+        bOccult <- stepper (-1) $ eOccult
+
+        let ePutGenCard = whenE ((&&) <$> (not <$> bMulti) <*> ((>=0) <$> bResults)) ((!!) <$> bQMatches <@> eResults)
+            eDecGenCard = whenE ((&&) <$> (not <$> bMulti) <*> ((>=0) <$> bOccult)) ((!!) <$> bQMatches <@> eOccult)
+            ePutCard = fromGeneric <$> ePutGenCard
+            eAddCard = filterApply (lacks <$> bDeck) ePutCard
+            eIncCard = filterApply (has <$> bDeck) ePutCard
+            eDecCard = fromGeneric <$> eDecGenCard
+
+        bDeck <- accumB emptyDeck $ concatenate <$> unions
+            [ addCard <$> eAddCard
+            , incCard <$> bDMode <@> eIncCard
+            , decCard <$> eDecCard
+            ]
+        
+    scSelect <- UI.span
+    element scSelect # sink UI.text ((gname!?"Nothing selected") <$> bResults <*> bQMatches)
+
+    scIndex <- UI.span
+    element scIndex # sink UI.text (show <$> bResults)
+
+    deckSide <- UI.div
+    element deckSide # sink schildren (construct <$> bDeck)
+
+        dbHeader :: UI Element
+        dbHeader = row [ column [ uiDraft ],  column [ uiSelects ] ]
+
+        dbContent :: UI Element
+        dbContent = element qGrid
+
+        dbFooter :: UI Element
+        dbFooter = element stRanger
+
+        dbSideBar :: UI Element
+        dbSideBar = element deckSide
+        
+        dbDebugger :: UI Element
+        dbDebugger = row [element scSelect, element scIndex]
