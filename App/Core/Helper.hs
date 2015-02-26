@@ -95,6 +95,9 @@ tap :: (a -> b, a -> c) -> a -> (b, c)
 --tap (f, g) x = (f x, g x)
 tap = flip (flip (uncurry (***)). dup)
 
+mpair :: Monad m => (m a, m b) -> m (a,b)
+mpair (mx, my) = do { x <- mx; y <- my; return (x, y) }
+
 knock1 :: (a0 -> b, a0 -> c) -> a0 -> (b, c)
 knock1 = tap
 

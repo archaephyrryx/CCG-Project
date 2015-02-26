@@ -17,7 +17,7 @@ type GCR' = GenCard -> [UI Element]
 
 iconic :: CardType -> UI Element
 iconic x = let ipath = "static/icns/"++(show x)++".png" in
-          UI.img #. "icon" # UI.set UI.src ipath
+          UI.img #. "icon typeIcon" # UI.set UI.src ipath
 
 reqtify :: GCR
 reqtify g@GenCard{..} = cbox (show.val<$>mreq, mcolor)

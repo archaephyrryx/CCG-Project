@@ -60,9 +60,22 @@ welcomeText =
     , "A number of other implementations of this app are being developed as well, though they go by different names."
     ]
 
+hlink :: String -> String -> UI Element
+hlink url str = UI.a # UI.set UI.href url # settext str
+
+homeFoot :: UI Element
+homeFoot = UI.span #+ (map (\(x,y) -> UI.span #+ [x, y]) (
+              [ (string "Developer:", hlink "https://github.com/archaephyrryx" "Archaephyrryx")
+              , (string "Project code on", hlink "https://github.com/archaephyrryx/CCG-Project/tree/threepenny" "GitHub")
+              , (string "Sister projects also on", hlink "https://github.com/archaephyrr://github.com/archaephyrryx/CCG-Project/" "GitHub")
+              ]))
+              
+
 setup :: Window -> UI ()
 setup window = void $ do
     return window # UI.set UI.title appname
+    UI.addStyleSheet window "style.css"
+
 
   --- General things
 
@@ -92,6 +105,8 @@ setup window = void $ do
     bMulti <- stepper True $ head <$> unions [ True <$ eQCard, False <$ eBDeck ]
 
     bMode <- stepper Home eModeChange
+    
+    hooves <- homeFoot
 
 
   --- Mode specific things (FilterCard and DeckBuilder)
@@ -211,28 +226,34 @@ setup window = void $ do
             
             bAggra = if_ <$> bMulti <*> bcAggra <*> bdAggra
             
-        (qList,qGrid) <- knock6 (derangedCask,oculus) bQMatches pageSize stRanger bLabel bRower bAggra
+        (qList,(qGrid,obscurae)) <- mpair $ knock6 (derangedCask,oculus) bQMatches pageSize stRanger bLabel bRower bAggra
 
         let tResults = if_  <$> (tidings bMulti never) <*> (userActive qList) <*> (userActive qGrid)
             eResults = rumors     tResults
         bResults <- stepper (-1) $ eResults
 
         rec
-            draftCheck <- UI.input # UI.set type_ "checkbox"
-            element draftCheck # sink checked bDMode
-            bDMode <- stepper False $ checkedChange draftCheck
+            draftCheck <- UI.input # UI.set UI.type_ "checkbox"
+            element draftCheck # sink UI.checked bDMode
+            bDMode <- stepper False $ UI.checkedChange draftCheck
 
-        let uiDraft = row [ UI.bold #+ [ UI.string "Draft Mode:" ], element bDMode ]
+        let uiDraft = row [ UI.bold #+ [ UI.string "Draft Mode:" ], element draftCheck ]
 
-        let ePutCard = whenE ((&&) <$> (not <$> bMulti) <*> ((>=0) <$> bResults)) ((!!) <$> bQMatches <@> eResults)
-            eAddCard = filterApply (lacks <$> bDeck <*>) ePutCard
-            eIncCard = filterApply (has <$> bDeck <*>) ePutCard
-            eDecCard = never
+        let eObscure = (map (rumors.ebbLink) obscurae)
+            eOccult = head <$> unions (eObscure++[ (-1) <$ eRanger])
+        bOccult <- stepper (-1) $ eOccult
+
+        let ePutGenCard = whenE ((&&) <$> (not <$> bMulti) <*> ((>=0) <$> bResults)) ((!!) <$> bQMatches <@> eResults)
+            eDecGenCard = whenE ((&&) <$> (not <$> bMulti) <*> ((>=0) <$> bOccult)) ((!!) <$> bQMatches <@> eOccult)
+            ePutCard = fromGeneric <$> ePutGenCard
+            eAddCard = filterApply (lacks <$> bDeck) ePutCard
+            eIncCard = filterApply (has <$> bDeck) ePutCard
+            eDecCard = fromGeneric <$> eDecGenCard
 
         bDeck <- accumB emptyDeck $ concatenate <$> unions
-            [ addCard.fromGeneric <$> eAddCard
+            [ addCard <$> eAddCard
             , incCard <$> bDMode <@> eIncCard
-            , decCard.fromGeneric <$> eDecCard
+            , decCard <$> eDecCard
             ]
         
     scSelect <- UI.span
@@ -245,6 +266,7 @@ setup window = void $ do
     element deckSide # sink schildren (construct <$> bDeck)
 
     scIO <- UI.div
+
 
     let
         noop :: UI Element
@@ -274,8 +296,8 @@ setup window = void $ do
         dbHeader = row [ column [ uiDraft ],  column [ uiSelects ] ]
         hmHeader = noop
 
-        fcContent = element qResults
-        dbContent = element qResults
+        fcContent = element qList
+        dbContent = element qGrid
         hmContent = column ([ UI.h1 #+ [string appfname] ]++(map ((UI.p #+).(:[]).string) welcomeText))
 
         fcFooter = element stRanger
@@ -294,18 +316,18 @@ setup window = void $ do
         displayHeader   = (:[]) . hfdsCase hmHeader fcHeader dbHeader noop
         displayContent  = (:[]) . hfdsCase hmContent fcContent dbContent noop
         displayFooter   = (:[]) . hfdsCase hmFooter fcFooter dbFooter noop
-        displaySideBar  = (:[]) . hfdsCase hmFooter fcFooter dbFooter noop
+        displaySideBar  = (:[]) . hfdsCase hmSideBar fcSideBar dbSideBar noop
         displayDebugger = (:[]) . hfdsCase hmDebugger fcDebugger dbDebugger noop
 
     content <- UI.div
     header <- UI.div
     footer <- UI.span
-    sideBar <- UI.div
+    sidebar <- UI.div
+    dbg <- UI.span
     element content # sink schildren (displayContent <$> bMode)
     element header # sink schildren (displayHeader <$> bMode)
     element footer # sink schildren (displayFooter <$> bMode)
-    element sideBar # sink schildren (displaySideBar <$> bMode)
-    dbg <- UI.span
-    element dbg # sink schildren (debugMode <$> bMode)
+    element sidebar # sink schildren (displaySideBar <$> bMode)
+    element dbg # sink schildren (displayDebugger <$> bMode)
 
-    getBody window # UI.set schildren ([column [ row navigator, row [element header], row [column [ element content, element sidebar ]], row [element footer], row [element debugger]]])
+    getBody window # UI.set schildren ([column [ row navigator, row [element header], row [column [ element content, element sidebar ]], row [element footer], row [element dbg]]])

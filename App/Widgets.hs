@@ -7,6 +7,7 @@ module App.Widgets
         , module App.Widgets.Ranger
         , module App.Widgets.MinMax
         , module App.Widgets.Cast
+        , module App.Widgets.Obscura
         , schildren
         ) where
 
@@ -18,3 +19,4 @@ import App.Widgets.MultiSelect
 import App.Widgets.MinMax
 import App.Widgets.Ranger
 import App.Widgets.Cast
+import App.Widgets.Obscura
