@@ -24,21 +24,32 @@ main = do
 setup :: Window -> UI ()
 setup window = void $ do
     return window # UI.set UI.title "Test"
+    let bAnthology = pure anthology
 
-    let bAnthology = pure anthology 
+    rec (monoShake, c) <- monoSelectVDC bAnthology bSel (pure string) (string "Pick a Shakespeare")
+        bSel <- stepper ([]) $ head <$> unions
+          [ rumors . userSelections $ monoShake
+          , [] <$ UI.click c
+          ]
+    rec (monoShake', c') <- monoSelectIDC bAnthology bSel' (pure string) (string "Pick a Shakespeare")
+        bSel' <- stepper ([]) $ head <$> unions
+          [ rumors . userSelections $ monoShake'
+          , [] <$ UI.click c'
+          ]
+    rec (monoShake'', c'') <- monoSelectHDC bAnthology bSel'' (pure string) (string "Pick a Shakespeare")
+        bSel'' <- stepper ([]) $ head <$> unions
+          [ rumors . userSelections $ monoShake''
+          , [] <$ UI.click c''
+          ]
+    rec (monoShake''', c''') <- monoSelectSVC bAnthology bSel''' (pure string)
+        bSel''' <- stepper ([]) $ head <$> unions
+          [ rumors . userSelections $ monoShake'''
+          , [] <$ UI.click c'''
+          ]
 
-    rec (multiShake, cBut) <- multiSelect (pure False) bAnthology bmShakes (pure ((UI.li #+).(:[]).string))
-        let tShakes = userSelections multiShake
-            eShakes = rumors tShakes
-            bShakes = facts tShakes
-            eClear = UI.click cBut
-        bmShakes <- stepper ["Hamlet"] $ head <$> unions [eShakes, [] <$ eClear]
+    let displayMulti = grid [[ row [element monoShake, element c], row [element monoShake', element c']],[ row [ element monoShake'', element c''], row [ element monoShake''', element c''']]]
 
-    let displayMulti = [ row [UI.bold #+ [string "Shakespeares"], element cBut]
-                 , row [element multiShake]
-                 ]
-
-    getBody window # set schildren (displayMulti)
+    getBody window #+ [displayMulti]
    
 
 anthology :: [String]

@@ -16,12 +16,19 @@ infix 9 ?+
 infix 9 ?:
 infixr 5 +++
 
+full = not . null
 
 pss :: Show a => Behavior (a -> UI Element)
 pss = pure (string . show)
 
 psss :: (Show a, Enum a) => Behavior (a -> UI Element)
 psss = pure (string . show . succ)
+
+bstring :: String -> UI Element
+bstring = (UI.bold #+).(:[]).string
+
+istring :: String -> UI Element
+istring = (UI.italics #+).(:[]).string
 
 filtrate :: [Bool] -> [a] -> [a]
 filtrate [] _ = []

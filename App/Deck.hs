@@ -18,11 +18,8 @@ import Cards.Differentiation
 import MLPCCG
 -------------------------------------------------
 import App.Core
-import App.Core.Helper
 import App.Filtering
 import App.Widgets
-import App.Core.Modes
-import App.Core.AppData
 import App.Renderer.Deck
 --------------------------------------------------
 import qualified Graphics.UI.Threepenny as UI
@@ -31,10 +28,10 @@ import Graphics.UI.Threepenny.Core
 ---------------------------------------------------
 
     rec
-        (selectTyp, clearsTyp) <- multiSelect bMulti bTypeValues   bTypSelect (pure ((UI.li #+).(:[]).string.show))
-        (selectCol, clearsCol) <- multiSelect bMulti bColorValues  bColSelect (pure ((UI.li #+).(:[]).string.show))
-        (selectSet, clearsSet) <- multiSelect bMulti bSetValues    bSetSelect (pure ((UI.li #+).(:[]).string.show))
-        (selectRar, clearsRar) <- multiSelect bMulti bRarityValues bRarSelect (pure ((UI.li #+).(:[]).string.show))
+        (selectTyp, clearsTyp) <- monoSelectVDC bTypeValues   bTypSelect pss (istring "Type")
+        (selectCol, clearsCol) <- monoSelectVDC bColorValues  bColSelect pss (istring "Color")
+        (selectSet, clearsSet) <- monoSelectVDC bSetValues    bSetSelect pss (istring "Set")
+        (selectRar, clearsRar) <- monoSelectVDC bRarityValues bRarSelect pss (istring "Rarity")
 
         let tSelectType   = userSelections selectTyp
             tSelectColor  = userSelections selectCol
