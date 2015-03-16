@@ -5,6 +5,7 @@ module App.Renderer.SingleCard where
 import Data.Maybe
 import Data.List
 import Data.List.Split
+import Data.Char
 -------------------------------------------------
 import Control.Applicative
 import Control.Monad
@@ -54,7 +55,8 @@ dbox (disp,lab) = UI.div #+ [ UI.dterm #+ [string lab]
 
 maneText :: GenCard -> [[UI Element]]
 maneText g@GenCard{..} = case ctype of
-    TMane -> let (('F':'r':'o':'n':'t':':':' ':front):back:[]) = splitOn " Back: " (unravel text)
+    TMane -> let ((infront):back:[]) = head . filter ((==2).length) . map (\x -> splitOn x (unravel text)) $ [" Back: ", " BACK: "]
+                 front = tail . snd . break (isSpace) $ infront
              in map textBox [front,back]
     _ -> [textBox (unravel text)]
 
