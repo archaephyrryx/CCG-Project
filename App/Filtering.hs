@@ -85,7 +85,7 @@ applyFilter :: Filter -> IxSet GenCard
 applyFilter c@CardFilter{..} = mcfilter c . mhfilter c $ cardDB
 applyFilter d@DeckFilter{..} = mcfilter d $ cardDB
 
-behaveBFilter :: ABL -> Behavior Filter
+behaveBFilter :: UBL -> Behavior Filter
 behaveBFilter bls@FCBL{..} = CardFilter <$> bPowMin  <*> bPowMax
                                         <*> bCostMin <*> bCostMax
                                         <*> bReqMin  <*> bReqMax

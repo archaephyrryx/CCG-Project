@@ -21,59 +21,29 @@ import App.Core
 import App.Filtering
 import App.Widgets
 import App.Renderer.Deck
+import App.Universal
 --------------------------------------------------
 import qualified Graphics.UI.Threepenny as UI
 import Graphics.UI.Threepenny.Elements hiding (map)
 import Graphics.UI.Threepenny.Core
 ---------------------------------------------------
 
-    rec
-        (selectTyp, clearsTyp) <- monoSelectVDC bTypeValues   bTypSelect pss (istring "Type")
-        (selectCol, clearsCol) <- monoSelectVDC bColorValues  bColSelect pss (istring "Color")
-        (selectSet, clearsSet) <- monoSelectVDC bSetValues    bSetSelect pss (istring "Set")
-        (selectRar, clearsRar) <- monoSelectVDC bRarityValues bRarSelect pss (istring "Rarity")
 
-        let tSelectType   = userSelections selectTyp
-            tSelectColor  = userSelections selectCol
-            tSelectSet    = userSelections selectSet
-            tSelectRarity = userSelections selectRar
+unnamedMonoSelect :: Element -> MonoSelect a -> UI Element
+unnamedMonoSelect cler sel = column [ row [ element cler ], row [ element sel ] ]
 
-            eSelectType   = rumors tSelectType
-            eSelectColor  = rumors tSelectColor
-            eSelectSet    = rumors tSelectSet
-            eSelectRarity = rumors tSelectRarity
+dbAmsHeader :: UI Element -> AMS -> UI Element
+dbAmsHeader uiDraft a@AMS{..} = let
+        uoSelectTyp = unnamedMonoSelect clearsTyp oSelectTyp
+        uoSelectCol = unnamedMonoSelect clearsCol oSelectCol
+        uoSelectSet = unnamedMonoSelect clearsSet oSelectSet
+        uoSelectRar = unnamedMonoSelect clearsRar oSelectRar
+        uoSelects = selectAll [uoSelectTyp, uoSelectCol, uoSelectSet, uoSelectRar]
+        dbHeader = row [ column [ uiDraft ],  column [ uoSelects ] ]
+    in dbHeader
 
-            bSelectType   = facts tSelectType
-            bSelectColor  = facts tSelectColor
-            bSelectSet    = facts tSelectSet
-            bSelectRarity = facts tSelectRarity
 
-            eClearTyp = UI.click clearsTyp
-            eClearCol = UI.click clearsCol
-            eClearSet = UI.click clearsSet
-            eClearRar = UI.click clearsRar
-        
-        bTypSelect <- stepper [] $ head <$> unions [eSelectType,   [] <$ eClearTyp]
-        bColSelect <- stepper [] $ head <$> unions [eSelectColor,  [] <$ eClearCol]
-        bSetSelect <- stepper [] $ head <$> unions [eSelectSet,    [] <$ eClearSet]
-        bRarSelect <- stepper [] $ head <$> unions [eSelectRarity, [] <$ eClearRar]
-
-        let 
-            namedMultiSelect :: String -> Element -> MultiSelect a -> UI Element
-            namedMultiSelect s cler sel = column [ row [ UI.bold #+ [ string s ], element cler ], row [ element sel ] ]
-
-            uiSelectTyp = namedMultiSelect "Type"   clearsTyp selectTyp
-            uiSelectCol = namedMultiSelect "Color"  clearsCol selectCol
-            uiSelectSet = namedMultiSelect "Set"    clearsSet selectSet
-            uiSelectRar = namedMultiSelect "Rarity" clearsRar selectRar
-
-            selectAll :: [UI Element] -> UI Element
-            selectAll xs = row (map (\x -> column [ x ]) xs)
-
-            uiSelects = selectAll [uiSelectTyp, uiSelectCol, uiSelectSet, uiSelectRar]
-
-        let dbbl = DBBL{..}
-
+{-
         let rowSize = 25
             colSize = 4
             bdView = GridView <$> (pure rowSize) <*> (pure colSize) <*> bCur
@@ -131,18 +101,11 @@ import Graphics.UI.Threepenny.Core
 
     deckSide <- UI.div
     element deckSide # sink schildren (construct <$> bDeck)
-
-        dbHeader :: UI Element
+    let
         dbHeader = row [ column [ uiDraft ],  column [ uiSelects ] ]
-
-        dbContent :: UI Element
         dbContent = element qGrid
-
-        dbFooter :: UI Element
         dbFooter = element stRanger
-
-        dbSideBar :: UI Element
         dbSideBar = element deckSide
-        
-        dbDebugger :: UI Element
         dbDebugger = row [element scSelect, element scIndex]
+    return DBCL{..}
+-}

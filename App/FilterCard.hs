@@ -27,9 +27,7 @@ import qualified Graphics.UI.Threepenny.Elements as UI
 import Graphics.UI.Threepenny.Core hiding (get, set)
 -----------------------------
 import App.Core
-import App.Core.Modes
-import App.Core.AppData
-import App.Core.Helper
+import App.Universal
 import App.Widgets
 import App.Filtering
 -----------------------------
@@ -51,51 +49,38 @@ tabulate g@GenCard{..} l = UI.tr #+ (map (\x -> UI.td #+ [x]) $
             , empower g
             ])
 
-powerless :: Maybe Power
-powerless = Nothing
 
-priceless :: Maybe Cost
-priceless = Nothing
+namedMultiSelect :: String -> Element -> MultiSelect a -> UI Element
+namedMultiSelect s cler sel = column [ row [ UI.bold #+ [ string s ], element cler ], row [ element sel ] ]
 
-boundless :: Maybe Req
-boundless = Nothing
+namedMinMax :: String -> Min a -> Max a -> UI Element
+namedMinMax s mmin mmax = column [ row [ UI.bold #+ [ string s ] ], row [ element mmin, string "to", element mmax ] ]
 
+freeRange :: [UI Element] -> UI Element
+freeRange xs = column (map (\x -> row [ x ]) xs)
+
+fcAmsHeader :: AMS -> UI Element
+fcAmsHeader a@AMS{..} = let
+        uiSelectTyp = namedMultiSelect "Type"   clearsTyp uSelectTyp
+        uiSelectCol = namedMultiSelect "Color"  clearsCol uSelectCol
+        uiSelectSet = namedMultiSelect "Set"    clearsSet uSelectSet
+        uiSelectRar = namedMultiSelect "Rarity" clearsRar uSelectRar
+        uiSelects = selectAll [uiSelectTyp, uiSelectCol, uiSelectSet, uiSelectRar]
+        uiPowRange = namedMinMax "Power" minPow maxPow
+        uiCostRange = namedMinMax "Cost" minCost maxCost
+        uiReqRange = namedMinMax "Requirement" minReq maxReq
+        uiRanges = freeRange [uiPowRange, uiCostRange, uiReqRange]
+        fcHeader = row [ column [ uiRanges ], column [ uiSelects ] ]
+    in fcHeader
+
+
+{-
 setup :: Window -> UI ()
 setup window = void $ do
     return window # UI.set UI.title appname
     UI.addStyleSheet window "style.css"
 
-      rec
-        (selectTyp, clearsTyp) <- multiSelect bMulti bTypeValues   bTypSelect (pure ((UI.li #+).(:[]).string.show))
-        (selectCol, clearsCol) <- multiSelect bMulti bColorValues  bColSelect (pure ((UI.li #+).(:[]).string.show))
-        (selectSet, clearsSet) <- multiSelect bMulti bSetValues    bSetSelect (pure ((UI.li #+).(:[]).string.show))
-        (selectRar, clearsRar) <- multiSelect bMulti bRarityValues bRarSelect (pure ((UI.li #+).(:[]).string.show))
-
-        let tSelectType   = userSelections selectTyp
-            tSelectColor  = userSelections selectCol
-            tSelectSet    = userSelections selectSet
-            tSelectRarity = userSelections selectRar
-
-            eSelectType   = rumors tSelectType
-            eSelectColor  = rumors tSelectColor
-            eSelectSet    = rumors tSelectSet
-            eSelectRarity = rumors tSelectRarity
-
-            bSelectType   = facts tSelectType
-            bSelectColor  = facts tSelectColor
-            bSelectSet    = facts tSelectSet
-            bSelectRarity = facts tSelectRarity
-
-            eClearTyp = UI.click clearsTyp
-            eClearCol = UI.click clearsCol
-            eClearSet = UI.click clearsSet
-            eClearRar = UI.click clearsRar
-        
-        bTypSelect <- stepper [] $ head <$> unions [eSelectType,   [] <$ eClearTyp]
-        bColSelect <- stepper [] $ head <$> unions [eSelectColor,  [] <$ eClearCol]
-        bSetSelect <- stepper [] $ head <$> unions [eSelectSet,    [] <$ eClearSet]
-        bRarSelect <- stepper [] $ head <$> unions [eSelectRarity, [] <$ eClearRar]
-
+      
         let 
             namedMultiSelect :: String -> Element -> MultiSelect a -> UI Element
             namedMultiSelect s cler sel = column [ row [ UI.bold #+ [ string s ], element cler ], row [ element sel ] ]
@@ -110,21 +95,7 @@ setup window = void $ do
 
             uiSelects = selectAll [uiSelectTyp, uiSelectCol, uiSelectSet, uiSelectRar]
 
-  --- Mode specific things (FilterCard and DeckBuilder)
-
-    rec
-        (minPow, maxPow) <- minmax bPowMin bPowMax (pure (show.val))
-        (minCost, maxCost) <- minmax bCostMin bCostMax (pure (show.val))
-        (minReq, maxReq) <- minmax bReqMin  bReqMax (pure (show.val))
-
-        bPowMax  <- stepper powerless $ head <$> unions [ rumors . userMin $ minPow , Nothing <$ eModeChange ]
-        bPowMin  <- stepper powerless $ head <$> unions [ rumors . userMax $ maxPow , Nothing <$ eModeChange ]
-        bCostMax <- stepper priceless $ head <$> unions [ rumors . userMin $ minCost, Nothing <$ eModeChange ]
-        bCostMin <- stepper priceless $ head <$> unions [ rumors . userMax $ maxCost, Nothing <$ eModeChange ]
-        bReqMax  <- stepper boundless $ head <$> unions [ rumors . userMin $ minReq , Nothing <$ eModeChange ]
-        bReqMin  <- stepper boundless $ head <$> unions [ rumors . userMax $ maxReq , Nothing <$ eModeChange ]
-        
-        let
+          let
             namedMinMax :: String -> Min a -> Max a -> UI Element
             namedMinMax s mmin mmax = column [ row [ UI.bold #+ [ string s ] ], row [ element mmin, string "to", element mmax ] ]
 
@@ -188,3 +159,4 @@ setup window = void $ do
         fcSideBar = noop
         fcDebugger :: UI Element
         fcDebugger = row [element scSelect, element scIndex]
+-}

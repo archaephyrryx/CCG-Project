@@ -1,3 +1,5 @@
+{-# LANGUAGE RecordWildCards, DoRec #-}
+
 module App.Core.AppData where
 
 import Control.Applicative
@@ -22,8 +24,8 @@ type BMC = Behavior (Maybe Cost)
 
 type BGC = Behavior GenCard
 
--- | Universal Behavior List: used for app context passing
-data ABL = FCBL { bTypSelect :: BLT
+-- | Universal Behavior List
+data UBL = FCBL { bTypSelect :: BLT
                 , bSetSelect :: BLS
                 , bRarSelect :: BLR
                 , bColSelect :: BLC

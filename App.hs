@@ -23,8 +23,9 @@ import Database
 import TagState
 ------------------------------
 import App.FilterCard
-import App.SingleCard
+--import App.SingleCard
 import App.Home
+import App.Universal
 import App.Deck
 ------------------------------
 import App.Renderer.FilterCard
@@ -41,55 +42,10 @@ import qualified Graphics.UI.Threepenny.Elements as UI
 import Graphics.UI.Threepenny.Core
 import Graphics.UI.Threepenny.Elements (addStyleSheet)
 
-powerless :: Maybe Power
-powerless = Nothing
-
-priceless :: Maybe Cost
-priceless = Nothing
-
-boundless :: Maybe Req
-boundless = Nothing
-
-appname = "ThreePony"
-appdesc = "An Advanced MLP:CCG Toolkit"
-appfname = (appname ++ ": " ++ appdesc)
-
-welcomeText =
-    [ "Welcome to ThreePony! This is an in-development browser-based GUI for the MLP:CCG, borrowing somewhat from PonyHead."
-    , "This is very much in-progress, so don't expect fully functional or reliable performance, but thanks for helping test this!"
-    , "Any comments, bug reports, questions, feature requests, or other feedback should go to the GitHub page for this project."
-    , "A number of other implementations of this app are being developed as well, though they go by different names."
-    ]
-
-hlink :: String -> String -> UI Element
-hlink url str = UI.a # UI.set UI.href url # settext str
-
-glue :: UI Element
-glue = string " "
-
-homeFoot :: UI Element
-homeFoot = UI.span #. "footer" #+ [ devel , code , proj ]
-    where
-        devel = UI.p #. "" [string "Developer:", glue, arch]
-            where arch = hlink "https://github.com/archaephyrryx" "Archaephyrryx"
-        code =  UI.p #. "" [string "Project code on", glue, gitpage]
-            where gitpage = hlink "https://github.com/archaephyrryx/CCG-Project/tree/threepenny" "GitHub"
-        proj = UI.p #. "" [string "Sister projects also on", glue, githome ]
-            where githome = hlink "https://github.com/archaephyrr://github.com/archaephyrryx/CCG-Project/" "GitHub"
-              
-
 setup :: Window -> UI ()
 setup window = void $ do
     return window # UI.set UI.title appname
     UI.addStyleSheet window "style.css"
-
-
-  --- General things
-
-    let bColorValues = pure colorValues
-        bSetValues = pure setValues
-        bRarityValues = pure rarityValues
-        bTypeValues = pure typeValues
 
   --- Modes!
     butAHome <- UI.button # settext "Home"
@@ -107,104 +63,41 @@ setup window = void $ do
           [ Home <$ eAHome
           , FilterCard <$ eQCard
           , DeckBuilder <$ eBDeck
+          --, ShowCard <$ eSCard
           ]
 
     bMulti <- stepper True $ head <$> unions [ True <$ eQCard, False <$ eBDeck ]
 
     bMode <- stepper Home eModeChange
     
-    hooves <- homeFoot
-
-
   --- Mode specific things (FilterCard and DeckBuilder)
 
-    rec
-        (selectTyp, clearsTyp) <- multiSelect bMulti bTypeValues   bTypSelect (pure ((UI.li #+).(:[]).string.show))
-        (selectCol, clearsCol) <- multiSelect bMulti bColorValues  bColSelect (pure ((UI.li #+).(:[]).string.show))
-        (selectSet, clearsSet) <- multiSelect bMulti bSetValues    bSetSelect (pure ((UI.li #+).(:[]).string.show))
-        (selectRar, clearsRar) <- multiSelect bMulti bRarityValues bRarSelect (pure ((UI.li #+).(:[]).string.show))
-
-        let tSelectType   = userSelections selectTyp
-            tSelectColor  = userSelections selectCol
-            tSelectSet    = userSelections selectSet
-            tSelectRarity = userSelections selectRar
-
-            eSelectType   = rumors tSelectType
-            eSelectColor  = rumors tSelectColor
-            eSelectSet    = rumors tSelectSet
-            eSelectRarity = rumors tSelectRarity
-
-            bSelectType   = facts tSelectType
-            bSelectColor  = facts tSelectColor
-            bSelectSet    = facts tSelectSet
-            bSelectRarity = facts tSelectRarity
-
-            eClearTyp = UI.click clearsTyp
-            eClearCol = UI.click clearsCol
-            eClearSet = UI.click clearsSet
-            eClearRar = UI.click clearsRar
-        
-        bTypSelect <- stepper [] $ head <$> unions [eSelectType,   [] <$ eClearTyp]
-        bColSelect <- stepper [] $ head <$> unions [eSelectColor,  [] <$ eClearCol]
-        bSetSelect <- stepper [] $ head <$> unions [eSelectSet,    [] <$ eClearSet]
-        bRarSelect <- stepper [] $ head <$> unions [eSelectRarity, [] <$ eClearRar]
-
-        let 
-            namedMultiSelect :: String -> Element -> MultiSelect a -> UI Element
-            namedMultiSelect s cler sel = column [ row [ UI.bold #+ [ string s ], element cler ], row [ element sel ] ]
-
-            uiSelectTyp = namedMultiSelect "Type"   clearsTyp selectTyp
-            uiSelectCol = namedMultiSelect "Color"  clearsCol selectCol
-            uiSelectSet = namedMultiSelect "Set"    clearsSet selectSet
-            uiSelectRar = namedMultiSelect "Rarity" clearsRar selectRar
-
-            selectAll :: [UI Element] -> UI Element
-            selectAll xs = row (map (\x -> column [ x ]) xs)
-
-            uiSelects = selectAll [uiSelectTyp, uiSelectCol, uiSelectSet, uiSelectRar]
-
-  --- Mode specific things (FilterCard and DeckBuilder)
+    (fcbl@FCBL{..}, dbbl, ams@AMS{..}) <- selectors bMulti eModeChange
 
     rec
-        (minPow, maxPow) <- minmax bPowMin bPowMax (pure (show.val))
-        (minCost, maxCost) <- minmax bCostMin bCostMax (pure (show.val))
-        (minReq, maxReq) <- minmax bReqMin  bReqMax (pure (show.val))
+        draftCheck <- UI.input # UI.set UI.type_ "checkbox"
+        element draftCheck # sink UI.checked bDMode
+        bDMode <- stepper False $ UI.checkedChange draftCheck
 
-        bPowMax  <- stepper powerless $ head <$> unions [ rumors . userMin $ minPow , Nothing <$ eModeChange ]
-        bPowMin  <- stepper powerless $ head <$> unions [ rumors . userMax $ maxPow , Nothing <$ eModeChange ]
-        bCostMax <- stepper priceless $ head <$> unions [ rumors . userMin $ minCost, Nothing <$ eModeChange ]
-        bCostMin <- stepper priceless $ head <$> unions [ rumors . userMax $ maxCost, Nothing <$ eModeChange ]
-        bReqMax  <- stepper boundless $ head <$> unions [ rumors . userMin $ minReq , Nothing <$ eModeChange ]
-        bReqMin  <- stepper boundless $ head <$> unions [ rumors . userMax $ maxReq , Nothing <$ eModeChange ]
-        
-        let
-            namedMinMax :: String -> Min a -> Max a -> UI Element
-            namedMinMax s mmin mmax = column [ row [ UI.bold #+ [ string s ] ], row [ element mmin, string "to", element mmax ] ]
+    let uiDraft = row [ UI.bold #+ [ UI.string "Draft Mode:" ], element draftCheck ]
 
-            uiPowRange = namedMinMax "Power" minPow maxPow
-            uiCostRange = namedMinMax "Cost" minCost maxCost
-            uiReqRange = namedMinMax "Requirement" minReq maxReq
+    let fcHeader = fcAmsHeader ams
+        dbHeader = dbAmsHeader uiDraft ams
 
-            freeRange :: [UI Element] -> UI Element
-            freeRange xs = column (map (\x -> row [ x ]) xs)
+    let bQCFilter  = behaveBFilter fcbl 
+        bQDFilter  = behaveBFilter dbbl 
 
-            uiRanges = freeRange [uiPowRange, uiCostRange, uiReqRange]
+        bQFilter = if_ <$> bMulti <*> bQCFilter <*> bQDFilter
+        bQMatches = toList.applyFilter <$> bQFilter
 
+        bNoMatches = length <$> bQMatches
 
-        let fcbl = FCBL{..}
-            dbbl = DBBL{..}
-            bQCFilter  = behaveBFilter fcbl 
-            bQDFilter  = behaveBFilter dbbl 
+    let pageSize = 100
+        rowSize = 25
+        colSize = 4
 
-            bQFilter = if_ <$> bMulti <*> bQCFilter <*> bQDFilter
-            bQMatches = toList.applyFilter <$> bQFilter
-
-            bNoMatches = length <$> bQMatches
-
-        let pageSize = 100
-            rowSize = 25
-            colSize = 4
-            bcView = ListView <$> (pure pageSize) <*> bCur
+    rec
+        let bcView = ListView <$> (pure pageSize) <*> bCur
             bdView = GridView <$> (pure rowSize) <*> (pure colSize) <*> bCur
 
         stRanger <- ranger bCur bFirst bLast (psss)
@@ -216,40 +109,34 @@ setup window = void $ do
 
         bCur <- stepper 0 $ head <$> unions [ eRanger, 0 <$ eModeChange ]
 
-        let 
-            bcLabel = pure gname
-            bLinker = pure (head.curls)
-            
-            bLabel = if_ <$> bMulti <*> bcLabel <*> bLinker
+    let 
+        bcLabel = pure gname
+        bLinker = pure (head.curls)
+        
+        bLabel = if_ <$> bMulti <*> bcLabel <*> bLinker
 
-            bcRower = pure tabulate
-            bdRower = pure (\x y -> element y)
+        bcRower = pure tabulate
+        bdRower = pure (\x y -> element y)
 
-            bRower :: Behavior (GenCard -> LiquidLink Int -> UI Element)
-            bRower = if_ <$> bMulti <*> bcRower <*> bdRower
+        bRower :: Behavior (GenCard -> LiquidLink Int -> UI Element)
+        bRower = if_ <$> bMulti <*> bcRower <*> bdRower
 
-            bcAggra = pure (theader:)
-            bdAggra = pure (map (UI.tr #+) . chunksOf colSize . map (\x -> UI.td #+ [x]))
-            
-            bAggra = if_ <$> bMulti <*> bcAggra <*> bdAggra
-            
-        (qList,(qGrid,obscurae)) <- mpair $ knock6 (derangedCask,oculus) bQMatches pageSize stRanger bLabel bRower bAggra
+        bcAggra = pure (theader:)
+        bdAggra = pure (map (UI.tr #+) . chunksOf colSize . map (\x -> UI.td #+ [x]))
+        
+        bAggra = if_ <$> bMulti <*> bcAggra <*> bdAggra
+        
+    (qList,(qGrid,obscurae)) <- mpair $ knock6 (derangedCask,oculus) bQMatches pageSize stRanger bLabel bRower bAggra
 
-        let tResults = if_  <$> (tidings bMulti never) <*> (userActive qList) <*> (userActive qGrid)
-            eResults = rumors     tResults
-        bResults <- stepper (-1) $ eResults
+    let tResults = if_  <$> (tidings bMulti never) <*> (userActive qList) <*> (userActive qGrid)
+        eResults = rumors tResults
+    bResults <- stepper (-1) $ eResults
 
-        rec
-            draftCheck <- UI.input # UI.set UI.type_ "checkbox"
-            element draftCheck # sink UI.checked bDMode
-            bDMode <- stepper False $ UI.checkedChange draftCheck
+    let eObscure = (map (rumors.ebbLink) obscurae)
+        eOccult = head <$> unions (eObscure++[ (-1) <$ eRanger])
+    bOccult <- stepper (-1) $ eOccult
 
-        let uiDraft = row [ UI.bold #+ [ UI.string "Draft Mode:" ], element draftCheck ]
-
-        let eObscure = (map (rumors.ebbLink) obscurae)
-            eOccult = head <$> unions (eObscure++[ (-1) <$ eRanger])
-        bOccult <- stepper (-1) $ eOccult
-
+    rec
         let ePutGenCard = whenE ((&&) <$> (not <$> bMulti) <*> ((>=0) <$> bResults)) ((!!) <$> bQMatches <@> eResults)
             eDecGenCard = whenE ((&&) <$> (not <$> bMulti) <*> ((>=0) <$> bOccult)) ((!!) <$> bQMatches <@> eOccult)
             ePutCard = fromGeneric <$> ePutGenCard
@@ -262,67 +149,77 @@ setup window = void $ do
             , incCard <$> bDMode <@> eIncCard
             , decCard <$> eDecCard
             ]
+
+        {-let eSCard = whenE ((&&) <$> bMulti <*> ((>=0) <$> bResults)) ((!!) <$> bQMatches <@> eResults)
         
+        bSingle <- stepper Nothing $ head <$> unions
+            [ Just <$> eSCard
+            , Nothing <$ (head <$> unions [ eQCard, eAHome, eBDeck ])
+            ]
+
+        let [buiCardImgs, buiCardText, buiCardInfo] = blTranspose 3 noop $ (maybe [] renderCard <$> bSingle)
+        -}
+
+        
+
     scSelect <- UI.span
     element scSelect # sink UI.text ((gname!?"Nothing selected") <$> bResults <*> bQMatches)
 
     scIndex <- UI.span
     element scIndex # sink UI.text (show <$> bResults)
 
+    {-
+    cardSide <- UI.div
+    element cardSide # sink schildren ((:[]) <$> buiCardInfo)
+
+    scCenter <- UI.div
+    element scCenter # sink schildren ((\x y -> [ column [ x ], column [ y ]]) <$> buiCardImgs <*> buiCardText)
+    -}
+
     deckSide <- UI.div
     element deckSide # sink schildren (construct <$> bDeck)
 
-
     let
-        noop :: UI Element
-        noop = UI.a
-
-        fcHeader :: UI Element
-        dbHeader :: UI Element
-        hmHeader :: UI Element
-
         fcContent :: UI Element
         dbContent :: UI Element
-        hmContent :: UI Element
+        --scContent :: UI Element
 
         fcFooter :: UI Element
         dbFooter :: UI Element
-        hmFooter :: UI Element
+        --scFooter :: UI Element
 
         fcSideBar :: UI Element
         dbSideBar :: UI Element
-        hmSideBar :: UI Element
+        --scSideBar :: UI Element
         
         fcDebugger :: UI Element
         dbDebugger :: UI Element
-        hmDebugger :: UI Element
-
-        fcHeader = row [ column [ uiRanges ], column [ uiSelects ] ]
-        dbHeader = row [ column [ uiDraft ],  column [ uiSelects ] ]
-        hmHeader = noop
+        --scDebugger :: UI Element
 
         fcContent = element qList
         dbContent = element qGrid
-        hmContent = column ([ UI.h1 #+ [string appfname] ]++(map ((UI.p #+).(:[]).string) welcomeText))
+        --scContent = element scCenter
+
+        --scHeader = noop
 
         fcFooter = element stRanger
         dbFooter = element stRanger
-        hmFooter = element hooves
+        --scFooter = noop
 
         fcSideBar = noop
         dbSideBar = element deckSide
-        hmSideBar = noop
+        --scSideBar = element cardSide
 
         fcDebugger = row [element scSelect, element scIndex]
         dbDebugger = row [element scSelect, element scIndex]
-        hmDebugger = row [string "This is the debugger! Anything you see here is special information used to debug the app."]
-  
+        --scDebugger = row [element scSelect, element scIndex]
+
     let
-        displayHeader   = (:[]) . hfdsCase hmHeader fcHeader dbHeader noop
-        displayContent  = (:[]) . hfdsCase hmContent fcContent dbContent noop
-        displayFooter   = (:[]) . hfdsCase hmFooter fcFooter dbFooter noop
-        displaySideBar  = (:[]) . hfdsCase hmSideBar fcSideBar dbSideBar noop
-        displayDebugger = (:[]) . hfdsCase hmDebugger fcDebugger dbDebugger noop
+        displayHeader   = (:[]) . hfdsCase hmHeader fcHeader dbHeader noop -- scHeader
+        displayContent  = (:[]) . hfdsCase hmContent fcContent dbContent noop -- scContent
+        displayFooter   = (:[]) . hfdsCase hmFooter fcFooter dbFooter noop -- scFooter
+        displaySideBar  = (:[]) . hfdsCase hmSideBar fcSideBar dbSideBar noop -- scSideBar
+        displayDebugger = (:[]) . hfdsCase hmDebugger fcDebugger dbDebugger noop -- scDebugger
 
     content <- UI.div
     header <- UI.div

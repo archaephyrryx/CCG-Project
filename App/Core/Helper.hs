@@ -6,6 +6,7 @@ import Control.Arrow hiding ((+++))
 import Data.Maybe
 import Control.Applicative
 import Graphics.UI.Threepenny.Core
+import qualified Graphics.UI.Threepenny.Elements as UI
 import Reactive.Threepenny
 
 infix 9 ?
@@ -24,11 +25,17 @@ pss = pure (string . show)
 psss :: (Show a, Enum a) => Behavior (a -> UI Element)
 psss = pure (string . show . succ)
 
-bstring :: String -> UI Element
-bstring = (UI.bold #+).(:[]).string
+plss :: Show a => Behavior (a -> UI Element)
+plss = pure (estring UI.li . show)
 
-istring :: String -> UI Element
-istring = (UI.italics #+).(:[]).string
+noop :: UI Element
+noop = UI.a
+
+estring :: UI Element -> String -> UI Element
+estring el = (el #+).(:[]).string
+
+bstring = estring UI.bold
+istring = estring UI.italics
 
 filtrate :: [Bool] -> [a] -> [a]
 filtrate [] _ = []

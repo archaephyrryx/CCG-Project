@@ -13,23 +13,12 @@ import Data.Maybe
 import Data.Map (Map)
 import qualified Data.Map as Map
 ------------------------------
-import App.FilterCard
---import App.SingleCard
-import App.Renderer.FilterCard
-import App.Renderer.SingleCard
-import App.Renderer.Deck
-import App.Core.AppData
-import App.Core.Helper
-import App.Core.Modes
---import App.Deck
-import App.Filtering
-import App.Widgets
+import App.Core
 ------------------------------
 import qualified Graphics.UI.Threepenny          as UI
 import qualified Graphics.UI.Threepenny.Core     as UI
 import qualified Graphics.UI.Threepenny.Elements as UI
 import Graphics.UI.Threepenny.Core
-import Graphics.UI.Threepenny.Elements (addStyleSheet)
 
 appname = "ThreePony"
 appdesc = "An Advanced MLP:CCG Toolkit"
@@ -46,21 +35,19 @@ hlink :: String -> String -> UI Element
 hlink url str = UI.a # UI.set UI.href url # settext str
 
 glue :: UI Element
-glue = string " "
+glue = string (" " :: String)
 
 homeFoot :: UI Element
 homeFoot = UI.span #. "footer" #+ [ devel , code , proj ]
     where
-        devel = UI.p #. "" [string "Developer:", glue, arch]
-            where arch = hlink "https://github.com/archaephyrryx" "Archaephyrryx"
-        code =  UI.p #. "" [string "Project code on", glue, gitpage]
-            where gitpage = hlink "https://github.com/archaephyrryx/CCG-Project/tree/threepenny" "GitHub"
-        proj = UI.p #. "" [string "Sister projects also on", glue, githome ]
-            where githome = hlink "https://github.com/archaephyrr://github.com/archaephyrryx/CCG-Project/" "GitHub"
+        base = "https://github.com/archaephyrryx"
+        devel = UI.p #. "dev" #+ [string "Developer:", glue, gitarch]
+            where gitarch = hlink base "Archaephyrryx"
+        code =  UI.p #. "cod" #+ [string "Project code on", glue, gitpage]
+            where gitpage = hlink (base++"/CCG-Project/tree/threepenny") "GitHub"
+        proj = UI.p #. "proj" #+ [string "Sister projects also on", glue, githome ]
+            where githome = hlink (base++"/CCG-Project") "GitHub"
               
-noop :: UI Element
-noop = UI.a
-
 hmHeader :: UI Element
 hmHeader = noop
 
@@ -68,7 +55,7 @@ hmContent :: UI Element
 hmContent = column ([ UI.h1 #+ [string appfname] ]++(map ((UI.p #+).(:[]).string) welcomeText))
 
 hmFooter :: UI Element
-hmFooter = element hooves
+hmFooter = homeFoot
 
 hmSideBar :: UI Element
 hmSideBar = noop
