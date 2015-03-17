@@ -26,7 +26,6 @@ import Graphics.UI.Threepenny.Core
 renderCard :: GCR'
 renderCard g = [ UI.div #. "card-imgs" #+ [cardImgs g]
                , UI.div #. "card-text" #+ [cardText g]
-               , UI.div #. "card-info" #+ [cardInfo g]
                ]
 
 cardImgs :: GCR

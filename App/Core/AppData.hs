@@ -36,7 +36,6 @@ data UBL = FCBL { bTypSelect :: BLT
                 , bCostMin   :: BMC
                 , bCostMax   :: BMC
                 }
-         | SCBL { bSingle :: BGC }
          | DBBL { bTypSelect :: BLT
                 , bSetSelect :: BLS
                 , bRarSelect :: BLR

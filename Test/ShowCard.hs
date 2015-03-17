@@ -1,27 +1,33 @@
-{-# LANGUAGE TypeSynonymInstances, FlexibleInstances, DoRec #-}
+{-# LANGUAGE TypeSynonymInstances, FlexibleInstances, DoRec, RecordWildCards #-}
 module Test.ShowCard where
 
 import App.Core
+import App.Home
 import App.Renderer.Cards
 import App.Renderer.SingleCard
+import App.Renderer.FilterCard
 import App.Widgets
+import App.Universal
+import App.FilterCard
+import App.Filtering
+------------------------
 import Control.Applicative
 import Control.Monad
 import Data.IxSet
 import Data.List
-import Data.Map (Map)
 import Data.Maybe
-import App.FilterCard
+import Data.Map (Map)
+import qualified Data.Map as Map
+------------------------
 import Cards
 import Cards.Common
 import Cards.Generic
 import Cards.Differentiation
 import Database
+----------------------------
 import Graphics.UI.Threepenny.Core
-import qualified Data.Map as Map
 import qualified Graphics.UI.Threepenny as UI
-
-
+-----------------------------
 
 main :: IO ()
 main = do
@@ -34,26 +40,53 @@ setup :: Window -> UI ()
 setup window = void $ do
     return window # UI.set UI.title "Test"
 
-    let bQMatches = pure (take 10 . toList $ cardDB)
+    butAHome <- UI.button # settext "Home"
+    butQCard <- UI.button # settext "Cards"
+
+    let eAHome = UI.click butAHome
+        eQCard = UI.click butQCard
+
+        navigator :: [UI Element]
+        navigator = [element butAHome, element butQCard]
+
+    let eModeChange = head <$> unions [ FilterCard <$ eQCard, Home <$ eAHome ]
+    bMode <- stepper Home eModeChange
+
+        
+    (fcbl@FCBL{..}, _, ams@AMS{..}) <- selectors (pure True) eModeChange
+    let bQFilter  = behaveBFilter fcbl 
+        bQMatches = toList.applyFilter <$> bQFilter
         bNoMatches = length <$> bQMatches
         pageSize = 10
         label = gname
         fRower = tabulate
-        
-    qList <- liquidCast bQMatches pageSize label fRower
+        bAggra = pure (theader:)
+
+    rec stRanger <- ranger bCur bFirst bLast (psss)
+        let tRanger = userLoc stRanger
+            eRanger = rumors   tRanger
+            bRanger = facts    tRanger
+            bFirst = pure 0
+            bLast = (pred).(`cdiv`pageSize) <$> bNoMatches
+        bCur <- stepper 0 $ head <$> unions [ eRanger, 0 <$ eModeChange ]
+
+    qList <- derangedCask bQMatches pageSize stRanger (pure label) (pure fRower) bAggra
 
     let tResults = userActive qList
         eResults = rumors tResults
     bResults <- stepper (-1) $ eResults
 
-    rec
-        let eSCard = whenE ((>=0) <$> bResults) ((!!) <$> bQMatches <@> eResults)
-        
-        bSingle <- stepper Nothing $ head <$> unions
-            [ Just <$> eSCard ]
+    let ePositive = filterE (>=0) eResults
+        eSCard = whenE ((>=0) <$> bResults) ((!!) <$> bQMatches <@> ePositive)
 
-        let [buiCardImgs, buiCardText, buiCardInfo] = blTranspose 3 noop $ (maybe [] renderCard <$> bSingle)
-        
+    let eShowMode = head <$> unions [ False <$ eQCard, False <$ eAHome, True <$ eSCard ]
+    bShow <- stepper False eShowMode
+    
+    bSingle <- stepper Nothing $ head <$> unions
+        [ Just <$> eSCard
+        , Nothing <$ eQCard
+        , Nothing <$ eAHome
+        ]
 
     scSelect <- UI.span
     element scSelect # sink UI.text ((gname!?"Nothing selected") <$> bResults <*> bQMatches)
@@ -62,29 +95,33 @@ setup window = void $ do
     element scIndex # sink UI.text (show <$> bResults)
 
     cardSide <- UI.div
-    element cardSide # sink schildren ((:[]) <$> buiCardInfo)
+    element cardSide # sink schildren (maybe [] ((:[]).cardInfo) <$> bSingle)
 
     scCenter <- UI.div
-    element scCenter # sink schildren ((\x y -> [ column [ x ], column [ y ]]) <$> buiCardImgs <*> buiCardText)
+    element scCenter # sink schildren (maybe [] renderCard <$> bSingle)
 
     let
-        scContent :: UI Element
-        scFooter :: UI Element
-        scSideBar :: UI Element
-        scDebugger :: UI Element
-
+        fcContent = element qList
         scContent = element scCenter
-        scHeader = noop
-        scFooter = noop
+
+        fcHeader = fcAmsHeader ams
+        scHeader = bstring "Show Card"
+
+        fcFooter = element stRanger
+        scFooter = bstring "Show Card"
+
+        fcSideBar = noop
         scSideBar = element cardSide
+
+        fcDebugger = row [element scSelect, element scIndex]
         scDebugger = row [element scSelect, element scIndex]
 
     let
-        displayHeader   = (:[]) . const scHeader
-        displayContent  = (:[]) . const scContent
-        displayFooter   = (:[]) . const scFooter
-        displaySideBar  = (:[]) . const scSideBar
-        displayDebugger = (:[]) . const scDebugger
+          displayHeader   = ((:[]).) . hfdsCase hmHeader fcHeader noop scHeader
+          displayContent  = ((:[]).) . hfdsCase hmContent fcContent noop scContent
+          displayFooter   = ((:[]).) . hfdsCase hmFooter fcFooter noop scFooter
+          displaySideBar  = ((:[]).) . hfdsCase hmSideBar fcSideBar noop scSideBar
+          displayDebugger = ((:[]).) . hfdsCase hmDebugger fcDebugger noop scDebugger
 
     content <- UI.div
     header <- UI.div
@@ -92,11 +129,10 @@ setup window = void $ do
     sidebar <- UI.div
     dbg <- UI.span
 
-    let bMode = pure ()
-    element content # sink schildren (displayContent <$> bMode)
-    element header # sink schildren (displayHeader <$> bMode)
-    element footer # sink schildren (displayFooter <$> bMode)
-    element sidebar # sink schildren (displaySideBar <$> bMode)
-    element dbg # sink schildren (displayDebugger <$> bMode)
+    element content # sink schildren (displayContent <$> bMode <*> bShow)
+    element header # sink schildren (displayHeader <$> bMode <*> bShow)
+    element footer # sink schildren (displayFooter <$> bMode <*> bShow)
+    element sidebar # sink schildren (displaySideBar <$> bMode <*> bShow)
+    element dbg # sink schildren (displayDebugger <$> bMode <*> bShow)
 
-    getBody window # UI.set schildren ([column [ row [ element qList ], row [element header], row [column [ element content ], column [ element sidebar ]], row [element footer], row [element dbg]]])
+    getBody window # UI.set schildren ([column [ row navigator, row [element header], row [column [ element content ], column [ element sidebar ]], row [element footer], row [element dbg]]])

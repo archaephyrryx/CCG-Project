@@ -79,6 +79,7 @@ con xs = div #. "card-box" #+ (map (\x -> div #. "card-line" #+ [cline x]) xs)
                 colorize (Just Wild) = "Wild"
                 colorize (Just c) = show c
 
+{-
 render :: ViewMode -> [GenCard] -> [UI Element]
 render g@GridView{..} matches =
   let trows = for (take rs.chunksOf cs$matches) (\gs -> UI.tr #+ (map (\x -> UI.td #+ [x]) $ map procure gs))
@@ -86,3 +87,4 @@ render g@GridView{..} matches =
 
 procure :: GCR
 procure = head.map cimage.curls
+-}

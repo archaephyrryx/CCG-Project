@@ -17,13 +17,13 @@ data ViewMode = ListView { n :: Int, pn :: Int }
               | FlatView { pn :: Int }
                 deriving (Read, Show, Eq)
 
-hfdsCase :: a -> a -> a -> a -> (AppMode -> a)
-hfdsCase h f d s x = case x of
+hfdsCase :: a -> a -> a -> a -> AppMode -> Bool -> a
+hfdsCase h f d s x True = s
+hfdsCase h f d _ x False = case x of
     Home -> h
     FilterCard -> f
     DeckBuilder -> d
-    ShowCard -> s
-
+    _ -> error (show x)
 
 npp :: ViewMode -> Int
 npp l@ListView{n=x,..} = x
