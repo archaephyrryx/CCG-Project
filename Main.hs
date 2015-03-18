@@ -19,5 +19,6 @@ main = do
 	startGUI defaultConfig
 		{ tpPort	= Just 10000
 		, tpStatic	= Just "res/"
+--        , tpCustomHTML = Just "ccg.html"
 		} setup
 

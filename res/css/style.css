@@ -42,6 +42,14 @@
     cursor: pointer;
 }
 
+.clear-btn {
+    background:none!important;
+    border:none; 
+    padding:0!important;
+    border-bottom:1px solid #444; 
+    cursor: pointer;
+}
+
 .softlink {
     background:none!important;
     border:none; 
@@ -79,30 +87,6 @@
     cursor: help;
     vertical-align: middle;
     background: no-repeat center center
-}
-
-.typeIcon.Mane {
-    background-image: url(/res/icns/Mane.png)
-}
-
-.typeIcon.Friend {
-    background-image: url(/res/icns/Friend.png)
-}
-
-.typeIcon.Event {
-    background-image: url(/res/icns/Event.png)
-}
-
-.typeIcon.Problem {
-    background-image: url(/res/icns/Problem.png)
-}
-
-.typeIcon.Resource {
-    background-image: url(/res/icns/Resource.png)
-}
-
-.typeIcon.Troublemaker {
-    background-image: url(/res/icns/Troublemaker.png)
 }
 
 .panel.quick-facts ul {

@@ -10,6 +10,7 @@ module App.Widgets
         , module App.Widgets.Cast
         , module App.Widgets.Obscura
         , schildren
+        , mapschildren
         ) where
 
 import App.Core

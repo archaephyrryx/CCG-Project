@@ -63,15 +63,11 @@ setup window = void $ do
     bMulti <- stepper True $ head <$> unions [ True <$ eQCard, False <$ eBDeck ]
 
     bHome <- stepper True $ head <$> unions [ True <$ eAHome, False <$ eBDeck, False <$ eQCard ]
-    let eModeChange = head <$> unions
-          [ Home <$ eAHome
-          , FilterCard <$ eQCard
-          , DeckBuilder <$ eBDeck
-          ]
+    let eModeChange = head <$> unions [ Home <$ eAHome, FilterCard <$ eQCard, DeckBuilder <$ eBDeck ]
 
     bMode <- stepper Home eModeChange
 
---- Mode specific things (FilterCard and DeckBuilder)
+  --- Mode elements/behaviors for FilterCard and DeckBuilder
 
     (fcbl@FCBL{..}, dbbl, ams@AMS{..}) <- selectors bMulti eModeChange
 
@@ -88,16 +84,19 @@ setup window = void $ do
 
         bNoMatches = length <$> bQMatches
 
-    let pageSize = 100
-        rowSize = 25
+    let pageSize = 20
+        rowSize = 5
         colSize = 4
+
+        bNpp = if_ <$> bMulti <*> (pure pageSize) <*> (pure (rowSize*colSize))
+
 
     rec stRanger <- ranger bCur bFirst bLast (psss)
         let tRanger = userLoc stRanger
             eRanger = rumors   tRanger
             bRanger = facts    tRanger
             bFirst = pure 0
-            bLast = (pred).(`cdiv`pageSize) <$> bNoMatches
+            bLast = (pred) <$> (cdiv <$> bNoMatches <*> bNpp)
         bCur <- stepper 0 $ head <$> unions [ eRanger, 0 <$ eModeChange ]
 
     let 
@@ -141,6 +140,7 @@ setup window = void $ do
             , decCard <$> eDecCard
             ]
 
+  --- Mode elements/behaviors/handling for ShowCard
     let eSCard = whenE ((&&) <$> (bMulti) <*> ((>=0) <$> bResults)) ((!!) <$> bQMatches <@> (filterE (>=0) eResults))
 
     let eShowMode = head <$> unions [ False <$ eQCard, False <$ eAHome, False <$ eBDeck, True <$ eSCard ]
@@ -153,6 +153,13 @@ setup window = void $ do
         , Nothing <$ eAHome
         ]
 
+  --- Multiselect clear handles
+    on UI.click clearsTyp $ \_ -> (element uSelectTyp # UI.set clearSels ())
+    on UI.click clearsCol $ \_ -> (element uSelectCol # UI.set clearSels ())
+    on UI.click clearsSet $ \_ -> (element uSelectSet # UI.set clearSels ())
+    on UI.click clearsRar $ \_ -> (element uSelectRar # UI.set clearSels ())
+
+  --- UI Elements and layout
     scSelect <- UI.span
     element scSelect # sink UI.text ((gname!?"Nothing selected") <$> bResults <*> bQMatches)
 
@@ -160,56 +167,40 @@ setup window = void $ do
     element scIndex # sink UI.text (show <$> bResults)
 
     cardSide <- UI.div
-    element cardSide # sink schildren (maybe [bstring "Show Card"] ((:[]).cardInfo) <$> bSingle)
+    element cardSide # sink (schildren (maybe [bstring "Show Card"] ((:[]).cardInfo))) bSingle
 
     scCenter <- UI.div
-    element scCenter # sink schildren (maybe [bstring "Show Card"] renderCard <$> bSingle)
+    element scCenter # sink (schildren (maybe [bstring "Show Card"] renderCard)) bSingle
 
     deckSide <- UI.div
-    element deckSide # sink schildren (construct <$> bDeck)
+    element deckSide # sink (schildren construct) bDeck
 
-    let
-        fcContent :: UI Element
-        dbContent :: UI Element
-        scContent :: UI Element
+  --- UI section elements
+    hmContent <- column ([ UI.h1 #+ [string appfname] ]++(map ((UI.p #+).(:[]).string) welcomeText))
+    fcContent <- element qList
+    dbContent <- element qGrid
+    scContent <- element scCenter
 
-        fcHeader :: UI Element
-        dbHeader :: UI Element
-        scHeader :: UI Element
-        
-        fcFooter :: UI Element
-        dbFooter :: UI Element
-        scFooter :: UI Element
+    hmHeader <- noop
+    fcHeader <- fcAmsHeader ams
+    dbHeader <- let uiDraft = row [ bstring "Draft Mode:", element draftCheck ] in dbAmsHeader uiDraft ams
+    scHeader <- estring UI.p "Show Card"
 
-        fcSideBar :: UI Element
-        dbSideBar :: UI Element
-        scSideBar :: UI Element
-        
-        fcDebugger :: UI Element
-        dbDebugger :: UI Element
-        scDebugger :: UI Element
+    hmFooter <-  homeFoot
+    fcFooter <- element stRanger
+    dbFooter <- element stRanger
+    scFooter <- estring UI.p "Show Card"
 
-        fcContent = element qList
-        dbContent = element qGrid
-        scContent = element scCenter
 
-        fcHeader = fcAmsHeader ams
+    hmSideBar <- noop
+    fcSideBar <- noop
+    dbSideBar <- element deckSide
+    scSideBar <- element cardSide
 
-        dbHeader = let uiDraft = row [ bstring "Draft Mode:", element draftCheck ]
-                   in dbAmsHeader uiDraft ams
-        scHeader = bstring "Show Card"
-
-        fcFooter = element stRanger
-        dbFooter = element stRanger
-        scFooter = bstring "Show Card"
-
-        fcSideBar = noop
-        dbSideBar = element deckSide
-        scSideBar = element cardSide
-
-        fcDebugger = row [element scSelect, element scIndex]
-        dbDebugger = row [element scSelect, element scIndex]
-        scDebugger = row [element scSelect, element scIndex]
+    hmDebugger <- row [string "This is the debugger! Anything you see here is special information used to debug the app."]
+    fcDebugger <- row [element scSelect, element scIndex]
+    dbDebugger <- row [element scSelect, element scIndex]
+    scDebugger <- row [element scSelect, element scIndex]
 
     let
         displayHeader   = ((:[]).) . hfdsCase hmHeader fcHeader dbHeader scHeader
@@ -218,15 +209,17 @@ setup window = void $ do
         displaySideBar  = ((:[]).) . hfdsCase hmSideBar fcSideBar dbSideBar scSideBar
         displayDebugger = ((:[]).) . hfdsCase hmDebugger fcDebugger dbDebugger scDebugger
 
+    nav <- UI.div
     content <- UI.div
     header <- UI.div
     footer <- UI.span
     sidebar <- UI.div
     dbg <- UI.span
-    element content # sink schildren (displayContent <$> bMode <*> bShow)
-    element header # sink schildren (displayHeader <$> bMode <*> bShow)
-    element footer # sink schildren (displayFooter <$> bMode <*> bShow)
-    element sidebar # sink schildren (displaySideBar <$> bMode <*> bShow)
-    element dbg # sink schildren (displayDebugger <$> bMode <*> bShow)
+    
+    element content # sink children (displayContent <$> bMode <*> bShow)
+    element header # sink children (displayHeader <$> bMode <*> bShow)
+    element footer # sink children (displayFooter <$> bMode <*> bShow)
+    element sidebar # sink children (displaySideBar <$> bMode <*> bShow)
+    element dbg # sink children (displayDebugger <$> bMode <*> bShow)
 
-    getBody window # UI.set schildren ([column [ row navigator, row [element header], row [column [ element content ], column [ element sidebar ]], row [element footer], row [element dbg]]])
+    getBody window #+ [column [ row navigator, row [element header], row [column [ element content ], column [ element sidebar ]], row [element footer], row [element dbg]]]

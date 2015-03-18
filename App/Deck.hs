@@ -33,14 +33,14 @@ unnamedMonoSelect :: Element -> MonoSelect a -> UI Element
 unnamedMonoSelect cler sel = column [ row [ element cler ], row [ element sel ] ]
 
 dbAmsHeader :: UI Element -> AMS -> UI Element
-dbAmsHeader uiDraft a@AMS{..} = let
-        uoSelectTyp = unnamedMonoSelect clearsTyp oSelectTyp
-        uoSelectCol = unnamedMonoSelect clearsCol oSelectCol
-        uoSelectSet = unnamedMonoSelect clearsSet oSelectSet
-        uoSelectRar = unnamedMonoSelect clearsRar oSelectRar
-        uoSelects = selectAll [uoSelectTyp, uoSelectCol, uoSelectSet, uoSelectRar]
-        dbHeader = row [ column [ uiDraft ],  column [ uoSelects ] ]
-    in dbHeader
+dbAmsHeader uiDraft a@AMS{..} = do
+        uoSelectTyp <- unnamedMonoSelect clearsTyp oSelectTyp
+        uoSelectCol <- unnamedMonoSelect clearsCol oSelectCol
+        uoSelectSet <- unnamedMonoSelect clearsSet oSelectSet
+        uoSelectRar <- unnamedMonoSelect clearsRar oSelectRar
+        uoSelects <- selectAll [ element uoSelectTyp, element uoSelectCol, element uoSelectSet, element uoSelectRar]
+        dbHeader <- row [ column [ uiDraft ],  column [ element uoSelects ] ]
+        return dbHeader
 
 
 {-

@@ -22,6 +22,8 @@ import Graphics.UI.Threepenny.Core
 
 appname = "ThreePony"
 appdesc = "An Advanced MLP:CCG Toolkit"
+
+appfname :: String
 appfname = (appname ++ ": " ++ appdesc)
 
 welcomeText =
@@ -47,18 +49,3 @@ homeFoot = UI.span #. "footer" #+ [ devel , code , proj ]
             where gitpage = hlink (base++"/CCG-Project/tree/threepenny") "GitHub"
         proj = UI.p #. "proj" #+ [string "Sister projects also on", glue, githome ]
             where githome = hlink (base++"/CCG-Project") "GitHub"
-              
-hmHeader :: UI Element
-hmHeader = noop
-
-hmContent :: UI Element
-hmContent = column ([ UI.h1 #+ [string appfname] ]++(map ((UI.p #+).(:[]).string) welcomeText))
-
-hmFooter :: UI Element
-hmFooter = homeFoot
-
-hmSideBar :: UI Element
-hmSideBar = noop
-
-hmDebugger :: UI Element
-hmDebugger = row [string "This is the debugger! Anything you see here is special information used to debug the app."]

@@ -60,18 +60,18 @@ freeRange :: [UI Element] -> UI Element
 freeRange xs = column (map (\x -> row [ x ]) xs)
 
 fcAmsHeader :: AMS -> UI Element
-fcAmsHeader a@AMS{..} = let
-        uiSelectTyp = namedMultiSelect "Type"   clearsTyp uSelectTyp
-        uiSelectCol = namedMultiSelect "Color"  clearsCol uSelectCol
-        uiSelectSet = namedMultiSelect "Set"    clearsSet uSelectSet
-        uiSelectRar = namedMultiSelect "Rarity" clearsRar uSelectRar
-        uiSelects = selectAll [uiSelectTyp, uiSelectCol, uiSelectSet, uiSelectRar]
-        uiPowRange = namedMinMax "Power" minPow maxPow
-        uiCostRange = namedMinMax "Cost" minCost maxCost
-        uiReqRange = namedMinMax "Requirement" minReq maxReq
-        uiRanges = freeRange [uiPowRange, uiCostRange, uiReqRange]
-        fcHeader = row [ column [ uiRanges ], column [ uiSelects ] ]
-    in fcHeader
+fcAmsHeader a@AMS{..} = do 
+        uiSelectTyp <- namedMultiSelect "Type"   clearsTyp uSelectTyp
+        uiSelectCol <- namedMultiSelect "Color"  clearsCol uSelectCol
+        uiSelectSet <- namedMultiSelect "Set"    clearsSet uSelectSet
+        uiSelectRar <- namedMultiSelect "Rarity" clearsRar uSelectRar
+        uiSelects <- selectAll [element uiSelectTyp, element uiSelectCol, element uiSelectSet, element uiSelectRar]
+        uiPowRange <- namedMinMax "Power" minPow maxPow
+        uiCostRange <- namedMinMax "Cost" minCost maxCost
+        uiReqRange <- namedMinMax "Requirement" minReq maxReq
+        uiRanges <- freeRange [element uiPowRange, element uiCostRange, element uiReqRange]
+        fcHeader <- row [ column [ element uiRanges ], column [ element uiSelects ] ]
+        return fcHeader
 
 
 {-
