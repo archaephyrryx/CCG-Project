@@ -35,7 +35,7 @@ construct d = [ div #. "mane" #+ [
                 ]
               , div #. "problem" #+ [
                   div #. "problem-deck" #+ [
-                    h2 #+ [pheader nprob start]]
+                    h2 #. "problem-title" #+ [pheader nprob start]]
                   , hr
                   , div #. "problem-cards" #+ [con.struct $ probs]
                 ]
