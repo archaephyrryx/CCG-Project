@@ -19,11 +19,8 @@ import Data.Maybe
 import Data.Map (Map)
 import qualified Data.Map as Map
 ------------------------
-import Cards
-import Cards.Common
-import Cards.Generic
-import Cards.Differentiation
-import Database
+import CCG
+import API.Database
 ----------------------------
 import Graphics.UI.Threepenny.Core
 import qualified Graphics.UI.Threepenny as UI

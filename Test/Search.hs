@@ -13,8 +13,8 @@ import Data.Map (Map)
 import qualified	Graphics.UI.Threepenny 			as UI
 import				Graphics.UI.Threepenny.Core
 import App.Widgets
-import Cards.Differentiation
-import Database
+import CCG.Cards.Differentiation
+import API.Database
 
 main :: IO ()
 main = do
