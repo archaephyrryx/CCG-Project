@@ -1,12 +1,12 @@
 {-# LANGUAGE FlexibleInstances, DeriveDataTypeable,
     GeneralizedNewtypeDeriving #-}
 
-module Cards.Common ( module Cards.Common
-                    , module Cards.Common.Types
-                    , module Cards.Common.Values
-                    , module Cards.Common.Instances
-                    ) where
+module CCG.Cards.Common ( module CCG.Cards.Common
+                        , module CCG.Cards.Common.Types
+                        , module CCG.Cards.Common.Values
+                        , module CCG.Cards.Common.Instances
+                        ) where
                     
-import Cards.Common.Types
-import Cards.Common.Values
-import Cards.Common.Instances
+import CCG.Cards.Common.Types
+import CCG.Cards.Common.Values
+import CCG.Cards.Common.Instances

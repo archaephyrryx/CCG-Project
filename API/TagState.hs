@@ -4,14 +4,10 @@
 
 module TagState where
 
-import Cards
-import Cards.Common
-import Cards.Differentiation
-import Cards.Generic
-import Cards.Safe
+import CCG
 --------------------------------------------
-import Database
-import IxMap
+import API.Database
+import API.IxMap
 --------------------------------------------
 import Control.Applicative	( (<$>), (<*>) )
 import Control.Exception	( bracket )

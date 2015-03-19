@@ -1,11 +1,7 @@
 {-# LANGUAGE RecordWildCards, OverloadedStrings, DoRec #-}
 module App where
 ------------------------------
-import Deck
-import Cards
-import Cards.Common 
-import Cards.Differentiation
-import Cards.Generic
+import CCG
 ------------------------------
 import Control.Applicative
 import Control.Monad
@@ -19,8 +15,9 @@ import Data.Maybe
 import Data.Map (Map)
 import qualified Data.Map as Map
 ------------------------------
-import Database
-import TagState
+import API.Database
+import API.TagState
+import API.IxMap
 ------------------------------
 import App.FilterCard
 --import App.SingleCard
@@ -36,7 +33,7 @@ import App.Renderer.Deck
 import App.Filtering
 import App.Widgets
 import App.Core
-------------------------------
+-----------------------------
 import qualified Graphics.UI.Threepenny          as UI
 import qualified Graphics.UI.Threepenny.Core     as UI
 import qualified Graphics.UI.Threepenny.Elements as UI

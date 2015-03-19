@@ -1,9 +1,9 @@
 {-# LANGUAGE RecordWildCards #-}
 
-module Cards.Pretty where
+module CCG.Cards.Pretty where
 
-import Cards
-import Cards.Common
+import CCG.Cards
+import CCG.Cards.Common
 import Data.List.Split
 import Data.List
 import Data.Maybe (fromJust)

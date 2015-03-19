@@ -7,15 +7,10 @@ import Data.List.Split
 import Data.List
 import Data.IORef
 --------------------------------------------------
-import Database
+import API
 import Data.IxSet
 --------------------------------------------------
-import Deck
-import Cards
-import Cards.Generic
-import Cards.Common
-import Cards.Differentiation
-import MLPCCG
+import CCG
 -------------------------------------------------
 import App.Core
 import App.Filtering

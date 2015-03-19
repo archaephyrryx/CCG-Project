@@ -2,15 +2,9 @@
     TemplateHaskell, TypeFamilies, RecordWildCards,
 	OverloadedStrings #-}
 
-module Database where
+module API.Database where
 
-import Cards
-import Cards.Common
-import Cards.Differentiation
-import Cards.Parser
-import Cards.Generic
-import Cards.Pretty
-import MLPCCG
+import CCG
 import Control.Applicative	( (<$>) )
 import Control.Exception	( bracket )
 import Control.Monad		( msum )

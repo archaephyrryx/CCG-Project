@@ -1,37 +1,50 @@
-{-# LANGUAGE TypeSynonymInstances, FlexibleInstances #-}
+{-# LANGUAGE TypeSynonymInstances, FlexibleInstances, DoRec #-} 
 
 module App.Tagging where
-
+-------------------------------------------------
+import Data.Maybe
+import Data.List
+import Data.List.Split
+import Data.Data (Data, Typeable)
+import Data.IORef
+import Data.IxSet
+import Data.Map (Map)
+import qualified Data.Map as Map
+-------------------------------------------------
 import Control.Applicative
 import Control.Monad
-import Data.Maybe
-import Data.IORef
-import Data.List
-import qualified Data.Map as Map
-import Data.Map (Map)
-import qualified	Graphics.UI.Threepenny 			as UI
-import				Graphics.UI.Threepenny.Core
+--------------------------------------------------
+import API.Database
+import API.TagState
+--------------------------------------------------
+import CCG
+--------------------------------------------------
+import App.Core
+--------------------------------------------------
+import qualified Graphics.UI.Threepenny          as UI
+import qualified Graphics.UI.Threepenny.Core     as UI
+import qualified Graphics.UI.Threepenny.Elements as UI
+import Graphics.UI.Threepenny.Core
 
 setup :: Window -> UI ()
-setup window = do
-	-- GUI elements
-	return window # set UI.title "Hello World!"
+setup window = void $ do
+    return window # UI.set UI.title appfname
+    addStyleSheet window "style.css"
 
-	elPlus	<- UI.button # set UI.text "+"
-	elMinu	<- UI.button # set UI.text "-"
-	elSave	<- UI.button # set UI.text "Save Changes"
-	elDrop	<- UI.button # set UI.text "Discard Changes"
-	elMode	<- UI.button # set UI.text "View"
-	elBlank	<- UI.input  # set UI.text  ""
-	result	<- UI.span
+    -- Tagging Only
+    elPlus    <- UI.button # settext "+"
+    elMinu    <- UI.button # settext "-"
+    elSave    <- UI.button # settext "Save Changes"
+    elDrop    <- UI.button # settext "Discard Changes"
+    elMode    <- UI.button # settext "View"
+    elBlank   <- UI.input  # settext  ""
+    result    <- UI.span
 
-	inputs <- liftIO $ newIORef []
-	mode   <- liftIO $ newIORef View
-	edited <- liftIO $ newIORef False
-	dats   <- liftIO $ newIORef example
+    inputs <- liftIO $ newIORef []
+    mode   <- liftIO $ newIORef View
+    edited <- liftIO $ newIORef False
+    dats   <- liftIO $ newIORef example
 
-	-- GUI Layout
-	
 	let key = fst example
 
 
@@ -141,10 +154,5 @@ toggle Edit = View
 canEdit :: Mode -> Bool
 canEdit View = False
 canEdit Edit = True
-
--- conditional operator: performs function on value depending on test of value
-
-cond :: (a -> Bool) -> (a -> b) -> (a -> b) -> (a -> b)
-cond p f g = \x -> if p x then f x else g x
 
 example = ("Cat",[])

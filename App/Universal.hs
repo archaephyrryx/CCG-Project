@@ -2,24 +2,11 @@
 
 module App.Universal where
 
-import Cards
-import Cards.Common
-import Cards.Differentiation
-import Cards.Generic
+import CCG
 --------------------------
 import Control.Applicative
 import Control.Monad
-import Control.Monad.State
-import Database
-import Data.Data (Data, Typeable)
-import Data.IORef
-import Data.IxSet hiding (null)
-import qualified Data.IxSet as IxSet
-import TagState
 import Data.List
-import Data.Maybe
-import Data.Map (Map)
-import qualified Data.Map as Map
 -----------------------------
 import qualified Graphics.UI.Threepenny          as UI
 import qualified Graphics.UI.Threepenny.Core     as UI
@@ -28,7 +15,6 @@ import Graphics.UI.Threepenny.Core hiding (get, set)
 -----------------------------
 import App.Core
 import App.Widgets
-import App.Filtering
 -----------------------------
 
 powerless :: Maybe Power

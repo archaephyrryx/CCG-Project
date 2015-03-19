@@ -1,17 +1,10 @@
-{-# LANGUAGE RecordWildCards, OverloadedStrings, DoRec #-}
+{-# LANGUAGE RecordWildCards #-}
 module App.Home where
 ------------------------------
 import Control.Applicative
 import Control.Monad
 ------------------------------
-import Data.Data (Data, Typeable)
-import Data.IORef
-import Data.IxSet hiding (null)
 import Data.List
-import Data.List.Split
-import Data.Maybe
-import Data.Map (Map)
-import qualified Data.Map as Map
 ------------------------------
 import App.Core
 ------------------------------
@@ -22,8 +15,6 @@ import Graphics.UI.Threepenny.Core
 
 appname = "ThreePony"
 appdesc = "An Advanced MLP:CCG Toolkit"
-
-appfname :: String
 appfname = (appname ++ ": " ++ appdesc)
 
 welcomeText =
@@ -32,12 +23,6 @@ welcomeText =
     , "Any comments, bug reports, questions, feature requests, or other feedback should go to the GitHub page for this project."
     , "A number of other implementations of this app are being developed as well, though they go by different names."
     ]
-
-hlink :: String -> String -> UI Element
-hlink url str = UI.a # UI.set UI.href url # settext str
-
-glue :: UI Element
-glue = string (" " :: String)
 
 homeFoot :: UI Element
 homeFoot = UI.span #. "footer" #+ [ devel , code , proj ]

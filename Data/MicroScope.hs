@@ -1,9 +1,9 @@
 {-# LANGUAGE RecordWildCards, ImpredicativeTypes #-}
-module App.MicroScope where
+module Data.MicroScope where
 
 import Data.List
 import Data.Set (Set)
-import App.Core.Helper
+import Util
 import qualified Data.Set as Set
 
 -- |A micro list; a 3-tuple of previous, current, and next elements

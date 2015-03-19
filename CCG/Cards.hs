@@ -1,9 +1,9 @@
 {-# LANGUAGE GeneralizedNewtypeDeriving, RecordWildCards,
     DeriveDataTypeable #-}
 
-module Cards where
+module CCG.Cards where
 
-import Cards.Common
+import CCG.Cards.Common
 import Data.List
 import Data.Char
 import Data.Set (Set)

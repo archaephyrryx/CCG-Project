@@ -1,123 +1,124 @@
 {-# LANGUAGE FlexibleInstances, DeriveDataTypeable,
     GeneralizedNewtypeDeriving #-}
 
-module Cards.Common.Types where
-    import Cards.Common.Invotomorph
-    import Data.Data (Data, Typeable)
-    import Data.Char
-    import Data.SafeCopy (SafeCopy)
-    import Data.List
-    import Data.Function (on)
-    import Data.Set (Set)
-    import Data.List ((\\))
+module CCG.Cards.Common.Types where
 
-    -- Type aliases: Keywords, Name, ProblemReq
-    type Keywords = [Keyword]
-    type Name = String
-    type ProblemReq = ([(Color,Power)],Power)
+import CCG.Cards.Common.Invotomorph
+import Data.Data (Data, Typeable)
+import Data.Char
+import Data.SafeCopy (SafeCopy)
+import Data.List
+import Data.Function (on)
+import Data.Set (Set)
+import Data.List ((\\))
 
-    -- Integral newtypes: Power, Cost, Req, Points
+-- Type aliases: Keywords, Name, ProblemReq
+type Keywords = [Keyword]
+type Name = String
+type ProblemReq = ([(Color,Power)],Power)
 
-    newtype Power = Power Int deriving (Read, Show, Ord, Eq, Data, Typeable, SafeCopy)
-    newtype Cost = Cost Int deriving (Read, Show, Ord, Eq, Data, Typeable, SafeCopy)
-    newtype Req = Req Int deriving (Read, Show, Ord, Eq, Data, Typeable, SafeCopy)
-    newtype Points = Points Int deriving (Read, Show, Ord, Eq, Data, Typeable, SafeCopy)
+-- Integral newtypes: Power, Cost, Req, Points
 
-    -- String newtypes: Keyword, card text
+newtype Power = Power Int deriving (Read, Show, Ord, Eq, Data, Typeable, SafeCopy)
+newtype Cost = Cost Int deriving (Read, Show, Ord, Eq, Data, Typeable, SafeCopy)
+newtype Req = Req Int deriving (Read, Show, Ord, Eq, Data, Typeable, SafeCopy)
+newtype Points = Points Int deriving (Read, Show, Ord, Eq, Data, Typeable, SafeCopy)
 
-    newtype Keyword = Keyword String deriving (Ord, Eq, Data, Typeable, SafeCopy)
-    newtype Text = Text String deriving (Ord, Eq, Data, Typeable, SafeCopy)
+-- String newtypes: Keyword, card text
 
-    -- Datatypes: Color, card number, card set, rarity, card type
+newtype Keyword = Keyword String deriving (Ord, Eq, Data, Typeable, SafeCopy)
+newtype Text = Text String deriving (Ord, Eq, Data, Typeable, SafeCopy)
 
-    data Color =    Blue |    Yellow |    Purple |    Pink |    White |    Orange
-               | NonBlue | NonYellow | NonPurple | NonPink | NonWhite | NonOrange
-               | Wild deriving (Show, Read, Eq, Ord, Data, Typeable)
+-- Datatypes: Color, card number, card set, rarity, card type
 
-    instance Invotomorph Color where
-        classX = spect
-        classY = aspect
+data Color =    Blue |    Yellow |    Purple |    Pink |    White |    Orange
+           | NonBlue | NonYellow | NonPurple | NonPink | NonWhite | NonOrange
+           | Wild deriving (Show, Read, Eq, Ord, Data, Typeable)
 
-    readC :: String -> Color
-    readC "" = Wild
-    readC x = read x :: Color
+instance Invotomorph Color where
+    classX = spect
+    classY = aspect
 
-    spect :: [Color]
-    spect = [Blue, Yellow, Purple, Pink, White, Orange]
+readC :: String -> Color
+readC "" = Wild
+readC x = read x :: Color
 
-    aspect :: [Color]
-    aspect = [NonBlue, NonYellow, NonPurple, NonPink, NonWhite, NonOrange]
+spect :: [Color]
+spect = [Blue, Yellow, Purple, Pink, White, Orange]
 
-    invert :: Color -> Color
-    invert = invoto
+aspect :: [Color]
+aspect = [NonBlue, NonYellow, NonPurple, NonPink, NonWhite, NonOrange]
 
-    classify :: Color -> [Color]
-    classify x | spectral x = x:(aspect\\[invert x])
-               | aspectral x = x:(spect\\[invert x])
-               | otherwise = Wild:(spect++aspect)
+invert :: Color -> Color
+invert = invoto
 
-    spectral :: Color -> Bool
-    spectral = (`elem`spect)
+classify :: Color -> [Color]
+classify x | spectral x = x:(aspect\\[invert x])
+           | aspectral x = x:(spect\\[invert x])
+           | otherwise = Wild:(spect++aspect)
 
-    aspectral :: Color -> Bool
-    aspectral = (`elem`aspect)
+spectral :: Color -> Bool
+spectral = (`elem`spect)
 
-    isWild :: Color -> Bool
-    isWild = (==Wild)
+aspectral :: Color -> Bool
+aspectral = (`elem`aspect)
+
+isWild :: Color -> Bool
+isWild = (==Wild)
 
 
 
-    data Number = Regular Int | F Int | PF Int deriving (Eq, Ord, Data, Typeable)
+data Number = Regular Int | F Int | PF Int deriving (Eq, Ord, Data, Typeable)
 
-    instance Show Number where
-        show (Regular x) = show x
-        show (F x) = 'f':(show x)
-        show (PF x) = 'p':'f':(show x)
+instance Show Number where
+    show (Regular x) = show x
+    show (F x) = 'f':(show x)
+    show (PF x) = 'p':'f':(show x)
 
-    readN :: String -> Number
-    readN ('p':'f':x) = PF (read x)
-    readN ('P':'f':x) = PF (read x)
-    readN ('f':x) = F (read x)
-    readN x@(k:_) | isDigit k = Regular (read x)
-                  | otherwise = error ("Could not parse Number: "++x)
+readN :: String -> Number
+readN ('p':'f':x) = PF (read x)
+readN ('P':'f':x) = PF (read x)
+readN ('f':x) = F (read x)
+readN x@(k:_) | isDigit k = Regular (read x)
+              | otherwise = error ("Could not parse Number: "++x)
 
-    readsN :: ReadS Number
-    readsN s = (`zip`[""]).(:[]) $ readN s
+readsN :: ReadS Number
+readsN s = (`zip`[""]).(:[]) $ readN s
 
-    instance Read Number where
-        readsPrec = const readsN
-        
+instance Read Number where
+    readsPrec = const readsN
+    
 
-    -- Abbreviated strings
+-- Abbreviated strings
 
-    data CSet = Premiere | CanterlotNights | RockNRave | CelestialSolstice | CrystalGames deriving (Enum, Eq, Ord, Data, Typeable)
+data CSet = Premiere | CanterlotNights | RockNRave | CelestialSolstice | CrystalGames deriving (Enum, Eq, Ord, Data, Typeable)
 
-    data Rarity = Common | Uncommon | Fixed | Rare | UltraRare | Promotional deriving (Enum, Eq, Ord, Show, Read, Data, Typeable)
+data Rarity = Common | Uncommon | Fixed | Rare | UltraRare | Promotional deriving (Enum, Eq, Ord, Show, Read, Data, Typeable)
 
-    data CardType = TMane | TFriend | TResource | TEvent | TTroublemaker | TProblem deriving (Eq, Ord, Data, Typeable)
+data CardType = TMane | TFriend | TResource | TEvent | TTroublemaker | TProblem deriving (Eq, Ord, Data, Typeable)
 
-    instance Show CardType where
-        show TMane = "Mane"
-        show TFriend = "Friend"
-        show TResource = "Resource"
-        show TEvent = "Event"
-        show TTroublemaker = "Troublemaker"
-        show TProblem = "Problem"
+instance Show CardType where
+    show TMane = "Mane"
+    show TFriend = "Friend"
+    show TResource = "Resource"
+    show TEvent = "Event"
+    show TTroublemaker = "Troublemaker"
+    show TProblem = "Problem"
 
-    readsT :: ReadS CardType
-    readsT s = (`zip`[""]).(:[]) $ readT s
+readsT :: ReadS CardType
+readsT s = (`zip`[""]).(:[]) $ readT s
 
-    readT :: String -> CardType
-    readT s = case s of
-        "Mane"          -> TMane
-        "Friend"        -> TFriend
-        "Resource"      -> TResource
-        "Event"         -> TEvent
-        "Troublemaker"  -> TTroublemaker
-        "Problem"       -> TProblem
+readT :: String -> CardType
+readT s = case s of
+    "Mane"          -> TMane
+    "Friend"        -> TFriend
+    "Resource"      -> TResource
+    "Event"         -> TEvent
+    "Troublemaker"  -> TTroublemaker
+    "Problem"       -> TProblem
 
-    titleCase :: String -> String
-    titleCase (x:xs) = (toUpper x):(map toLower xs)
+titleCase :: String -> String
+titleCase (x:xs) = (toUpper x):(map toLower xs)
 
-    instance Read CardType where
-        readsPrec = const readsT
+instance Read CardType where
+    readsPrec = const readsT

@@ -1,7 +1,7 @@
 {-# Language FlexibleContexts, FlexibleInstances, GeneralizedNewtypeDeriving #-}
-module Cards.Common.Instances where
+module CCG.Cards.Common.Instances where
 
-import Cards.Common.Types
+import CCG.Cards.Common.Types
 import Data.Maybe
 import Data.Char
 

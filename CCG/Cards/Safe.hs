@@ -1,9 +1,9 @@
 {-# LANGUAGE TemplateHaskell #-}
-module Cards.Safe where
+module CCG.Cards.Safe where
 
-import Cards
-import Cards.Common
-import Cards.Generic
+import CCG.Cards
+import CCG.Cards.Common
+import CCG.Cards.Generic
 import Data.SafeCopy (base, deriveSafeCopy)
 
 $(deriveSafeCopy 0 'base ''Color)

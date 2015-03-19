@@ -9,8 +9,8 @@ module App.Widgets
         , module App.Widgets.MinMax
         , module App.Widgets.Cast
         , module App.Widgets.Obscura
-        , schildren
-        , mapschildren
+        , kinder
+        , mapkinder
         ) where
 
 import App.Core

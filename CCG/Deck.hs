@@ -1,17 +1,17 @@
 {-# LANGUAGE RecordWildCards #-} 
-module Deck where
+module CCG.Deck where
 -------------------------------------------------
 import Prelude hiding (div)
 import Data.Maybe
 import Data.List.Split
 import Data.List
 --------------------------------------------------
-import Cards
-import Cards.Generic
-import Cards.Common
-import Cards.Differentiation
+import CCG.Cards
+import CCG.Cards.Generic
+import CCG.Cards.Common
+import CCG.Cards.Differentiation
 ---------------------------------------------------
-import App.Core.Helper
+import Util.Tuple
 ---------------------------------------------------
 
 -- |List-based implementation, to be altered only when the App itself is
