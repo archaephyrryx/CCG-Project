@@ -9,7 +9,7 @@ import Text.Reform
 import Data.Text.Lazy             (Text)
 import Language.Haskell.HSX.QQ    (hsx)
 import Data.Maybe
-import Cards.Common.Hint
+import CCG.Cards.Common.Types
 import Control.Applicative
 
 -- |A highly general Reform input element that can be used for

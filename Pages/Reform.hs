@@ -44,15 +44,8 @@ import Control.Monad.Reader         ( ask )
 import Control.Monad.State	        ( get, put )
 import Data.List                    hiding (insert)
 --------------------------------------------------
-import Cards
+import CCG hiding (Text)
 import Cards.Generic
-import Cards.Common hiding (Text)
-import Cards.Common.Color
-import Cards.Common.Stringe
-import Cards.Common.Hint
-import Cards.Common.Abbrev
-import Cards.Common.Values
-import MLPCCG
 --------------------------------------------------
 import Application
 import Reformation

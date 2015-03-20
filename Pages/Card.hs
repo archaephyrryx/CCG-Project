@@ -34,7 +34,7 @@ import Text.Reform
     ( CommonFormError(..), Proof(..), (++>), (<++), commonFormErrorStr
     , Form, FormError(..), decimal, prove, transformEither, transform )
 --------------------------------------------------
-import Database
+import API.Database
 import Data.IxSet
 import Data.Map                   ( Map )
 import qualified Data.Map         as Map
@@ -44,16 +44,7 @@ import Control.Exception	        ( bracket )
 import Control.Monad.Reader         ( ask )
 import Control.Monad.State	        ( get, put )
 --------------------------------------------------
-import Cards
-import Cards.Generic
-import Cards.Common hiding (Text)
-import Cards.Common.Color
-import Cards.Common.Stringe
-import Cards.Common.Hint
-import Cards.Common.Abbrev
-import Cards.Common.Values
-import Cards.Differentiation
-import MLPCCG
+import CCG hiding (Text)
 --------------------------------------------------
 import Application
 import Reformation

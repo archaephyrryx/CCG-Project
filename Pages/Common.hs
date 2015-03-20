@@ -17,8 +17,7 @@ import HSP
 import HSP.Monad                  (HSPT(..))
 import Language.Haskell.HSX.QQ    (hsx)
 import Application
-import Cards.Common hiding (Text)
-import Cards.Common.Hint
+import CCG.Cards.Common hiding (Text)
 
 instance EmbedAsAttr (AppT' IO) (Attr Text Req) where
     asAttr (n := v) = asAttr (n := (Lazy.pack . show . val $ v))

@@ -1,4 +1,4 @@
-module IxMap (mapix, mapmix, foldmap) where
+module API.IxMap (mapix, mapmix, foldmap) where
 
 import Control.Applicative hiding (empty)
 import Data.IxSet

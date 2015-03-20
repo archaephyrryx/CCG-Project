@@ -8,9 +8,7 @@ import Happstack.Server
 import Site
 import Pages.Card (single)
 import Application
-import Cards.Common
-import Cards.Common.Abbrev
-import Cards.Common.Hint
+import CCG
 
 main :: IO ()
 main = simpleHTTP nullConf $ msum

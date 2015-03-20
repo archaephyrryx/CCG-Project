@@ -1,13 +1,9 @@
 {-# LANGUAGE RecordWildCards #-} 
 
-module Cards.Parser where
+module CCG.Cards.Parser where
 
-import Cards
-import Cards.Common
-import Cards.Common.Abbrev
-import Cards.Common.Color
-import Cards.Common.Hint
-import Cards.Common.Stringe
+import CCG.Cards
+import CCG.Cards.Common
 import Data.List
 import Data.List.Split
 import Data.Char
