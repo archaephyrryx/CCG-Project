@@ -1,6 +1,6 @@
 {-# LANGUAGE RecordWildCards, OverloadedStrings, TypeSynonymInstances, FlexibleInstances #-}
 
-module App.Renderer.SingleCard where
+module Renderer.SingleCard where
 -------------------------------------------------
 import Data.Maybe
 import Data.List
@@ -10,13 +10,10 @@ import Data.Char
 import Control.Applicative
 import Control.Monad
 --------------------------------------------------
-import Cards
-import Cards.Common
-import Cards.Differentiation
-import Cards.Generic
+import CCG
 --------------------------------------------------
-import App.Renderer.Cards
-import App.Core.Helper
+import Renderer.Cards
+import Util
 --------------------------------------------------
 import qualified Graphics.UI.Threepenny as UI
 import qualified Graphics.UI.Threepenny.Core     as UI

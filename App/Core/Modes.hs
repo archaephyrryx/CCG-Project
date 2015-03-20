@@ -2,10 +2,6 @@
 
 module App.Core.Modes where
 
-import Cards.Generic
-import Cards
-import Deck
-
 data AppMode = Home
              | FilterCard
              | ShowCard

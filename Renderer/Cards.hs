@@ -1,21 +1,20 @@
 {-# LANGUAGE RecordWildCards, TypeSynonymInstances, FlexibleInstances #-} 
 
-module App.Renderer.Cards where
+module Renderer.Cards where
 -------------------------------------------------
 import Data.Maybe
 import Data.List
 --------------------------------------------------
-import Cards.Generic
-import Cards.Common
+import CCG.Cards.Generic
+import CCG.Cards.Common
 --------------------------------------------------
-import qualified Graphics.UI.Threepenny as UI
-import Graphics.UI.Threepenny.Core
----------------------------------------------------
+import Renderer.Core
+--------------------------------------------------
 
-type GCR = GenCard -> UI Element
-type GCR' = GenCard -> [UI Element]
+type GCR = GenCard -> Rendered
+type GCR' = GenCard -> Rendered'
 
-iconic :: CardType -> UI Element
+iconic :: CardType -> Rendered
 iconic x = let ipath = "static/icns/"++(show x)++".png" in
           UI.img #. "icon typeIcon" # UI.set UI.src ipath
 
@@ -25,9 +24,9 @@ reqtify g@GenCard{..} = cbox (show.val<$>mreq, mcolor)
 empower :: GCR
 empower g@GenCard{..} = cbox (show.val<$>mpower, mcolor)
 
-cbox :: (Maybe String, Maybe Color) -> UI Element
-cbox (Nothing,_) = UI.span #+ []
-cbox (Just s, c) = UI.span #. (unwords ["element","label",(colorize c)]) #+ [string s]
+cbox :: (Maybe String, Maybe Color) -> Rendered
+cbox (Nothing,_) = span #+ []
+cbox (Just s, c) = span #. (unwords ["element","label",(colorize c)]) #+ [string s]
   where
     colorize :: Maybe Color -> String
     colorize (Nothing) = "NoColor"

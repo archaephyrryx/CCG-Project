@@ -15,7 +15,7 @@ import CCG
 import App.Core
 import App.Filtering
 import App.Widgets
-import App.Renderer.Deck
+import Renderer.Deck
 import App.Universal
 --------------------------------------------------
 import qualified Graphics.UI.Threepenny as UI

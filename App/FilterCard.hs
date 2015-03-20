@@ -18,8 +18,8 @@ import App.Universal
 import App.Widgets
 import App.Filtering
 -----------------------------
-import App.Renderer.FilterCard
-import App.Renderer.Cards
+import Renderer.FilterCard
+import Renderer.Cards
 -----------------------------
 
 theader :: UI Element

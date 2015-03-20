@@ -1,32 +1,26 @@
 {-# LANGUAGE RecordWildCards #-} 
-module App.Renderer.Deck where
+module Renderer.Deck where
 -------------------------------------------------
 import Prelude hiding (div)
 import Data.Maybe
 import Data.List.Split
 import Data.List
 --------------------------------------------------
-import Database
+import API.Database
 import Data.IxSet
 --------------------------------------------------
-import Deck
-import Cards
-import Cards.Generic
-import Cards.Common
-import Cards.Differentiation
-import MLPCCG
--------------------------------------------------
-import App.Core
-import App.Widgets
-import App.Renderer.Cards
-import App.Renderer.SingleCard
+import CCG
 --------------------------------------------------
-import qualified Graphics.UI.Threepenny as UI
-import Graphics.UI.Threepenny.Elements hiding (map)
-import Graphics.UI.Threepenny.Core
+import Util
+--------------------------------------------------
+import Renderer.Core
+import Renderer.Cards
+import Renderer.SingleCard
+--------------------------------------------------
+import Graphics.UI.Threepenny.Core ((#.),(#+))
 ---------------------------------------------------
 
-construct :: Deck -> [UI Element]
+construct :: Deck -> Rendered'
 construct d = [ div #. "mane" #+ [
                   div #. "mane-deck" #+ [
                     h2 #. "mane-title" #+ [mheader nmane]]
@@ -78,13 +72,3 @@ con xs = div #. "card-box" #+ (map (\x -> div #. "card-line" #+ [cline x]) xs)
                 colorize (Nothing) = "NoColor"
                 colorize (Just Wild) = "Wild"
                 colorize (Just c) = show c
-
-{-
-render :: ViewMode -> [GenCard] -> [UI Element]
-render g@GridView{..} matches =
-  let trows = for (take rs.chunksOf cs$matches) (\gs -> UI.tr #+ (map (\x -> UI.td #+ [x]) $ map procure gs))
-  in [ UI.table #+ (trows) ]
-
-procure :: GCR
-procure = head.map cimage.curls
--}
