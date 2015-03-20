@@ -12,9 +12,7 @@ import qualified Text.Blaze.Html5 as H
 import qualified Text.Blaze.Html5.Attributes as A
 import Site
 import Pages.Card (single)
-import Cards.Common
-import Cards.Common.Abbrev
-import Cards.Common.Hint
+import CCG
 
 main :: IO ()
 main = simpleHTTP nullConf $ msum

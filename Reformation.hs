@@ -7,7 +7,7 @@ module Reformation (inputMin, inputMax) where
 import qualified Text.Reform.Generalized as G
 import Text.Reform.Backend
 import Text.Reform
-import Cards.Common.Hint
+import CCG.Cards.Common.Instances (Hint)
 import Control.Applicative
 import Data.Maybe
 import Text.Blaze ((!))

@@ -1,38 +1,16 @@
 {-# LANGUAGE FlexibleInstances, DeriveDataTypeable,
     GeneralizedNewtypeDeriving #-}
 
-module Cards.Common ( Keywords
-                    , Name
-                    , ProblemReq
-                    , Power(..)
-                    , Cost(..)
-                    , Req(..)
-                    , Points(..)
-                    , Keyword(..)
-                    , Text(..)
-                    , Color(..)
-                    , Number(..)
-                    , readN
-                    , CSet(..)
-                    , Rarity(..)
-                    , CardType(TMane
-                              ,TFriend
-                              ,TResource
-                              ,TEvent
-                              ,TTroublemaker
-                              ,TProblem
-                              )
-                    , readC
-                    , readT
-                    ) where
+module CCG.Cards.Common.Types where
 
-import Cards.Common.Color (Color(..), readC)
-import Data.Data ( Data, Typeable)
+import CCG.Cards.Common.Invotomorph
+import Data.Data (Data, Typeable)
 import Data.Char
 import Data.SafeCopy (SafeCopy)
 import Data.List
 import Data.Function (on)
 import Data.Set (Set)
+import Data.List ((\\))
 
 -- Type aliases: Keywords, Name, ProblemReq
 type Keywords = [Keyword]
@@ -53,6 +31,42 @@ newtype Text = Text String deriving (Ord, Eq, Data, Typeable, SafeCopy)
 
 -- Datatypes: Color, card number, card set, rarity, card type
 
+data Color =    Blue |    Yellow |    Purple |    Pink |    White |    Orange
+           | NonBlue | NonYellow | NonPurple | NonPink | NonWhite | NonOrange
+           | Wild deriving (Show, Read, Eq, Ord, Data, Typeable)
+
+instance Invotomorph Color where
+    classX = spect
+    classY = aspect
+
+readC :: String -> Color
+readC "" = Wild
+readC x = read x :: Color
+
+spect :: [Color]
+spect = [Blue, Yellow, Purple, Pink, White, Orange]
+
+aspect :: [Color]
+aspect = [NonBlue, NonYellow, NonPurple, NonPink, NonWhite, NonOrange]
+
+invert :: Color -> Color
+invert = invoto
+
+classify :: Color -> [Color]
+classify x | spectral x = x:(aspect\\[invert x])
+           | aspectral x = x:(spect\\[invert x])
+           | otherwise = Wild:(spect++aspect)
+
+spectral :: Color -> Bool
+spectral = (`elem`spect)
+
+aspectral :: Color -> Bool
+aspectral = (`elem`aspect)
+
+isWild :: Color -> Bool
+isWild = (==Wild)
+
+
 
 data Number = Regular Int | F Int | PF Int deriving (Eq, Ord, Data, Typeable)
 
@@ -67,6 +81,13 @@ readN ('P':'f':x) = PF (read x)
 readN ('f':x) = F (read x)
 readN x@(k:_) | isDigit k = Regular (read x)
               | otherwise = error ("Could not parse Number: "++x)
+
+readsN :: ReadS Number
+readsN s = (`zip`[""]).(:[]) $ readN s
+
+instance Read Number where
+    readsPrec = const readsN
+    
 
 -- Abbreviated strings
 

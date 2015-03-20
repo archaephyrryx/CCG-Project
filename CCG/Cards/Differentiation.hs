@@ -1,10 +1,10 @@
-module Cards.Differentiation where
+module CCG.Cards.Differentiation where
 
-import qualified Cards as C
-import qualified Cards.Generic as G
-import Cards (Card)
-import Cards.Generic (GenCard)
-import Cards.Common
+import qualified CCG.Cards as C
+import qualified CCG.Cards.Generic as G
+import CCG.Cards (Card)
+import CCG.Cards.Generic (GenCard)
+import CCG.Cards.Common
 
 cname     :: Card    -> Name
 gname     :: GenCard -> Name

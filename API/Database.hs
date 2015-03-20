@@ -2,18 +2,9 @@
     TemplateHaskell, TypeFamilies, RecordWildCards,
 	OverloadedStrings #-}
 
-module Database where
+module API.Database where
 
-import Cards
-import Cards.Common
-import Cards.Common.Hint
-import Cards.Common.Stringe
-import Cards.Common.Abbrev
-import Cards.Common.Color
-import Cards.Parser
-import Cards.Generic
-import Cards.Pretty
-import MLPCCG
+import CCG
 import Control.Applicative	( (<$>) )
 import Control.Exception	( bracket )
 import Control.Monad		( msum )
@@ -53,6 +44,12 @@ instance Hint Boosted where
    val (Boosted x) = x
    unval x = (Boosted x)
 
+newtype SetNum = SetNum String deriving (Eq, Ord, Typeable)
+
+instance Stringe SetNum where
+    ravel x = SetNum x
+    unravel (SetNum x) = x
+
 fromBoosted :: Boosted -> Power
 fromBoosted (Boosted x) = (Power x)
 
@@ -66,13 +63,16 @@ getCardName :: GenCard -> [Name]
 getCardName c@GenCard{..} = [name]
 
 getNameWords :: GenCard -> [Nameword]
-getNameWords c@GenCard{..} = map (ravel.(filter isAlphaNum)) (words name)
+getNameWords c@GenCard{..} = concatMap ((map ravel).subsequences.(filter isAlphaNum)) (words name)
 
 getSet :: GenCard -> [CSet]
 getSet c@GenCard{..} = [set]
 
 getNum :: GenCard -> [Number]
 getNum c@GenCard{..} = [num]
+
+getSetNum :: GenCard -> [SetNum]
+getSetNum c = [ravel . genset $ c]
 
 getRar :: GenCard -> [Rarity]
 getRar c@GenCard{..} = [rar]
@@ -101,11 +101,12 @@ getPoints c@GenCard{..} = fromMaybe ([]) (mpoints >>= return.(:[]))
 
 instance Indexable GenCard where
     empty = ixSet 
-                [ ixFun getCardType
-                , ixFun getCardName
-                , ixFun getNameWords
+                [ ixFun getSetNum
                 , ixFun getSet
                 , ixFun getNum
+                , ixFun getCardName
+                , ixFun getNameWords
+                , ixFun getCardType
                 , ixFun getRar
                 , ixFun getKeyword
                 , ixFun getColor

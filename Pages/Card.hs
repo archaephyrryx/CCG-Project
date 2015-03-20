@@ -26,7 +26,7 @@ import Text.Reform.Happstack
 import Text.Reform.Blaze.Text
 import Text.Reform
 --------------------------------------------------
-import Database
+import API.Database
 import Data.IxSet
 import Data.Map                   ( Map )
 import qualified Data.Map         as Map
@@ -36,16 +36,7 @@ import Control.Exception	        ( bracket )
 import Control.Monad.Reader         ( ask )
 import Control.Monad.State	        ( get, put )
 --------------------------------------------------
-import Cards
-import Cards.Generic
-import Cards.Common
-import Cards.Common.Color
-import Cards.Common.Stringe
-import Cards.Common.Hint
-import Cards.Common.Abbrev
-import Cards.Common.Values
-import Cards.Differentiation
-import MLPCCG
+import CCG
 --------------------------------------------------
 import Reformation
 import Pages.Common (template, base)
