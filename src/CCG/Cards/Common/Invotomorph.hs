@@ -1,5 +1,4 @@
-module Cards.Common.Invotomorph ( Rule(..) , Invotomorph(..))
-                                 where
+module CCG.Cards.Common.Invotomorph (Rule(..), Invotomorph(..)) where
 
 import Data.List (nub)
 

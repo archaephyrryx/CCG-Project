@@ -6,13 +6,17 @@ import              Control.Lens.TH
 import              Data.IORef
 import              Control.Applicative
 import              Data.Maybe
+import              Control.Monad
+import              Control.Monad.State.Class
+import              Control.Monad.IO.Class
 ---------------------------------------------
 import qualified    Data.ByteString.Char8 as B
 import qualified    Data.Text as T
 import              Snap.Core
 import              Snap.Snaplet
 import              Snap.Snaplet.Heist
-import              Snap.Util.Fileserve
+import              Snap.Util.FileServe
+import              Snap.Http.Server.Config
 import              Heist
 import qualified    Heist.Interpreted as I
 
