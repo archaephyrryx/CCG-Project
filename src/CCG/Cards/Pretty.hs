@@ -1,13 +1,9 @@
 {-# LANGUAGE RecordWildCards #-}
 
-module Cards.Pretty where
+module CCG.Cards.Pretty where
 
-import Cards
-import Cards.Common
-import Cards.Common.Hint
-import Cards.Common.Stringe
-import Cards.Common.Abbrev
-import Cards.Common.Color
+import CCG.Cards
+import CCG.Cards.Common
 import Data.List.Split
 import Data.List
 import Data.Maybe (fromJust)
@@ -21,8 +17,8 @@ x `xor` y = (x || y) && (not (x && y))
 type Width = Int
 type Height = Int
 type Painting = Card -> Canvas
-type Update = Canvas -> Canvas
-type CUpdate = Card -> Update
+type Redraw = Canvas -> Canvas
+type Repaint = Card -> Redraw
 type Canvas = UArray (Int,Int) Char
 type Image = [((Int,Int),Char)]
 data Layout = Layout { w :: Width
