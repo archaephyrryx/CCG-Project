@@ -5,11 +5,9 @@ module App.Core.AppData where
 import Control.Applicative
 import Control.Monad
 import Control.Monad.State
-import Cards.Common
-import Cards.Generic
-import Data.Maybe
+import CCG
 import Data.IxSet
-import App.MicroScope
+import Data.MicroScope
 import Graphics.UI.Threepenny.Core
 
 -- | Shorthand type aliases

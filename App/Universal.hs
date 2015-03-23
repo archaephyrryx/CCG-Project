@@ -3,6 +3,7 @@
 module App.Universal where
 
 import CCG
+import Util
 --------------------------
 import Control.Applicative
 import Control.Monad

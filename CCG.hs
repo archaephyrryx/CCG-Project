@@ -5,7 +5,7 @@ module CCG ( module CCG.Cards
            , module CCG.Cards.Pretty
            , module CCG.Cards.Safe
            , module CCG.Deck
-           , module CCG.Cards.Differentiation
+           , module CCG.Cards.Universal
            , module CCG.MLPCCG
            ) where
 
@@ -16,5 +16,5 @@ import CCG.Cards.Parser
 import CCG.Cards.Pretty
 import CCG.Cards.Safe
 import CCG.Deck
-import CCG.Cards.Differentiation
+import CCG.Cards.Universal
 import CCG.MLPCCG

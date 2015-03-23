@@ -28,7 +28,7 @@ theader = UI.tr #+ (map (\x -> UI.th #+ [string x]) ["#", "Rarity", "Type", "Cos
 tabulate :: GenCard -> LiquidLink Int -> UI Element
 tabulate g@GenCard{..} l = UI.tr #+ (map (\x -> UI.td #+ [x]) $
             [ UI.string $ genset g
-            , UI.string $ brief rar
+            , UI.string $ brief grar
             , iconic ctype
             , UI.string $ fromMaybe "" (show.val <$> mcost)
             , reqtify g

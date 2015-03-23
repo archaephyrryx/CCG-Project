@@ -9,9 +9,10 @@ import Control.Monad
 import Data.List
 import Data.Maybe
 -----------------------------
-import qualified Graphics.UI.Threepenny          as UI
-import qualified Graphics.UI.Threepenny.Core     as UI
-import qualified Graphics.UI.Threepenny.Elements as UI
+import qualified Graphics.UI.Threepenny            as UI
+import qualified Graphics.UI.Threepenny.Core       as UI
+import qualified Graphics.UI.Threepenny.Elements   as UI
+import qualified Graphics.UI.Threepenny.Attributes as UI
 import Graphics.UI.Threepenny.Core hiding (get, set)
 -----------------------------
 import Util
@@ -24,7 +25,7 @@ render matches pronounce =
       trows = for matches (\g@GenCard{..} ->
           UI.tr #+ (map (\x -> UI.td #+ [x]) $
             [ UI.string $ genset g
-            , UI.string $ brief rar
+            , UI.string $ brief grar
             , iconic ctype
             , UI.string $ fromMaybe "" (show.val <$> mcost)
             , reqtify g

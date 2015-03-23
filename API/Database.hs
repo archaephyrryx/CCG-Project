@@ -1,6 +1,4 @@
-{-# LANGUAGE DeriveDataTypeable, GeneralizedNewtypeDeriving,
-    TemplateHaskell, TypeFamilies, RecordWildCards,
-	OverloadedStrings #-}
+{-# LANGUAGE DeriveDataTypeable, GeneralizedNewtypeDeriving, TypeFamilies, RecordWildCards #-}
 
 module API.Database where
 
@@ -60,25 +58,25 @@ getCardType :: GenCard -> [CardType]
 getCardType c@GenCard{..} = [ctype]
 
 getCardName :: GenCard -> [Name]
-getCardName c@GenCard{..} = [name]
+getCardName c@GenCard{..} = [gname]
 
 getNameWords :: GenCard -> [Nameword]
-getNameWords c@GenCard{..} = concatMap ((map ravel).subsequences.(filter isAlphaNum)) (words name)
+getNameWords c@GenCard{..} = concatMap ((map ravel).subsequences.(filter isAlphaNum)) (words gname)
 
 getSet :: GenCard -> [CSet]
-getSet c@GenCard{..} = [set]
+getSet c@GenCard{..} = [gset]
 
 getNum :: GenCard -> [Number]
-getNum c@GenCard{..} = [num]
+getNum c@GenCard{..} = [gnum]
 
 getSetNum :: GenCard -> [SetNum]
 getSetNum c = [ravel . genset $ c]
 
 getRar :: GenCard -> [Rarity]
-getRar c@GenCard{..} = [rar]
+getRar c@GenCard{..} = [grar]
 
 getKeyword :: GenCard -> [Keyword]
-getKeyword c@GenCard{..} = keywords
+getKeyword c@GenCard{..} = gkeywords
 
 getColor :: GenCard -> [Color]
 getColor c@GenCard{ctype = TProblem, ..} = concat (map classify (fromMaybe [Wild] (mpreqs >>= return.(map fst).fst)))

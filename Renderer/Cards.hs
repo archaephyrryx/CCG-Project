@@ -9,6 +9,11 @@ import CCG.Cards.Generic
 import CCG.Cards.Common
 --------------------------------------------------
 import Renderer.Core
+import qualified Graphics.UI.Threepenny            as UI
+import qualified Graphics.UI.Threepenny.Core       as UI
+import qualified Graphics.UI.Threepenny.Elements   as UI
+import qualified Graphics.UI.Threepenny.Attributes as UI
+import Graphics.UI.Threepenny.Core hiding (get, set)
 --------------------------------------------------
 
 type GCR = GenCard -> Rendered
@@ -25,8 +30,8 @@ empower :: GCR
 empower g@GenCard{..} = cbox (show.val<$>mpower, mcolor)
 
 cbox :: (Maybe String, Maybe Color) -> Rendered
-cbox (Nothing,_) = span #+ []
-cbox (Just s, c) = span #. (unwords ["element","label",(colorize c)]) #+ [string s]
+cbox (Nothing,_) = UI.span #+ []
+cbox (Just s, c) = UI.span #. (unwords ["element","label",(colorize c)]) #+ [string s]
   where
     colorize :: Maybe Color -> String
     colorize (Nothing) = "NoColor"

@@ -15,10 +15,11 @@ import CCG
 import Renderer.Cards
 import Util
 --------------------------------------------------
-import qualified Graphics.UI.Threepenny as UI
-import qualified Graphics.UI.Threepenny.Core     as UI
-import qualified Graphics.UI.Threepenny.Elements as UI
-import Graphics.UI.Threepenny.Core
+import qualified Graphics.UI.Threepenny            as UI
+import qualified Graphics.UI.Threepenny.Core       as UI
+import qualified Graphics.UI.Threepenny.Elements   as UI
+import qualified Graphics.UI.Threepenny.Attributes as UI
+import Graphics.UI.Threepenny.Core hiding (get, set, text)
 
 renderCard :: GCR'
 renderCard g = [ UI.div #. "card-imgs" #+ [cardImgs g]
@@ -51,10 +52,10 @@ dbox (disp,lab) = UI.div #+ [ UI.dterm #+ [string lab]
 
 maneText :: GenCard -> [[UI Element]]
 maneText g@GenCard{..} = case ctype of
-    TMane -> let ((infront):back:[]) = head . filter ((==2).length) . map (\x -> splitOn x (unravel text)) $ [" Back: ", " BACK: "]
+    TMane -> let ((infront):back:[]) = head . filter ((==2).length) . map (\x -> splitOn x (unravel gtext)) $ [" Back: ", " BACK: "]
                  front = tail . snd . break (isSpace) $ infront
              in map textBox [front,back]
-    _ -> [textBox (unravel text)]
+    _ -> [textBox (unravel gtext)]
 
 textBox :: String -> [UI Element]
 textBox = map ((UI.p #+).(:[]).string) . splitOn "<P>"
@@ -120,12 +121,7 @@ conf' g@GenCard{ctype=TProblem, ..} = (\x -> cbox (pure.show.val $ x, Nothing)).
 conf' _ = cbox (Nothing, Nothing)
 
 cardTraits :: GCR
-cardTraits g@GenCard{..} = UI.span #+ (map keyToTrait keywords)
+cardTraits g@GenCard{..} = UI.span #+ (map keyToTrait gkeywords)
 
 keyToTrait :: Keyword -> UI Element
 keyToTrait k = UI.span #+ [string (unbrace (unravel k))]
-
-unbrace :: String -> String
-unbrace [] = []
-unbrace x | head x == '[' && last x == ']' = init.tail $ x
-          | otherwise = x

@@ -1,6 +1,6 @@
 {-# LANGUAGE RecordWildCards #-} 
 
-module CCG.Cards.Parser where
+module CCG.Cards.Parser (parsage, unquote, unbrace, ocrBlock) where
 
 import CCG.Cards
 import CCG.Cards.Common
@@ -12,6 +12,7 @@ import Data.Set (Set)
 import qualified Data.Map as Map
 import Data.Map (Map)
 import Data.Function (on)
+import Util.String
 
 newtype OrderedField = OrderedField { flds :: [String] }
 
@@ -74,20 +75,6 @@ ocrBlock str = let (h:xs) = lines str
 
 fieldSplit :: String -> [String]
 fieldSplit = map unquote . split (dropInitBlank . dropDelims $ oneOf "\t")
-
-unquote :: String -> String
-unquote x | null x = x
-          | head x == '\'' && last x == '\'' = init.tail $ x
-          | last x == '\'' = tail $ x
-          | head x == '\'' = init $ x
-          | otherwise = x
-
-unbrace :: String -> String
-unbrace x | null x = x
-          | head x == '[' && last x == ']' = init.tail $ x
-          | head x == '[' = tail $ x
-          | last x == ']' = init $ x
-          | otherwise = x
 
 headDef :: a -> [a] -> a
 headDef x [] = x

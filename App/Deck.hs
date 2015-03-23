@@ -7,7 +7,9 @@ import Data.List.Split
 import Data.List
 import Data.IORef
 --------------------------------------------------
-import API
+import API.Database
+import API.TagState
+import API.IxMap
 import Data.IxSet
 --------------------------------------------------
 import CCG

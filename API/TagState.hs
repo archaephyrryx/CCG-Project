@@ -2,7 +2,7 @@
     GeneralizedNewtypeDeriving, MultiParamTypeClasses,
     TemplateHaskell, TypeFamilies, RecordWildCards #-}
 
-module TagState where
+module API.TagState where
 
 import CCG
 --------------------------------------------

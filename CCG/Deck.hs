@@ -9,7 +9,6 @@ import Data.List
 import CCG.Cards
 import CCG.Cards.Generic
 import CCG.Cards.Common
-import CCG.Cards.Differentiation
 ---------------------------------------------------
 import Util.Tuple
 ---------------------------------------------------
@@ -49,7 +48,7 @@ hasN d c | has d c = length (filter (==c) d)
          | otherwise = 0
 
 hasStarting :: DeckP -> Bool
-hasStarting = any (isPrefixOf "Starting Problem" . unravel . ctext)
+hasStarting = any (isPrefixOf "Starting Problem" . unravel . text)
 
 tpart :: Deck -> (DeckP, DeckP, DeckP)
 tpart d = foldr tpartition ([],[],[]) d

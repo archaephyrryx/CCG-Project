@@ -18,6 +18,7 @@ import qualified Data.Map as Map
 import API.Database
 import API.TagState
 import API.IxMap
+import API.Filter
 ------------------------------
 import App.FilterCard
 --import App.SingleCard
@@ -25,14 +26,16 @@ import App.Home
 import App.Universal
 import App.Deck
 ------------------------------
-import App.Renderer.FilterCard
-import App.Renderer.SingleCard
-import App.Renderer.Cards
-import App.Renderer.Deck
+import Renderer.FilterCard
+import Renderer.SingleCard
+import Renderer.Cards
+import Renderer.Deck
 ------------------------------
 import App.Filtering
 import App.Widgets
 import App.Core
+----------------------------
+import Util
 -----------------------------
 import qualified Graphics.UI.Threepenny          as UI
 import qualified Graphics.UI.Threepenny.Core     as UI
@@ -164,13 +167,13 @@ setup window = void $ do
     element scIndex # sink UI.text (show <$> bResults)
 
     cardSide <- UI.div
-    element cardSide # sink (schildren (maybe [bstring "Show Card"] ((:[]).cardInfo))) bSingle
+    element cardSide # sink (kinder (maybe [bstring "Show Card"] ((:[]).cardInfo))) bSingle
 
     scCenter <- UI.div
-    element scCenter # sink (schildren (maybe [bstring "Show Card"] renderCard)) bSingle
+    element scCenter # sink (kinder (maybe [bstring "Show Card"] renderCard)) bSingle
 
     deckSide <- UI.div
-    element deckSide # sink (schildren construct) bDeck
+    element deckSide # sink (kinder construct) bDeck
 
   --- UI section elements
     hmContent <- column ([ UI.h1 #+ [string appfname] ]++(map ((UI.p #+).(:[]).string) welcomeText))
