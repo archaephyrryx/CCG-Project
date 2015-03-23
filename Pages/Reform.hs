@@ -33,7 +33,7 @@ import Text.Reform
     ( CommonFormError(..), Proof(..), (++>), (<++), commonFormErrorStr
     , Form, FormError(..), decimal, prove, transformEither, transform )
 --------------------------------------------------
-import Database
+import API.Database
 import Data.IxSet
 import Data.Map                   ( Map )
 import qualified Data.Map         as Map
@@ -45,7 +45,6 @@ import Control.Monad.State	        ( get, put )
 import Data.List                    hiding (insert)
 --------------------------------------------------
 import CCG hiding (Text)
-import Cards.Generic
 --------------------------------------------------
 import Application
 import Reformation
@@ -125,11 +124,11 @@ cardLine g@GenCard{..} =
   [hsx|
     <tr>
       <td><% genset g %></td>
-      <td><% brief rar %></td>
+      <td><% brief grar %></td>
       <td><% iconic ctype %></td>
       <td><% fromMaybe "" (show.val <$> mcost) %></td>
       <td><% reqtify g %></td>
-      <td><% pronounce (unravel name, genset $ g)%></td>
+      <td><% pronounce (unravel gname, genset $ g)%></td>
       <td><% empower g %></td>
     </tr> :: Html
   |]

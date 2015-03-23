@@ -33,7 +33,7 @@ import qualified Pages.Reform as Reformed
 import Pages.Reform (cardHtml, deckHtml, CFilterSig, DFilterSig)
 import Pages.Common
 import Pages.Card
-import Cards.Common
+import CCG.Cards.Common
 
 sitename = "HappleJack"
 

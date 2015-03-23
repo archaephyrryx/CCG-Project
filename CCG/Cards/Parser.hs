@@ -1,6 +1,6 @@
 {-# LANGUAGE RecordWildCards #-} 
 
-module CCG.Cards.Parser where
+module CCG.Cards.Parser (parsage, unquote, unbrace, ocrBlock) where
 
 import CCG.Cards
 import CCG.Cards.Common

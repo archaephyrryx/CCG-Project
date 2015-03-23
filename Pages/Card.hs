@@ -51,21 +51,14 @@ import Reformation
 import Pages.Common (template, base)
 ---------------------------------------------------
 
-type SetNum = (CSet, Number)
 type GCR = GenCard -> Html
 
-instance Read SetNum where
-    readsPrec = const readsSN
-
-readsSN :: ReadS SetNum
-readsSN x = let (s, n) = splitAt 2 x in [((readCS s, readN n),"")]
-
 single :: String -> Html
-single x = let (s,n) = read x :: SetNum
-           in renderCard (head.toList $ (cardDB @= (s) @= (n)))
+single x = let sn = ravel x :: SetNum
+           in renderCard (head.toList $ (cardDB @= (sn)))
 
 renderCard :: GCR
-renderCard g@GenCard{..} = base (unravel name) $
+renderCard g@GenCard{..} = base (unravel gname) $
   [hsx|
     <div>
       <div class="card-imgs">
@@ -120,8 +113,8 @@ cardText g@GenCard{ctype=TMane, ..} =
     </dl> :: Html
   |]
   where
-    front = brunlines (splitOn "<P>" (fromJust (stripPrefix "Front: " (head (splitOn " Back: " (unravel text))))))
-    back = brunlines (splitOn "<P>" (last (splitOn " Back: " (unravel text))))
+    front = brunlines (splitOn "<P>" (fromJust (stripPrefix "Front: " (head (splitOn " Back: " (unravel gtext))))))
+    back = brunlines (splitOn "<P>" (last (splitOn " Back: " (unravel gtext))))
 cardText g@GenCard{..} =
   [hsx|
     <dl>
@@ -132,7 +125,7 @@ cardText g@GenCard{..} =
     </dl> :: Html
   |]
   where
-    cardtext = brunlines (splitOn "<P>" (unravel text))
+    cardtext = brunlines (splitOn "<P>" (unravel gtext))
 
 brunlines :: [String] -> GCL
 brunlines xs =
@@ -236,7 +229,7 @@ cardTraits :: GCR
 cardTraits g@GenCard{..} =
   [hsx|
     <span>
-      <% mapM keyToTrait keywords %>
+      <% mapM keyToTrait gkeywords %>
     </span> :: Html
   |]
 
@@ -247,11 +240,6 @@ keyToTrait k =
       <% unbrace (unravel k) %>
     </span> :: Html
   |]
-
-unbrace :: String -> String
-unbrace [] = []
-unbrace x | head x == '[' && last x == ']' = init.tail $ x
-          | otherwise = x
 
 cbox :: (Maybe String, Maybe Color) -> Html
 cbox (Nothing,_) = [hsx|<span/>|]

@@ -1,0 +1,373 @@
++++	./Util/Tuple.hs	10;"	v
+:<->:	./CCG/Cards/Common/Invotomorph.hs	7;"	d
+Abbrev	./CCG/Cards/Common/Instances.hs	17;"	t
+AppCFE	./Pages/Reform.hs	55;"	d
+AppError	./Pages/Reform.hs	55;"	t
+AppT	./Application.hs	10;"	t
+AppT'	./Application.hs	11;"	t
+Blue	./CCG/Cards/Common/Types.hs	34;"	d
+Boosted	./API/Database.hs	39;"	d
+Boosted	./API/Database.hs	39;"	t
+CFilterSig	./Pages/Reform.hs	59;"	t
+CSet	./CCG/Cards/Common/Types.hs	94;"	t
+CUpdate	./CCG/Cards/Pretty.hs	21;"	t
+CanterlotNights	./CCG/Cards/Common/Types.hs	94;"	d
+Canvas	./CCG/Cards/Pretty.hs	22;"	t
+Card	./CCG/Cards.hs	19;"	t
+CardFilter	./Pages/Reform.hs	70;"	d
+CardType	./CCG/Cards/Common/Types.hs	98;"	t
+Cardlist	./CCG/Cards.hs	17;"	t
+CelestialSolstice	./CCG/Cards/Common/Types.hs	94;"	d
+Color	./CCG/Cards/Common/Types.hs	34;"	t
+Common	./CCG/Cards/Common/Types.hs	96;"	d
+Cost	./CCG/Cards/Common/Types.hs	23;"	d
+Cost	./CCG/Cards/Common/Types.hs	23;"	t
+CrystalGames	./CCG/Cards/Common/Types.hs	94;"	d
+DFilterSig	./Pages/Reform.hs	60;"	t
+Deck	./CCG/Deck.hs	18;"	t
+DeckFilter	./Pages/Reform.hs	82;"	d
+DeckP	./CCG/Deck.hs	19;"	t
+Event	./CCG/Cards.hs	51;"	d
+F	./CCG/Cards/Common/Types.hs	71;"	d
+FieldWrapper	./CCG/Cards/Parser.hs	24;"	t	file:
+FieldWrapper	./CCG/Cards/Parser.hs	25;"	d	file:
+Filter	./Pages/Reform.hs	70;"	t
+Fixed	./CCG/Cards/Common/Types.hs	96;"	d
+Friend	./CCG/Cards.hs	29;"	d
+GCL	./Application.hs	14;"	t
+GCR	./Pages/Card.hs	54;"	t
+GenCard	./CCG/Cards/Generic.hs	16;"	d
+GenCard	./CCG/Cards/Generic.hs	16;"	t
+Height	./CCG/Cards/Pretty.hs	18;"	t
+Hint	./CCG/Cards/Common/Instances.hs	9;"	t
+Html	./Application.hs	12;"	t
+Html'	./Application.hs	13;"	t
+Image	./CCG/Cards/Pretty.hs	23;"	t
+Invotomorph	./CCG/Cards/Common/Invotomorph.hs	26;"	t
+Keyword	./CCG/Cards/Common/Types.hs	29;"	d
+Keyword	./CCG/Cards/Common/Types.hs	29;"	t
+Keywords	./CCG/Cards/Common/Types.hs	16;"	t
+Layout	./CCG/Cards/Pretty.hs	24;"	d
+Layout	./CCG/Cards/Pretty.hs	24;"	t
+Mane	./CCG/Cards.hs	19;"	d
+Name	./CCG/Cards/Common/Types.hs	17;"	t
+Nameword	./API/Database.hs	30;"	d
+Nameword	./API/Database.hs	30;"	t
+NonBlue	./CCG/Cards/Common/Types.hs	35;"	d
+NonOrange	./CCG/Cards/Common/Types.hs	35;"	d
+NonPink	./CCG/Cards/Common/Types.hs	35;"	d
+NonPurple	./CCG/Cards/Common/Types.hs	35;"	d
+NonWhite	./CCG/Cards/Common/Types.hs	35;"	d
+NonYellow	./CCG/Cards/Common/Types.hs	35;"	d
+Number	./CCG/Cards/Common/Types.hs	71;"	t
+Orange	./CCG/Cards/Common/Types.hs	34;"	d
+OrderedField	./CCG/Cards/Parser.hs	16;"	d	file:
+OrderedField	./CCG/Cards/Parser.hs	16;"	t	file:
+PF	./CCG/Cards/Common/Types.hs	71;"	d
+Page	./Application.hs	9;"	t
+Painting	./CCG/Cards/Pretty.hs	19;"	t
+Pink	./CCG/Cards/Common/Types.hs	34;"	d
+Points	./CCG/Cards/Common/Types.hs	25;"	d
+Points	./CCG/Cards/Common/Types.hs	25;"	t
+Power	./CCG/Cards/Common/Types.hs	22;"	d
+Power	./CCG/Cards/Common/Types.hs	22;"	t
+Premiere	./CCG/Cards/Common/Types.hs	94;"	d
+Problem	./CCG/Cards.hs	71;"	d
+ProblemReq	./CCG/Cards/Common/Types.hs	18;"	t
+Promotional	./CCG/Cards/Common/Types.hs	96;"	d
+Purple	./CCG/Cards/Common/Types.hs	34;"	d
+Rare	./CCG/Cards/Common/Types.hs	96;"	d
+Rarity	./CCG/Cards/Common/Types.hs	96;"	t
+Regular	./CCG/Cards/Common/Types.hs	71;"	d
+Req	./CCG/Cards/Common/Types.hs	24;"	d
+Req	./CCG/Cards/Common/Types.hs	24;"	t
+Resource	./CCG/Cards.hs	40;"	d
+RockNRave	./CCG/Cards/Common/Types.hs	94;"	d
+Rule	./CCG/Cards/Common/Invotomorph.hs	7;"	t
+SetNum	./API/Database.hs	45;"	d
+SetNum	./API/Database.hs	45;"	t
+ShowCard	./CCG/Cards.hs	16;"	t
+SimpleForm	./Pages/Reform.hs	58;"	t
+Stringe	./CCG/Cards/Common/Instances.hs	23;"	t
+TEvent	./CCG/Cards/Common/Types.hs	98;"	d
+TFriend	./CCG/Cards/Common/Types.hs	98;"	d
+TMane	./CCG/Cards/Common/Types.hs	98;"	d
+TProblem	./CCG/Cards/Common/Types.hs	98;"	d
+TResource	./CCG/Cards/Common/Types.hs	98;"	d
+TTroublemaker	./CCG/Cards/Common/Types.hs	98;"	d
+Text	./CCG/Cards/Common/Types.hs	30;"	d
+Text	./CCG/Cards/Common/Types.hs	30;"	t
+Troublemaker	./CCG/Cards.hs	62;"	d
+UltraRare	./CCG/Cards/Common/Types.hs	96;"	d
+Uncommon	./CCG/Cards/Common/Types.hs	96;"	d
+UniCard	./CCG/Cards/Universal.hs	7;"	t
+Update	./CCG/Cards/Pretty.hs	20;"	t
+White	./CCG/Cards/Common/Types.hs	34;"	d
+Width	./CCG/Cards/Pretty.hs	17;"	t
+Wild	./CCG/Cards/Common/Types.hs	36;"	d
+Yellow	./CCG/Cards/Common/Types.hs	34;"	d
+addCard	./CCG/Deck.hs	25;"	v
+allcards	./API/Database.hs	119;"	v
+allitems	./Pages/Card.hs	172;"	v
+applyFilter	./Pages/Reform.hs	102;"	v
+appraise	./Pages/Card.hs	215;"	v
+aspect	./CCG/Cards/Common/Types.hs	50;"	v
+aspectral	./CCG/Cards/Common/Types.hs	64;"	v
+base	./Pages/Common.hs	38;"	v
+between	./CCG/Cards/Parser.hs	97;"	v	file:
+blank	./CCG/Cards/Pretty.hs	45;"	v
+body	./CCG/Cards/Parser.hs	22;"	v	file:
+boo	./CCG/Cards/Parser.hs	36;"	v	file:
+boosted	./CCG/Cards.hs	26;"	v
+brief	./CCG/Cards/Common/Instances.hs	20;"	v
+brunlines	./Pages/Card.hs	131;"	v
+buttons	./Pages/Vanilla.hs	58;"	v
+card	./Site.hs	63;"	v
+cardDB	./API/Database.hs	122;"	v
+cardForm	./Pages/Reform.hs	145;"	v
+cardHtml	./Pages/Reform.hs	173;"	v
+cardHtml	./Pages/Vanilla.hs	29;"	v
+cardImgs	./Pages/Card.hs	77;"	v
+cardInfo	./Pages/Card.hs	142;"	v
+cardLine	./Pages/Reform.hs	123;"	v
+cardParse	./CCG/Cards/Parser.hs	135;"	v	file:
+cardText	./Pages/Card.hs	102;"	v
+cardTraits	./Pages/Card.hs	229;"	v
+cardtype	./CCG/Cards.hs	83;"	v
+cbox	./Pages/Card.hs	245;"	v
+cimage	./Pages/Card.hs	92;"	v
+classX	./CCG/Cards/Common/Invotomorph.hs	27;"	v
+classY	./CCG/Cards/Common/Invotomorph.hs	29;"	v
+classify	./CCG/Cards/Common/Types.hs	56;"	v
+col	./CCG/Cards/Parser.hs	32;"	v	file:
+col1	./CCG/Cards/Parser.hs	39;"	v	file:
+col2	./CCG/Cards/Parser.hs	41;"	v	file:
+colLink	./Pages/Card.hs	207;"	v
+color	./CCG/Cards.hs	24;"	v
+colorValues	./CCG/Cards/Common/Values.hs	15;"	v
+colors	./Pages/Reform.hs	77;"	v
+conf	./Pages/Card.hs	217;"	v
+conf'	./Pages/Card.hs	225;"	v
+consistent	./CCG/Cards/Common/Invotomorph.hs	20;"	v	file:
+cos	./CCG/Cards/Parser.hs	33;"	v	file:
+cost	./CCG/Cards.hs	35;"	v
+costMax	./Pages/Reform.hs	74;"	v
+costMin	./Pages/Reform.hs	73;"	v
+ctype	./CCG/Cards/Generic.hs	16;"	v
+curls	./Pages/Card.hs	85;"	v
+customInput	./Reformation.hs	26;"	v	file:
+dLim	./CCG/Deck.hs	28;"	v
+dec	./CCG/Cards/Common/Instances.hs	58;"	v
+decCard	./CCG/Deck.hs	38;"	v
+deck	./Site.hs	68;"	v
+deckForm	./Pages/Reform.hs	163;"	v
+deckHtml	./Pages/Reform.hs	183;"	v
+deckHtml	./Pages/Vanilla.hs	45;"	v
+defaultLayout	./CCG/Cards/Pretty.hs	34;"	v
+dup	./Util/Tuple.hs	13;"	v
+empower	./Pages/Card.hs	213;"	v
+emptyDeck	./CCG/Deck.hs	22;"	v
+fieldSplit	./CCG/Cards/Parser.hs	76;"	v	file:
+fields	./CCG/Cards/Parser.hs	128;"	v	file:
+findBreakPoint	./CCG/Cards/Parser.hs	106;"	v	file:
+flds	./CCG/Cards/Parser.hs	16;"	v	file:
+fromBoosted	./API/Database.hs	52;"	v
+fromGeneric	./CCG/Cards/Generic.hs	107;"	v
+fsts	./Util/Tuple.hs	20;"	v
+full	./Pages/Reform.hs	94;"	v
+genset	./CCG/Cards/Generic.hs	37;"	v
+getBoosted	./API/Database.hs	95;"	v
+getCardName	./API/Database.hs	61;"	v
+getCardType	./API/Database.hs	58;"	v
+getColor	./API/Database.hs	82;"	v
+getCost	./API/Database.hs	86;"	v
+getField	./CCG/Cards/Parser.hs	19;"	v	file:
+getKeyword	./API/Database.hs	79;"	v
+getNameWords	./API/Database.hs	64;"	v
+getNum	./API/Database.hs	70;"	v
+getPoints	./API/Database.hs	98;"	v
+getPower	./API/Database.hs	92;"	v
+getRar	./API/Database.hs	76;"	v
+getReq	./API/Database.hs	89;"	v
+getSet	./API/Database.hs	67;"	v
+getSetNum	./API/Database.hs	73;"	v
+gkeywords	./CCG/Cards/Generic.hs	21;"	v
+gname	./CCG/Cards/Generic.hs	17;"	v
+gnum	./CCG/Cards/Generic.hs	19;"	v
+grar	./CCG/Cards/Generic.hs	20;"	v
+gset	./CCG/Cards/Generic.hs	18;"	v
+gtext	./CCG/Cards/Generic.hs	29;"	v
+h	./CCG/Cards/Pretty.hs	25;"	v
+handlebar	Main.hs	21;"	v
+has	./CCG/Deck.hs	41;"	v
+hasN	./CCG/Deck.hs	47;"	v
+hasStarting	./CCG/Deck.hs	51;"	v
+headDef	./CCG/Cards/Parser.hs	93;"	v	file:
+headline	./CCG/Cards/Parser.hs	122;"	v	file:
+hm	./CCG/Cards/Pretty.hs	29;"	v
+home	./Site.hs	47;"	v
+homePage	./Site.hs	41;"	v
+howshow	./CCG/Cards/Generic.hs	32;"	v
+iconic	./Pages/Reform.hs	137;"	v
+ih	./CCG/Cards/Pretty.hs	27;"	v
+inc	./CCG/Cards/Common/Instances.hs	55;"	v
+incCard	./CCG/Deck.hs	34;"	v
+info	./Pages/Card.hs	157;"	v
+inputMax	./Reformation.hs	73;"	v
+inputMin	./Reformation.hs	56;"	v
+inputNumber	./Reformation.hs	39;"	v	file:
+invert	./CCG/Cards/Common/Types.hs	53;"	v
+invoto	./CCG/Cards/Common/Invotomorph.hs	31;"	v
+isWild	./CCG/Cards/Common/Types.hs	67;"	v
+iw	./CCG/Cards/Pretty.hs	26;"	v
+juxtapose	./CCG/Cards/Pretty.hs	168;"	v
+key	./CCG/Cards/Parser.hs	31;"	v	file:
+keyToTrait	./Pages/Card.hs	237;"	v
+keys	./CCG/Cards/Parser.hs	178;"	v	file:
+keywords	./CCG/Cards.hs	23;"	v
+knock1	./Util/Tuple.hs	34;"	v
+knock2	./Util/Tuple.hs	37;"	v
+knock3	./Util/Tuple.hs	40;"	v
+knock4	./Util/Tuple.hs	43;"	v
+knock5	./Util/Tuple.hs	46;"	v
+knock6	./Util/Tuple.hs	49;"	v
+knock7	./Util/Tuple.hs	52;"	v
+lacks	./CCG/Deck.hs	44;"	v
+lhs	./CCG/Cards/Common/Invotomorph.hs	14;"	v	file:
+long	./CCG/Cards/Common/Instances.hs	19;"	v
+main	Main.hs	14;"	v
+makeline	./CCG/Cards/Parser.hs	125;"	v	file:
+mboosted	./CCG/Cards/Generic.hs	26;"	v
+mcfilter	./Pages/Reform.hs	98;"	v
+mcolor	./CCG/Cards/Generic.hs	22;"	v
+mcost	./CCG/Cards/Generic.hs	23;"	v
+mhall	./Util/Tuple.hs	68;"	v
+mhfilter	./Pages/Reform.hs	91;"	v
+minmax	./Pages/Vanilla.hs	67;"	v
+minus	./CCG/Cards/Common/Instances.hs	52;"	v
+mlpccg	./CCG/MLPCCG.hs	4;"	v
+mpoints	./CCG/Cards/Generic.hs	27;"	v
+mpower	./CCG/Cards/Generic.hs	25;"	v
+mpreqs	./CCG/Cards/Generic.hs	28;"	v
+mreq	./CCG/Cards/Generic.hs	24;"	v
+nam	./CCG/Cards/Parser.hs	26;"	v	file:
+name	./CCG/Cards.hs	19;"	v
+nav	./Pages/Common.hs	57;"	v
+neck	./CCG/Cards/Parser.hs	21;"	v	file:
+num	./CCG/Cards.hs	21;"	v
+num'	./CCG/Cards/Parser.hs	28;"	v	file:
+ocrBlock	./CCG/Cards/Parser.hs	70;"	v
+onesided	./CCG/Cards/Parser.hs	189;"	v	file:
+opreq	./CCG/Cards/Parser.hs	42;"	v	file:
+page	./Site.hs	44;"	v
+parsage	./CCG/Cards/Parser.hs	206;"	v
+parseLine	./CCG/Cards/Parser.hs	131;"	v	file:
+plus	./CCG/Cards/Common/Instances.hs	49;"	v
+poi	./CCG/Cards/Parser.hs	37;"	v	file:
+points	./CCG/Cards.hs	68;"	v
+pow	./CCG/Cards/Parser.hs	35;"	v	file:
+powMax	./Pages/Reform.hs	72;"	v
+powMin	./Pages/Reform.hs	71;"	v
+power	./CCG/Cards.hs	25;"	v
+preq1	./CCG/Cards/Parser.hs	38;"	v	file:
+preq2	./CCG/Cards/Parser.hs	40;"	v	file:
+preqs	./CCG/Cards.hs	77;"	v
+prettyPicture	./CCG/Cards/Pretty.hs	166;"	v
+prettyShow	./CCG/Cards/Pretty.hs	52;"	v
+pronounce	./Pages/Card.hs	259;"	v
+propLink	./Pages/Card.hs	193;"	v
+rar	./CCG/Cards.hs	22;"	v
+rar'	./CCG/Cards/Parser.hs	29;"	v	file:
+rarLink	./Pages/Card.hs	205;"	v
+rarities	./Pages/Reform.hs	80;"	v
+rarityValues	./CCG/Cards/Common/Values.hs	9;"	v
+ravel	./CCG/Cards/Common/Instances.hs	24;"	v
+readC	./CCG/Cards/Common/Types.hs	43;"	v
+readCS	./CCG/Cards/Common/Instances.hs	134;"	v
+readH	./CCG/Cards/Common/Instances.hs	12;"	v
+readMaybeH	./CCG/Cards/Common/Instances.hs	45;"	v
+readMaybeHintError	./Reformation.hs	83;"	v	file:
+readN	./CCG/Cards/Common/Types.hs	79;"	v
+readR	./CCG/Cards/Common/Instances.hs	149;"	v
+readT	./CCG/Cards/Common/Types.hs	112;"	v
+readsN	./CCG/Cards/Common/Types.hs	86;"	v
+readsSet	./CCG/Cards/Common/Instances.hs	116;"	v
+readsT	./CCG/Cards/Common/Types.hs	109;"	v
+regulate	./CCG/Cards/Common/Invotomorph.hs	10;"	v	file:
+render	./CCG/Cards/Pretty.hs	48;"	v
+renderCard	./Pages/Card.hs	61;"	v
+renderFilter	./Pages/Reform.hs	106;"	v
+req	./CCG/Cards.hs	36;"	v
+req	./CCG/Cards/Parser.hs	34;"	v	file:
+reqMax	./Pages/Reform.hs	76;"	v
+reqMin	./Pages/Reform.hs	75;"	v
+reqtify	./Pages/Card.hs	211;"	v
+rhs	./CCG/Cards/Common/Invotomorph.hs	17;"	v	file:
+rule	./CCG/Cards/Common/Invotomorph.hs	33;"	v
+ruling	./CCG/Cards/Common/Invotomorph.hs	23;"	v	file:
+selectFilter	./Pages/Vanilla.hs	98;"	v
+set	./CCG/Cards.hs	20;"	v
+set'	./CCG/Cards/Parser.hs	27;"	v	file:
+setLink	./Pages/Card.hs	201;"	v
+setValues	./CCG/Cards/Common/Values.hs	6;"	v
+setnum	./CCG/Cards.hs	94;"	v
+sets	./Pages/Reform.hs	78;"	v
+shew	./CCG/Cards/Common/Instances.hs	26;"	v
+short	./CCG/Cards/Common/Instances.hs	18;"	v
+shorten	./CCG/Cards/Common/Instances.hs	143;"	v
+showH	./CCG/Cards/Common/Instances.hs	14;"	v
+single	./Pages/Card.hs	57;"	v
+sitename	./Pages/Vanilla.hs	26;"	v
+sitename	./Site.hs	38;"	v
+snds	./Util/Tuple.hs	24;"	v
+sp	./CCG/Cards/Pretty.hs	30;"	v
+spect	./CCG/Cards/Common/Types.hs	47;"	v
+spectral	./CCG/Cards/Common/Types.hs	61;"	v
+splitOn'	./CCG/Cards/Parser.hs	119;"	v	file:
+struct	./CCG/Deck.hs	63;"	v
+sv	./Pages/Reform.hs	159;"	v
+tap	./Util/Tuple.hs	31;"	v
+template	./Pages/Common.hs	72;"	v
+text	./CCG/Cards.hs	27;"	v
+text'	./CCG/Cards/Parser.hs	43;"	v	file:
+titleCase	./CCG/Cards/Common/Types.hs	121;"	v
+tmup	./Util/Tuple.hs	16;"	v
+toBoosted	./API/Database.hs	55;"	v
+toGeneric	./CCG/Cards/Generic.hs	43;"	v
+tpart	./CCG/Deck.hs	54;"	v
+trefoil	./Util/Tuple.hs	58;"	v
+twosided	./CCG/Cards/Parser.hs	198;"	v	file:
+typ	./CCG/Cards/Parser.hs	30;"	v	file:
+typeLink	./Pages/Card.hs	203;"	v
+typeValues	./CCG/Cards/Common/Values.hs	12;"	v
+typemask	./Pages/Card.hs	184;"	v
+typename	./CCG/Cards.hs	91;"	v
+types	./Pages/Reform.hs	79;"	v
+ukeywords	./CCG/Cards/Universal.hs	12;"	v
+uname	./CCG/Cards/Universal.hs	8;"	v
+unbrace	./CCG/Cards/Parser.hs	86;"	v
+unfoil	./Util/Tuple.hs	61;"	v
+unquote	./CCG/Cards/Parser.hs	79;"	v
+unravel	./CCG/Cards/Common/Instances.hs	25;"	v
+unum	./CCG/Cards/Universal.hs	10;"	v
+unval	./CCG/Cards/Common/Instances.hs	11;"	v
+updateBase	./CCG/Cards/Pretty.hs	116;"	v
+updateBoosted	./CCG/Cards/Pretty.hs	103;"	v
+updateCard	./CCG/Cards/Pretty.hs	133;"	v
+updateEvent	./CCG/Cards/Pretty.hs	142;"	v
+updateFriend	./CCG/Cards/Pretty.hs	140;"	v
+updateMane	./CCG/Cards/Pretty.hs	91;"	v
+updateProblem	./CCG/Cards/Pretty.hs	163;"	v
+updateResource	./CCG/Cards/Pretty.hs	141;"	v
+updateTroublemaker	./CCG/Cards/Pretty.hs	144;"	v
+urar	./CCG/Cards/Universal.hs	11;"	v
+uset	./CCG/Cards/Universal.hs	9;"	v
+utext	./CCG/Cards/Universal.hs	13;"	v
+val	./CCG/Cards/Common/Instances.hs	10;"	v
+verbose	./CCG/Cards/Common/Instances.hs	21;"	v
+vm	./CCG/Cards/Pretty.hs	28;"	v
+w	./CCG/Cards/Pretty.hs	24;"	v
+wrapFields	./CCG/Cards/Parser.hs	48;"	v	file:
+xor	./CCG/Cards/Pretty.hs	15;"	v
+zap	./Util/Tuple.hs	27;"	v
+zmap	./Util/Tuple.hs	55;"	v
