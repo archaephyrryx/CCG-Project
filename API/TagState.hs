@@ -50,8 +50,8 @@ data Assoc = Assoc { card :: GenCard, tags :: [Tag] }
 
 instance Indexable Assoc where
     empty = ixSet 
-                [ ixFun ((:[]).fromGeneric.card) -- non-generic card-based lookup
-                , ixFun ((:[]).card) -- generic card-based lookup
+                [ ixFun (one.fromGeneric.card) -- non-generic card-based lookup
+                , ixFun (one.card) -- generic card-based lookup
                 , ixFun (getCardType.card)
                 , ixFun (getCardName.card)
                 , ixFun (getNameWords.card)
@@ -67,7 +67,7 @@ instance Indexable Assoc where
                 , ixFun (getBoosted.card)
                 , ixFun ((map unravel).tags) -- String-based tag lookup
                 , ixFun (tags) -- Tag-based tag lookup
-                , ixFun ((:[]).length.tags) -- Number-of-tags lookup
+                , ixFun (one.length.tags) -- Number-of-tags lookup
                 ]
 
 type AssocList = IxSet Assoc
