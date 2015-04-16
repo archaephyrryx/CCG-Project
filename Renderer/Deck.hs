@@ -1,10 +1,10 @@
-{-# LANGUAGE RecordWildCards #-} 
+{-# LANGUAGE RecordWildCards, QuasiQuotes, OverloadedStrings #-} 
 module Renderer.Deck where
 -------------------------------------------------
-import Prelude hiding (div)
+import Prelude hiding (div, span)
 import Data.Maybe
 import Data.List.Split
-import Data.List
+import Data.List hiding (span)
 --------------------------------------------------
 import API.Database
 import Data.IxSet
@@ -17,58 +17,49 @@ import Renderer.Core
 import Renderer.Cards
 import Renderer.SingleCard
 --------------------------------------------------
-import Graphics.UI.Threepenny.Core ((#.),(#+))
+import qualified Data.Text          as Strict
+import qualified Data.Text.Lazy     as Lazy
+import Data.Text.Lazy               ( Text )
+import Happstack.Server
+import Happstack.Server.HSP.HTML
+import Happstack.Server.XMLGenT
+import HSP
+import HSP.Monad                    ( HSPT(..) )
+import Language.Haskell.HSX.QQ      ( hsx )
 ---------------------------------------------------
 
-construct :: Deck -> Rendered'
-construct d = [ div #. "mane" #+ [
-                  div #. "mane-deck" #+ [
-                    h2 #. "mane-title" #+ [mheader nmane]]
-                  , hr
-                  , div #. "mane-cards" #+ [con.struct $ manes]
-                ]
-              , div #. "problem" #+ [
-                  div #. "problem-deck" #+ [
-                    h2 #. "problem-title" #+ [pheader nprob start]]
-                  , hr
-                  , div #. "problem-cards" #+ [con.struct $ probs]
-                ]
-              , div #. "draw" #+ [
-                  div #. "draw-deck" #+ [
-                    h2 #. "draw-title" #+ [dheader ndraw]]
-                  , hr
-                  , div #. "draw-cards" #+ [con.struct $ draws]
-                ]
-              ]
+construct :: Deck -> (Builder -> Rendered)
+construct d = (#+[ structure "mane" (mheader nmane) manes
+                 , structure "problem" (pheader nprob start) probs
+                 , structure "draw" (dheader ndraw) draws
+                 ])
     where
       parts@(manes, probs, draws) = tpart d
       lens@(nmane,nprob,ndraw) = mhall (length,length,length) parts
       start = hasStarting probs
 
-mheader :: Int -> UI Element
-mheader n = UI.span #+ [string $ "Manes ("++(show n)++")"]
+structure :: String -> Rendered -> DeckP -> Rendered
+structure pre hed dek = div #. pre #+ [ div #. (pre++"-deck") #: (h2 #. (pre++"-title") #: hed)
+                                      , hr
+                                      , div #. (pre++"-cards") #: (con.struct $ dek)
+                                      ]
 
-pheader :: Int -> Bool -> UI Element
-pheader n s = UI.span #+ ((s?:(++[UI.span #. "no-start" #+ [string "No Starting Problem!"]])) [string $ "Problem Deck ("++(show n)++"/10)"])
+mheader :: Int -> Rendered
+mheader n = span #$ (string $ "Manes ("++(show n)++")")
 
-dheader :: Int -> UI Element
-dheader n = UI.span #+ [string $ "Draw Deck ("++(show n)++"/45)"]
-
-con :: [(Card,Int)] -> UI Element
-con xs = div #. "card-box" #+ (map (\x -> div #. "card-line" #+ [cline x]) xs)
+pheader :: Int -> Bool -> Rendered
+pheader n s = span #+ ((s?:nonstarter) [span #$ (string $ "Problem Deck ("++(show n)++"/10)")])
   where
-    cline (c,n) = UI.span #. "cline" #+ (account [ UI.span #. "ctab" #+ (ctab c) , UI.span #. "cname" #+ [string . cname $ c]])
+    nonstarter :: [Rendered] -> [Rendered]
+    nonstarter = (++[span #. "no-start" #$ string "No Starting Problem!"])
+
+dheader :: Int -> Rendered
+dheader n = span #$ string ("Draw Deck ("++(show n)++"/45)")
+
+con :: UniCard c => [(c,Int)] -> Rendered
+con xs = div #. "card-box" #+ (map ((div #. "card-line" #:).cline) xs)
+  where
+    cline (c,n) = span #. "cline" #+ (account [ span #. "ctab" #: ctab c, span #. "cname" #$ (string $ uname c)])
       where
-        account = ((++[UI.span #. "ccount badge" #+ [string (show n)]])?+n)
-        ctab :: Card -> [UI Element]
-        ctab = cond ((==TProblem).cardtype) (conf.toGeneric) (empower.toGeneric)
-          where
-            empower g@GenCard{..} = map cbox . filter (isJust.fst) $ [(show.val<$>mpower, mcolor)]
-            conf g@GenCard{ctype=TProblem, ..} = map (\(y,z) -> cbox (Just (show (val z)), Just y)).fst.fromJust$mpreqs
-            conf _ = []
-            cbox (Nothing,_) = UI.span #+ []
-            cbox (Just s, c) = UI.span #. (unwords ["element","label",(colorize c)]) #+ [string s]
-              where
-                colorize (Nothing) = "NoColor"
-                colorize (Just Wild) = "Wild"
-                colorize (Just c) = show c
+        account = ((++[span #. "ccount badge" #$ (string $ show n)])?+n)
+        ctab = cond (utype.=TProblem) conf empower
