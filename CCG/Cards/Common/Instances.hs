@@ -5,6 +5,8 @@ import CCG.Cards.Common.Types
 import Data.Maybe
 import Data.Char
 
+import Util.Helper
+
 -- Class declarations
 class Hint a where
     val :: a -> Int
@@ -113,15 +115,18 @@ instance Read CSet where
     readsPrec = const (readsSet.(map toLower))
 
 readsSet :: ReadS CSet
-readsSet s = (`zip`[""]).(:[]) $ case s of
-      ('p':_)     -> Premiere
-      ('r':_)     -> RockNRave
-      ('c':'r':_) -> CrystalGames
-      ('c':'g':_) -> CrystalGames
-      ('c':'a':_) -> CanterlotNights
-      ('c':'n':_) -> CanterlotNights
-      ('c':'s':_) -> CelestialSolstice
-      ('c':'e':_) -> CelestialSolstice
+readsSet = rdr readSet
+  where
+  
+      readSet s = case s of
+        ('p':_)     -> Premiere
+        ('r':_)     -> RockNRave
+        ('c':'r':_) -> CrystalGames
+        ('c':'g':_) -> CrystalGames
+        ('c':'a':_) -> CanterlotNights
+        ('c':'n':_) -> CanterlotNights
+        ('c':'s':_) -> CelestialSolstice
+        ('c':'e':_) -> CelestialSolstice
 
 instance Show CSet where
     show Premiere = "Premiere"
@@ -140,7 +145,7 @@ readCS x = case x of
         _ -> error ("No cardset parse for '"++x++"'")
 
 shorten :: String -> String
-shorten x = let y = (filter (\(a:b) -> isUpper a) (words x))
+shorten x = let y = (filter (isUpper.head) (words x))
     in if (length y) == 1
         then (map toLower (take 2 (head y)))
         else (map toLower (map (head) y))

@@ -1,6 +1,6 @@
 {-# LANGUAGE RecordWildCards #-} 
 
-module CCG.Cards.Parser where
+module CCG.Cards.Parser (parsage, unquote, unbrace, ocrBlock) where
 
 import CCG.Cards
 import CCG.Cards.Common
@@ -12,14 +12,13 @@ import Data.Set (Set)
 import qualified Data.Map as Map
 import Data.Map (Map)
 import Data.Function (on)
+import Util.String
+import Util.List
 
 newtype OrderedField = OrderedField { flds :: [String] }
 
 getField :: String -> OrderedField -> [([String] -> String)]
 getField x y = map (flip (!!)) (elemIndices x (flds y))
-
-neck = (!!1)
-body = (!!2)
 
 data FieldWrapper =
      FieldWrapper
@@ -74,24 +73,6 @@ ocrBlock str = let (h:xs) = lines str
 
 fieldSplit :: String -> [String]
 fieldSplit = map unquote . split (dropInitBlank . dropDelims $ oneOf "\t")
-
-unquote :: String -> String
-unquote x | null x = x
-          | head x == '\'' && last x == '\'' = init.tail $ x
-          | last x == '\'' = tail $ x
-          | head x == '\'' = init $ x
-          | otherwise = x
-
-unbrace :: String -> String
-unbrace x | null x = x
-          | head x == '[' && last x == ']' = init.tail $ x
-          | head x == '[' = tail $ x
-          | last x == ']' = init $ x
-          | otherwise = x
-
-headDef :: a -> [a] -> a
-headDef x [] = x
-headDef _ (x:_) = x
 
 between :: Char -> Char -> String -> (Int,Int)
 between o c s = let open = elemIndices o s

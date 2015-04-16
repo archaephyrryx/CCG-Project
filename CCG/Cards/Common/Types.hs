@@ -1,9 +1,11 @@
 {-# LANGUAGE FlexibleInstances, DeriveDataTypeable,
-    GeneralizedNewtypeDeriving #-}
+    GeneralizedNewtypeDeriving, MultiParamTypeClasses,
+    RecordWildCards #-}
 
 module CCG.Cards.Common.Types where
 
 import CCG.Cards.Common.Invotomorph
+import CCG.Cards.Common.Dimorph
 import Data.Data (Data, Typeable)
 import Data.Char
 import Data.SafeCopy (SafeCopy)
@@ -11,6 +13,8 @@ import Data.List
 import Data.Function (on)
 import Data.Set (Set)
 import Data.List ((\\))
+
+import Util.Helper
 
 -- Type aliases: Keywords, Name, ProblemReq
 type Keywords = [Keyword]
@@ -66,8 +70,6 @@ aspectral = (`elem`aspect)
 isWild :: Color -> Bool
 isWild = (==Wild)
 
-
-
 data Number = Regular Int | F Int | PF Int deriving (Eq, Ord, Data, Typeable)
 
 instance Show Number where
@@ -83,11 +85,10 @@ readN x@(k:_) | isDigit k = Regular (read x)
               | otherwise = error ("Could not parse Number: "++x)
 
 readsN :: ReadS Number
-readsN s = (`zip`[""]).(:[]) $ readN s
+readsN = rdr readN
 
 instance Read Number where
     readsPrec = const readsN
-    
 
 -- Abbreviated strings
 
@@ -97,25 +98,16 @@ data Rarity = Common | Uncommon | Fixed | Rare | UltraRare | Promotional derivin
 
 data CardType = TMane | TFriend | TResource | TEvent | TTroublemaker | TProblem deriving (Eq, Ord, Data, Typeable)
 
+transCT :: Dimorph CardType String
+transCT = let typeX = [TMane, TFriend, TResource, TEvent, TTroublemaker, TProblem]
+              typeY = ["Mane", "Friend", "Resource", "Event", "Troublemaker", "Problem"]
+          in Dimorph{..}
+
 instance Show CardType where
-    show TMane = "Mane"
-    show TFriend = "Friend"
-    show TResource = "Resource"
-    show TEvent = "Event"
-    show TTroublemaker = "Troublemaker"
-    show TProblem = "Problem"
+    show = to transCT
 
 readsT :: ReadS CardType
-readsT s = (`zip`[""]).(:[]) $ readT s
-
-readT :: String -> CardType
-readT s = case s of
-    "Mane"          -> TMane
-    "Friend"        -> TFriend
-    "Resource"      -> TResource
-    "Event"         -> TEvent
-    "Troublemaker"  -> TTroublemaker
-    "Problem"       -> TProblem
+readsT = rdr (from transCT)
 
 titleCase :: String -> String
 titleCase (x:xs) = (toUpper x):(map toLower xs)

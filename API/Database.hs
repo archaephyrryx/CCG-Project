@@ -1,6 +1,4 @@
-{-# LANGUAGE DeriveDataTypeable, GeneralizedNewtypeDeriving,
-    TemplateHaskell, TypeFamilies, RecordWildCards,
-	OverloadedStrings #-}
+{-# LANGUAGE DeriveDataTypeable, GeneralizedNewtypeDeriving, TypeFamilies, RecordWildCards #-}
 
 module API.Database where
 
@@ -26,6 +24,7 @@ import qualified Data.Map as Map
 import qualified Data.Set as Set
 import Data.Map (Map)
 import Data.Set (Set)
+import Util
 
 -- Index accessor functions
 
@@ -60,44 +59,44 @@ getCardType :: GenCard -> [CardType]
 getCardType c@GenCard{..} = [ctype]
 
 getCardName :: GenCard -> [Name]
-getCardName c@GenCard{..} = [name]
+getCardName c@GenCard{..} = [gname]
 
 getNameWords :: GenCard -> [Nameword]
-getNameWords c@GenCard{..} = concatMap ((map ravel).subsequences.(filter isAlphaNum)) (words name)
+getNameWords c@GenCard{..} = concatMap ((map ravel).subsequences.(filter isAlphaNum)) (words gname)
 
 getSet :: GenCard -> [CSet]
-getSet c@GenCard{..} = [set]
+getSet c@GenCard{..} = [gset]
 
 getNum :: GenCard -> [Number]
-getNum c@GenCard{..} = [num]
+getNum c@GenCard{..} = [gnum]
 
 getSetNum :: GenCard -> [SetNum]
-getSetNum c = [ravel . genset $ c]
+getSetNum c = [ravel . setnum $ c]
 
 getRar :: GenCard -> [Rarity]
-getRar c@GenCard{..} = [rar]
+getRar c@GenCard{..} = [grar]
 
 getKeyword :: GenCard -> [Keyword]
-getKeyword c@GenCard{..} = keywords
+getKeyword c@GenCard{..} = gkeywords
 
 getColor :: GenCard -> [Color]
 getColor c@GenCard{ctype = TProblem, ..} = concat (map classify (fromMaybe [Wild] (mpreqs >>= return.(map fst).fst)))
 getColor c@GenCard{..} = classify $ fromMaybe Wild mcolor
 
 getCost :: GenCard -> [Cost]
-getCost c@GenCard{..} = fromMaybe ([]) (mcost >>= return.(:[]))
+getCost c@GenCard{..} = fromMaybe ([]) (mcost >>= wrapped return)
 
 getReq :: GenCard -> [Req]
-getReq c@GenCard{..} = fromMaybe ([]) (mreq >>= return.(:[]))
+getReq c@GenCard{..} = fromMaybe ([]) (mreq >>= wrapped return)
 
 getPower :: GenCard -> [Power]
-getPower c@GenCard{..} = fromMaybe ([]) (mpower >>= return.(:[]))
+getPower c@GenCard{..} = fromMaybe ([]) (mpower >>= wrapped return)
 
 getBoosted :: GenCard -> [Boosted]
-getBoosted c@GenCard{..} = map (toBoosted) (fromMaybe ([]) (mboosted >>= return.(:[])))
+getBoosted c@GenCard{..} = map (toBoosted) (fromMaybe ([]) (mboosted >>= wrapped return))
 
 getPoints :: GenCard -> [Points]
-getPoints c@GenCard{..} = fromMaybe ([]) (mpoints >>= return.(:[]))
+getPoints c@GenCard{..} = fromMaybe ([]) (mpoints >>= wrapped return)
 
 instance Indexable GenCard where
     empty = ixSet 
