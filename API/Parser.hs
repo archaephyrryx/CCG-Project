@@ -7,7 +7,7 @@ import Data.List.Split
 import Data.Char
 
 parseTexts :: UniCard a => a -> [String]
-parseTexts = precond (utype.=TMane) (unravel.utext) bitext one
+parseTexts = precond (unravel.utext) (utype.=TMane) bitext one
 
 bitext :: String -> [String]
 bitext s = [front, back]
