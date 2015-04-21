@@ -1,4 +1,4 @@
-{-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE RecordWildCards, Rank2Types #-}
 
 module Renderer.FilterCard where
 
@@ -19,12 +19,12 @@ render :: UniCard c => [c] -> (UCR) -> Rendered
 render matches pronounce =
   let theader = tr #+ (map ((th#$).string) ["#", "Rarity", "Type", "Cost", "Req.", "Name", "Power"])
       trows = for matches (\c ->
-          tr #+ [ td #$ (string $ genset g)
-                , td #$ (string $ brief rar)
-                , td #: iconic ctype
-                , td #$ (string $ fromMaybe "" (show.val <$> mcost))
-                , td #: reqtify g
-                , td #: pronounce g
-                , td #: empower g
+          tr #+ [ td #$ (string . setnum $ c)
+                , td #$ (string . brief . urar $ c)
+                , td #: (iconic . utype $ c)
+                , td #$ (string (fromMaybe "" (show.val <$> ucost c)))
+                , td #: reqtify c
+                , td #: pronounce c
+                , td #: empower c
                 ])
   in table #+ (theader:trows)

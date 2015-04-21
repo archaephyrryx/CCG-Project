@@ -2,67 +2,59 @@
 
 module Renderer.Core.Internal where
 
+import Control.Applicative
 import Data.Maybe
 import Happstack.Server
 import Happstack.Server.Internal.Monads (ServerPartT)
-import Happstack.Server.HSP.HTML
-import Happstack.Server.XMLGenT
-import HSP
-import HSP.Monad (HSPT(..))
-import HSP.XML (XML(..))
-import HSP.XMLGenerator
+import Text.Blaze.Html5 (toValue, toHtml)
+import Text.Blaze.Html5.Attributes
+import Text.Blaze.Internal (StaticString(..), attribute, MarkupM(..), Tag(..), stringTag)
+import Text.Blaze.Internal
+import Text.Blaze.Html
+import Text.Blaze (ToValue)
 import Language.Haskell.TH
-import Data.Text.Lazy (Text)
+import qualified Data.Text as T
+import qualified Data.Text.Encoding as T
 -----
 import GHC.Tuple
 
-type App' m = HSPT XML (ServerPartT m)
-type App m  = XMLGenT (App' m)
-type Html = App IO XML
-type Html' = App' IO XML
-type GCL = GenChildList (App' IO)
-type GAL = GenAttributeList (App' IO)
-
 type Rendered = Html
-type Rendered' = GCL
-type Mattrs = [GAL]
+type Rendered' = Rendered
+type Mattrs = [Attribute]
 type Builder = ((Mattrs -> Rendered' -> Rendered), Mattrs)
 
 type Renderer a = a -> Rendered
 type Renderer' a = a -> Rendered'
 
-appt :: Type -> Type
-appt f = AppT (ConT ''XMLGenT) (AppT (AppT (ConT ''HSPT) (ConT ''XML)) (AppT (ConT ''ServerPartT) f))
+stat :: String -> StaticString
+stat s = let t = T.pack s
+         in StaticString (s ++) (T.encodeUtf8 t) t
 
-gcl :: Type -> Type
-gcl f = AppT (ConT ''GenChildList) (AppT (AppT (ConT ''HSPT) (ConT ''XML)) (AppT (ConT ''ServerPartT) f))
+at :: String -> (AttributeValue -> Attribute)
+at x = attribute (stringTag x) (stringTag $ (' ':x++"=\""))
 
-gal :: Type -> Type
-gal f = AppT (ConT ''GenAttributeList) (AppT (AppT (ConT ''HSPT) (ConT ''XML)) (AppT (ConT ''ServerPartT) f))
+build :: (Rendered' -> Rendered) -> Mattrs -> Rendered' -> Rendered
+build = foldl (!)
 
-tupt :: Type -> Type -> Type
-tupt x y = AppT (AppT (TupleT 2) x) y
-
-funt :: Type -> Type -> Type
-funt x y = AppT (AppT ArrowT x) y
+elmer :: String -> (Rendered' -> Rendered)
+elmer s = Parent (stat s) (stat ("<"++s)) (stat ("</"++s++">"))
 
 makeElement :: String -> Q [Dec]
 makeElement s = do id <- newName s
                    at <- newName "at"
                    ch <- newName "ch"
                    return $ [ ValD (VarP id) (NormalB (SigE (TupE
-                           [ LamE [VarP at, VarP ch] (AppE (AppE (AppE (VarE 'genElement)
-                                 (TupE [ConE 'Nothing, AppE (VarE 'fromStringLit) (LitE (StringL s))]))
-                               (ListE [AppE (VarE 'asAttr) (VarE at)])) (ListE [(VarE ch)]))
+                           [ LamE [VarP at, VarP ch] (AppE (AppE (AppE (VarE 'build)
+                                 (AppE (VarE 'elmer) (LitE (StringL s))))
+                               (VarE at)) (VarE ch))
                            , (ListE [])]) (ConT ''Builder))) [] ]
 
 makeElements :: [String] -> Q [Dec]
 makeElements ss = fmap concat $ sequence (map makeElement ss)
 
-
 makeAttr :: String -> Q [Dec]
 makeAttr s = do id <- newName s
-                return [ ValD (VarP id) (NormalB (SigE (LitE (StringL s)) (ConT ''Text))) [] ]
+                return [ ValD (VarP id) (NormalB (LitE (StringL s))) [] ]
 
 makeAttrs :: [String] -> Q [Dec]
 makeAttrs ss = fmap concat $ sequence (map makeAttr ss)

@@ -1,22 +1,19 @@
 {-# LANGUAGE RecordWildCards, TypeSynonymInstances, FlexibleInstances, MultiParamTypeClasses #-}
-{-# LANGUAGE QuasiQuotes, TemplateHaskell #-}
+{-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE OverloadedStrings #-} 
 module Renderer.Core (
     module Renderer.Core.Internal
   , module Renderer.Core
   ) where
 
-import Application
 import Control.Applicative
 import qualified Data.Text          as Strict
 import qualified Data.Text.Lazy     as Lazy
 import Data.Text.Lazy               ( Text )
+import Text.Blaze ((!), ToValue(..), toValue)
+import Text.Blaze.Html (toHtml)
 import Happstack.Server
-import Happstack.Server.HSP.HTML
-import Happstack.Server.XMLGenT
-import HSP hiding (set)
-import HSP.Monad                    ( HSPT(..) )
-import Language.Haskell.HSX.QQ      ( hsx )
+import qualified Text.Blaze.Html5 as H (hr)
 ---------------------------------------------------
 import Util
 import Language.Haskell.TH
@@ -29,20 +26,10 @@ infixl 8 #
 infixr 7 #:
 infixl 7 #$
 
---- Instance declarations
-
-instance (Functor m, Monad m) =>
-         EmbedAsAttr (AppT' m) (Attr Text Strict.Text) where
-    asAttr (n := v) = asAttr (n := Lazy.fromStrict v)
-
-instance (Functor m, Monad m) =>
-         EmbedAsAttr (AppT' m) (Attr Text String) where
-    asAttr (n := v) = asAttr (n := Lazy.pack v)
-
 --- Operators
  
-set :: Text -> String -> Builder -> Builder
-set t s = (>$((asAttr $ (t := s)):))
+set :: ToValue v => String -> v -> Builder -> Builder
+set a v = (>$((at a $ toValue v):))
 
 (#) :: a -> (a -> b) -> b
 (#) = flip ($)
@@ -60,21 +47,21 @@ set t s = (>$((asAttr $ (t := s)):))
 (#:) (renr,attrs) rens = renr attrs $ orph rens
 
 orph :: Rendered -> Rendered'
-orph x = [hsx|<%><% x %></%>|]
+orph x = x
 
 morph :: [Rendered] -> Rendered'
-morph xs = [hsx|<%><% sequence xs %></%>|]
+morph xs = sequence_ xs
 
 collect :: [Rendered'] -> Rendered'
-collect xs = [hsx|<%><% sequence xs %></%>|]
+collect xs = sequence_ xs
 
 --- Elements
 
-string :: String -> Rendered'
-string str = [hsx| <%> <% str %> </%> :: Rendered' |]
-
 hr :: Rendered
-hr = [hsx| <hr/> :: Rendered |]
+hr = H.hr
+
+string :: String -> Rendered'
+string str = toHtml str
 
 $(makeElement "a")
 $(makeElement "p")

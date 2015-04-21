@@ -31,12 +31,14 @@ renderCard c =
       , div #. "card-text" #: cardText c
       ])
 
+{-
 renderCard :: GCR
 renderCard g@GenCard{..} = base (unravel name) $
   H.div $ do
     H.div ! A.class_ "card-imgs" $ cardImgs g
     H.div ! A.class_ "card-text" $ cardText g
     H.div ! A.class_ "card-info" $ cardInfo g
+    -}
 
 curls :: UniCard c => c -> [String]
 curls = map <$> (++).("static/cards/"++).setnum <*> suf
@@ -44,11 +46,11 @@ curls = map <$> (++).("static/cards/"++).setnum <*> suf
       suf = (<*>[".jpg"]).(id:).(consd (utype.=TMane) [('b':)] [])
 
 cardImgs :: UCR
-cardImgs = -- (table #+).map cimage.curls
+cardImgs = (table #+).map cimage.curls
            -- ((H.table $).sequence_).map cimage.curls
 
 cimage :: String -> Rendered
-cimage s = -- tr #: td #: a # set href s #: img #. "card" # set src s #+ []
+cimage s = tr #: td #: a # set href s #: img #. "card" # set src s #+ []
            {- H.tr $ do
                 H.td $ do
                   H.a ! A.href (toValue s) $ do
@@ -68,6 +70,7 @@ cardText c = let m = maneText c
       dbox :: (Rendered, String) -> [Rendered]
       dbox (disp,lab) = [ dt #$ string lab, dd #: disp ]
 
+{-
 cardText g@GenCard{ctype=TMane, ..} =
   H.dl $ do
     H.div $ do
@@ -84,6 +87,7 @@ cardText g@GenCard{..} =
       H.dt $ "Card Text"
       H.dd $ do
         mapM_ (H.p.toHtml) $ (splitOn "<P>" (unravel text))
+        -}
 
 cardInfo :: UCR
 cardInfo c =
@@ -92,6 +96,7 @@ cardInfo c =
       , div #. "panel-body" #: (ul #$ info c)
       ]
 
+{-
 cardInfo :: GCR
 cardInfo g@GenCard{..} =
   H.div ! A.class_ "panel panel-default quick-facts" $ do
@@ -99,6 +104,7 @@ cardInfo g@GenCard{..} =
       H.h3 ! A.class_ "panel-title" $ "Quick Facts"
     H.div ! A.class_ "panel-body" $ do
       H.ul $ info g
+-}
 
 info :: UCR'
 info c = let items = (maskfilter mask allitems) in morph $ map renderi items
@@ -110,6 +116,7 @@ info c = let items = (maskfilter mask allitems) in morph $ map renderi items
     renderi :: (String, UCR) -> Rendered
     renderi (nam, ucr) = li #+ [b #$ string nam, ucr c]
 
+{-
 info :: GenCard -> Html
 info g@GenCard{..} = let items = (maskfilter mask allitems)
                      in mapM_ renderi items
@@ -117,6 +124,7 @@ info g@GenCard{..} = let items = (maskfilter mask allitems)
     renderi :: (String, GCR) -> Html
     renderi (nam, gcr) =
         H.li $ (H.b (toHtml nam)) <> (gcr g)
+        -}
 
 allitems :: [(String, UCR)]
 allitems = [ ("Type", typeLink)
@@ -162,7 +170,7 @@ colLink :: UCR
 colLink = propLink "color" (maybe "Wild" show . ucolor)
 
 cardTraits :: UCR
-cardTraits = (.) --(span #+) $ 
+cardTraits = (.) (span #+) $ 
                  --((H.span $).sequence_) $
     (map keyToTrait.ukeywords)
 
