@@ -24,6 +24,7 @@ import qualified Data.Map as Map
 import qualified Data.Set as Set
 import Data.Map (Map)
 import Data.Set (Set)
+import Util
 
 -- Index accessor functions
 
@@ -70,7 +71,7 @@ getNum :: GenCard -> [Number]
 getNum c@GenCard{..} = [gnum]
 
 getSetNum :: GenCard -> [SetNum]
-getSetNum c = [ravel . genset $ c]
+getSetNum c = [ravel . setnum $ c]
 
 getRar :: GenCard -> [Rarity]
 getRar c@GenCard{..} = [grar]
@@ -83,19 +84,19 @@ getColor c@GenCard{ctype = TProblem, ..} = concat (map classify (fromMaybe [Wild
 getColor c@GenCard{..} = classify $ fromMaybe Wild mcolor
 
 getCost :: GenCard -> [Cost]
-getCost c@GenCard{..} = fromMaybe ([]) (mcost >>= return.(:[]))
+getCost c@GenCard{..} = fromMaybe ([]) (mcost >>= wrapped return)
 
 getReq :: GenCard -> [Req]
-getReq c@GenCard{..} = fromMaybe ([]) (mreq >>= return.(:[]))
+getReq c@GenCard{..} = fromMaybe ([]) (mreq >>= wrapped return)
 
 getPower :: GenCard -> [Power]
-getPower c@GenCard{..} = fromMaybe ([]) (mpower >>= return.(:[]))
+getPower c@GenCard{..} = fromMaybe ([]) (mpower >>= wrapped return)
 
 getBoosted :: GenCard -> [Boosted]
-getBoosted c@GenCard{..} = map (toBoosted) (fromMaybe ([]) (mboosted >>= return.(:[])))
+getBoosted c@GenCard{..} = map (toBoosted) (fromMaybe ([]) (mboosted >>= wrapped return))
 
 getPoints :: GenCard -> [Points]
-getPoints c@GenCard{..} = fromMaybe ([]) (mpoints >>= return.(:[]))
+getPoints c@GenCard{..} = fromMaybe ([]) (mpoints >>= wrapped return)
 
 instance Indexable GenCard where
     empty = ixSet 

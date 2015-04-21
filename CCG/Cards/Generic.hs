@@ -4,7 +4,6 @@ module CCG.Cards.Generic where
 
 import CCG.Cards
 import CCG.Cards.Common
-import CCG.Cards.Pretty
 import Data.List
 import Data.Char
 import Data.Set (Set)
@@ -28,16 +27,6 @@ data GenCard = GenCard { ctype     :: CardType
                        , mpreqs    :: Maybe ProblemReq
                        , gtext     :: Text
                        } deriving (Eq, Ord, Data, Typeable)
-
-howshow =
-        -- show
-        -- prettyShow
-        setnum
-
-genset = setnum.fromGeneric
-
-instance Show GenCard where
-    show = howshow.fromGeneric
 
 toGeneric :: Card -> GenCard
 toGeneric c =
