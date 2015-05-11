@@ -1,44 +1,9 @@
-{-# LANGUAGE OverloadedStrings #-}
-module Twitter
-(Tweet
-,tweetFormHandler  ) where
-
-import qualified Data.Text as T
-import           Text.Digestive
-import           Text.Digestive.Heist
-import           Text.Digestive.Snap
-import           Control.Applicative
-import           Snap.Core (writeText)
-import           Snap.Snaplet
-import           Snap.Snaplet.Heist (heistLocal, render)
-import           Application
-
-data Tweet = Tweet {
-  color :: T.Text
-} deriving (Show)
-
-isNotEmpty :: T.Text -> Bool
-isNotEmpty = not . T.null
-
-colorErrMsg :: T.Text
-colorErrMsg = "color should be something"
-
-tweetForm :: (Monad m) => Form T.Text m Tweet
-tweetForm = Tweet
-  <$> "color" .: check colorErrMsg isNotEmpty (text Nothing)
-
-tweetFormHandler :: Handler App App ()
-tweetFormHandler = do
-  (view, result) <- runForm "tweet" tweetForm
-  case result of
-    Just x  -> writeText $ T.pack $ show x
-    Nothing -> heistLocal (bindDigestiveSplices view) $ render "tweetform"
 {-# LANGUAGE TypeSynonymInstances, FlexibleInstances,
     DeriveDataTypeable, GeneralizedNewtypeDeriving,
 	RecordWildCards, TemplateHaskell, TypeFamilies,
 	OverloadedStrings #-}
 
-module CCGServer.Filtering where
+module Filter where
 
 import Control.Applicative
 import Control.Monad
@@ -53,6 +18,10 @@ import Data.Map (Map)
 import Text.Digestive
 import Text.Digestive.Heist
 import Text.Digestive.Snap
+import           Snap.Core (writeText)
+import           Snap.Snaplet
+import           Snap.Snaplet.Heist (heistLocal, render)
+import           Application
 ---------------------------------------------
 
 data Query = Query { color :: Color } deriving (Show)
@@ -72,3 +41,8 @@ queryForm = Query
     <$> "color" .: check colErrMsg isNotEmpty (text Nothing)
 
 queryFormHandler :: Handler App App ()
+queryFormHandler = do
+  (view, result) <- runForm "query" queryForm
+  case result of
+    Just x  -> writeText $ T.pack $ show x
+    Nothing -> heistLocal (bindDigestiveSplices view) $ render "queryForm"

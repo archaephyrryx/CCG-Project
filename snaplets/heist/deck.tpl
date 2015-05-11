@@ -4,7 +4,7 @@
   </bind>
   <bind tag="filter">
     <dfForm action="/deck">
-      <apply template="select">
+      <apply template="select"/>
       <div> <dfInputSubmit value="Submit" /> </div>
     </dfForm>
   </bind>

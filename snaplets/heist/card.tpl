@@ -4,8 +4,8 @@
   </bind>
   <bind tag="filter">
     <dfForm action="/card">
-      <apply template="minmax">
-      <apply template="select">
+      <apply template="minmax" />
+      <apply template="select" />
       <div> <dfInputSubmit value="Submit" /> </div>
     </dfForm>
   </bind>
