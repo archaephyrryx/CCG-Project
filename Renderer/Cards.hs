@@ -22,9 +22,10 @@ type UCR = UniCard c => Renderer c
 type UCR' = UniCard c => Renderer' c
 
 iconic :: Renderer CardType
-iconic x = let ipath :: String
-               ipath = ("static/icns/"++(show x)++".png")
-           in (img #. "icon typeIcon" # set src ipath) #+ []
+iconic x = in img #. "icon typeIcon" # set src ipath
+  where
+      ipath :: String
+      ipath = ("static/icns/"++(show x)++".png")
 
 {-
 iconic :: CardType -> Html

@@ -12,7 +12,7 @@ hlink :: String -> String -> Rendered
 hlink url str = a # set href url # settext str
 
 noop :: Rendered
-noop = a
+noop = a #+ []
 
 estring :: Builder -> String -> Rendered
 estring el = (el #$).string

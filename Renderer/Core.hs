@@ -28,13 +28,13 @@ infixl 7 #$
 
 --- Operators
  
-set :: ToValue v => String -> v -> Builder -> Builder
+set :: ToValue v => String -> v -> (a, Mattrs) -> (a, Mattrs)
 set a v = (>$((at a $ toValue v):))
 
 (#) :: a -> (a -> b) -> b
 (#) = flip ($)
 
-(#.) :: Builder -> String -> Builder
+(#.) :: (a, Mattrs) -> String -> (a, Mattrs)
 (#.) b s = b # set "class" s
 
 (#+) :: Builder -> [Rendered] -> Rendered
@@ -67,15 +67,32 @@ $(makeElement "a")
 $(makeElement "p")
 $(makeElement "span")
 $(makeElement "div")
-$(makeElement "img")
+$(makeElement "nav")
+$(makeElement "form")
 $(makeElements ((:) <$> "h" <*> (show <$> [1..6])))
 $(makeElements ["table", "tr", "th", "td"])
 $(makeElements ["dl", "dd", "dt"])
 $(makeElements ["ul", "li"])
 $(makeElements ["b", "i"])
+$(makeVacuum "img")
+$(makeVacuum "input")
 
 --- Attributes
 
 $(makeAttr "src")
 $(makeAttr "href")
 $(makeAttr "text")
+$(makeAttr' ("type_", "type"))
+$(makeAttr "placeholder")
+
+
+--- Backbone
+
+$(makeElement "html")
+$(makeElements ["head", "title"])
+$(makeElement "body")
+$(makeVacuum "meta")
+$(makeVacuum "link")
+
+$(makeAttr' ("httpEquiv", "http-equiv"))
+$(makeAttrs ["charset","rel","name","content"])
