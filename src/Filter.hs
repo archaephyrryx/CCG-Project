@@ -9,42 +9,42 @@ module Filter ( Filter
 
 ---------------------------------------------
 import qualified Data.Text as T
-import           Text.Digestive
-import           Text.Digestive.Heist
-import           Text.Digestive.Snap
 import           Control.Applicative
-import           Snap.Core (writeText)
+import           Snap.Core
 import           Snap.Snaplet
+import           Snap.Snaplet.Heist
 import           Data.Maybe
 import           Control.Monad
-import           Snap.Snaplet.Heist (heistLocal, render)
-import qualified Heist.Interpreted as I
 import           Heist
+import qualified Heist.Interpreted as I
 ---------------------------------------------
 import           Application
---import           Prelude hiding (min, max)
-import           Cards.Common (Color(..), CSet(..), CardType(..), Rarity(..))
-import           Cards.Common.Abbrev
-import           Cards.Common.Color (spect)
+import           CCG hiding (render)
 
 
-data Selection = Selection { colorFilter :: Color
-{-                           , setFilter :: CSet
-                           , typeFilter :: CardType
-                           , rarityFilter :: Rarity -}
-                           }
-                deriving (Show)
-
--- data MinMax = MinMax { min :: Int, max :: Int } deriving (Show)
-
-
-data Filter = CardFilter { select :: Selection
-      {-                   , powRange :: MinMax
-                         , costRange :: MinMax
-                         , reqRange :: MinMax -}
-                         }
-            | DeckFilter { select :: Selection }
+data Filter = CardFilter { colorFilter :: Color
+                         , setFilter :: CSet
+                         , typeFilter :: CardType
+                         , rarityFilter :: Rarity
+                         , powmin :: Int
+                         , powmax :: Int
+                         , costmin :: Int
+                         , costmax :: Int
+                         , reqmin :: Int
+                         , reqmax :: Int
+            }
+            | DeckFilter { colorFilter :: Color
+                         , setFilter :: CSet
+                         , typeFilter :: CardType
+                         , rarityFilter :: Rarity
+            }
             deriving (Show)
+
+handleCard :: AppHandler
+handleCard = heistLocal (I.bindSplices noSplices) $ render "card"
+
+handleDeck :: AppHandler
+handleDeck = heistLocal (I.bindSplices noSplices) $ render "deck"
 
 selectForm :: (Monad m) => Form T.Text m Selection
 selectForm = Selection

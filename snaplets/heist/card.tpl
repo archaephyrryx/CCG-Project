@@ -1,5 +1,4 @@
-<apply template="default">
+<apply template="base">
   <bind tag="pagename"> SnappleJack: Card </bind>
-  <card/>
-  <!-- <resolve>${card}</resolve> -->
+  <apply template="_card"/>
 </apply>
