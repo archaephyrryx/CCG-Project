@@ -19,12 +19,8 @@ import           Heist
 import qualified Heist.Interpreted as I
 ---------------------------------------------
 import           Application
-import           Cards.Common (Color(..), CSet(..), CardType(..), Rarity(..))
-import           Cards.Common.Abbrev
-import           Cards.Common.Color (spect)
+import           CCG hiding (render)
 
-
-                deriving (Show)
 
 data Filter = CardFilter { colorFilter :: Color
                          , setFilter :: CSet
