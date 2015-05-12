@@ -11,8 +11,17 @@
     <div id="wrap">
       <apply template="nav"/>
     </div>
+    <div id="header">
+      <header/>
+    <div>
     <div id="content">
-      <apply-content/>
+      <main/>
+    </div>
+    <div id="footer">
+      <footer/>
+    </div>
+    <div id="side-bar">
+      <side-bar/>
     </div>
   </body>
 </html>
