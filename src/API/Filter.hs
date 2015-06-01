@@ -3,7 +3,6 @@
 module API.Filter where
 
 import CCG
-import Data.Data (Typeable)
 import API.Database
 import Data.Char
 import Data.IxSet

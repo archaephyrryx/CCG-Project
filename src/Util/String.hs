@@ -1,9 +1,5 @@
 module Util.String where
 
-import Data.List
-import Data.List.Split
-import Data.Char
-
 unquote :: String -> String
 unquote x | null x = x
           | head x == '\'' && last x == '\'' = init.tail $ x

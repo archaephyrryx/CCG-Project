@@ -29,3 +29,9 @@ one = (:[])
 once :: (a -> b) -> (a -> [b])
 once = (one.)
 
+headDef :: a -> [a] -> a
+headDef x [] = x
+headDef _ (x:_) = x
+
+neck = (!!1)
+body = (!!2)
