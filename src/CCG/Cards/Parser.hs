@@ -13,14 +13,12 @@ import qualified Data.Map as Map
 import Data.Map (Map)
 import Data.Function (on)
 import Util.String
+import Util.List
 
 newtype OrderedField = OrderedField { flds :: [String] }
 
 getField :: String -> OrderedField -> [([String] -> String)]
 getField x y = map (flip (!!)) (elemIndices x (flds y))
-
-neck = (!!1)
-body = (!!2)
 
 data FieldWrapper =
      FieldWrapper
@@ -75,10 +73,6 @@ ocrBlock str = let (h:xs) = lines str
 
 fieldSplit :: String -> [String]
 fieldSplit = map unquote . split (dropInitBlank . dropDelims $ oneOf "\t")
-
-headDef :: a -> [a] -> a
-headDef x [] = x
-headDef _ (x:_) = x
 
 between :: Char -> Char -> String -> (Int,Int)
 between o c s = let open = elemIndices o s
