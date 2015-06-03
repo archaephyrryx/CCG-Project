@@ -4,6 +4,7 @@ import Util.Conditional
 
 infix 9 !?
 infix 9 ??
+infixl 9 !@
 
 full = not . null
 
@@ -35,3 +36,12 @@ headDef _ (x:_) = x
 
 neck = (!!1)
 body = (!!2)
+
+mmap :: (a -> b) -> Maybe [a] -> [b]
+mmap = (?/).map
+
+(!@) :: [a] -> [Int] -> [a]
+[]!@i = []
+x!@[] = []
+(x:xs)!@(0:is) = x : (xs!@(map pred is))
+(_:xs)!@(is) = xs!@(map pred is)
