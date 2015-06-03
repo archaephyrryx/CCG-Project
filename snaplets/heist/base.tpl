@@ -13,7 +13,7 @@
     </div>
     <div id="header">
       <header/>
-    <div>
+    </div>
     <div id="content">
       <main/>
     </div>

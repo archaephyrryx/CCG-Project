@@ -1,1 +1,1 @@
-      <info></cardname></info>
+<info><cardname /></info>

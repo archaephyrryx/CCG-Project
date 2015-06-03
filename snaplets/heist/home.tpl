@@ -1,2 +1,2 @@
-    <apply template="_homeh">
-    <apply template="_homec">
+<apply template="_homeh"/>
+<apply template="_homec"/>

@@ -10,13 +10,13 @@
   </tr>
   <cardrows>
     <tr>  
-      <setnum />
-      <rarity />
-      <typeicon />
-      <cost />
-      <req />
-      <cname />
-      <power />
+      <td><setnum /></td>
+      <td><rarity /></td>
+      <td><typeicon /></td>
+      <td><cost /></td>
+      <td><req /></td>
+      <td><cname /></td>
+      <td><power /></td>
     </tr>
   </cardrows>
 </table>

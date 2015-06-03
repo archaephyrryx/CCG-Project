@@ -29,11 +29,11 @@ import           Snaplets
 app :: SnapletInit App App
 app = makeSnaplet "snapplejack" "The SnappleJack Web Server" Nothing $ do
     hs <- nestSnaplet "heist" heist $ heistInit ""
-    fs <- nestSnaplet "foo" foo $ fooInit
-    bs <- nestSnaplet "bar" bar $ nameSnaplet "newname" $ barInit foo
+    --fs <- nestSnaplet "foo" foo $ fooInit
+    --bs <- nestSnaplet "bar" bar $ nameSnaplet "newname" $ barInit foo
     addRoutes routes
-    ref <- liftIO $ newIORef "snapplejack"
-    return $ App hs fs bs ref
+    --ref <- liftIO $ newIORef "snapplejack"
+    return $ App hs -- fs bs ref
     where
         routes :: [(ByteString, Handler App App ())]
         routes = [ ("/card", cardHandler)

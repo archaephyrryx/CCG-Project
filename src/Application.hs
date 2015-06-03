@@ -13,9 +13,6 @@ import Snaplets
 ------------------------------------------------------------------------------
 data App = App
     { _heist    :: Snaplet (Heist App)
-    , _foo      :: Snaplet Foo
-    , _bar      :: Snaplet Bar
-    , _sitename :: IORef B.ByteString
     }
 
 makeLenses ''App

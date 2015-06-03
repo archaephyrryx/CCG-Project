@@ -42,5 +42,6 @@ executable ccgserver
   hs-source-dirs:
         src
         src/CCG
+        src/API
   main-is:
         Main.hs
