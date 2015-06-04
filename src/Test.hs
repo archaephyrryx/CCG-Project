@@ -21,8 +21,12 @@ import              Snap.Snaplet.Config
 import              System.IO
 import              CCG hiding (render)
 import              API.Filter
+----------------------------------------
 import              Renderer.FilterCard
+import              Renderer.Deck
 import              Handler.FilterCard
+import              Handler.Deck
+-----------------------------------
 import              Application
 
 app :: SnapletInit App App
@@ -33,7 +37,7 @@ app = makeSnaplet "snapplejack" "The SnappleJack Web Server" Nothing $ do
   where
         routes :: [(ByteString, Handler App App ())]
         routes = [ ("/card", cardHandler)
-                 {-, ("/deck", deckHandler) -}
+                 , ("/deck", deckHandler)
                  , ("/res", serveDirectory "res")
                  , ("", cardServe blankCardFilter)
                  ]
@@ -44,5 +48,14 @@ cardHandler = do
     let filter = parseCardFilter params
     cardServe filter
 
+deckHandler :: Handler App App ()
+deckHandler = do
+    params <- getParams
+    let filter = parseDeckFilter params
+    deckServe filter
+
 cardServe :: Filter -> Handler App App ()
-cardServe = renderWithSplices "card" . filterSplice
+cardServe = renderWithSplices "card" . cfSplice
+
+deckServe :: Filter -> Handler App App ()
+deckServe = renderWithSplices "deck" . dfSplice

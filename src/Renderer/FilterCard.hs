@@ -21,11 +21,11 @@ import           Data.IxSet
 import           Formal
 import           Util.Conditional
 
-filterSplice :: Filter -> Splices (SnapletISplice App)
-filterSplice f = do
-                    "card-header" ## I.callTemplate "_card" (noSplices)
-                    "card-content" ## I.callTemplate "_cardc" (resultSplice f)
-                    "card-footer" ## I.callTemplate "_cardf" (noSplices)
+cfSplice :: Filter -> Splices (SnapletISplice App)
+cfSplice f = do
+    "card-header" ## I.callTemplate "_card" (noSplices)
+    "card-content" ## I.callTemplate "_cardc" (resultSplice f)
+    "card-footer" ## I.callTemplate "_cardf" (noSplices)
 
 resultSplice :: Filter -> Splices (SnapletISplice App)
 resultSplice f = let cards = toList . applyFilter $ f

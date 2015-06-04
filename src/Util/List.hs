@@ -43,5 +43,7 @@ mmap = (?/).map
 (!@) :: [a] -> [Int] -> [a]
 []!@i = []
 x!@[] = []
-(x:xs)!@(0:is) = x : (xs!@(map pred is))
-(_:xs)!@(is) = xs!@(map pred is)
+(x:xs)!@(i:is)
+  | i == 0 = x:xs!@map pred is
+  | i <  0 = []
+  | otherwise = xs!@map pred is

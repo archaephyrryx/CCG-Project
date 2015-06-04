@@ -1,16 +1,10 @@
-{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE OverloadedStrings, RecordWildCards #-}
 module Snaplets where
 
 import Snap.Snaplet
 
-data Config = Config
-    { n :: Int -- ^ Number of cards to display per page (list view)
-    , rs :: Int -- ^ Number of card rows to display per page (grid view)
-    , cs :: Int -- ^ Number of card columns to display (grid view)
-    }
-
 data ViewMode = ListView { n :: Int, pn :: Int }
-              | GridView { rs  :: Int, cs :: Int, pn :: Int }
+              | GridView { rs :: Int, cs :: Int, pn :: Int }
               | FlatView { pn :: Int }
                 deriving (Read, Show, Eq)
 
