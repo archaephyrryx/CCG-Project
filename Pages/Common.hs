@@ -17,7 +17,8 @@ import HSP
 import HSP.Monad                  (HSPT(..))
 import Language.Haskell.HSX.QQ    (hsx)
 import Application
-import CCG.Cards.Common hiding (Text)
+import CCG hiding (Text)
+import Renderer.Common
 
 instance EmbedAsAttr (AppT' IO) (Attr Text Req) where
     asAttr (n := v) = asAttr (n := (Lazy.pack . show . val $ v))
@@ -34,7 +35,7 @@ instance (Functor m, Monad m) =>
          EmbedAsAttr (AppT' m) (Attr Text String) where
     asAttr (n := v) = asAttr (n := Lazy.pack v)
 
-base :: String -> Html -> Html
+base :: String -> Rendered -> Rendered
 base pagename content = 
   [hsx|
     <html>
@@ -68,7 +69,7 @@ nav =
     </nav>
   |]
 
-template :: String -> [Html] -> Html
+template :: String -> Rendered' -> Rendered
 template pagename content =
   [hsx|
     <html>

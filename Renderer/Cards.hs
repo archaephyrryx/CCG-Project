@@ -1,5 +1,4 @@
-{-# LANGUAGE OverloadedStrings, QuasiQuotes, RecordWildCards,
-   TupleSections, Rank2Types #-}
+{-# LANGUAGE TupleSections, Rank2Types #-}
 
 module Renderer.Cards where
 -------------------------------------------------
@@ -13,15 +12,6 @@ import Util
 --------------------------------------------------
 import Renderer.Core
 --------------------------------------------------
-import qualified Data.Text          as Strict
-import qualified Data.Text.Lazy     as Lazy
-import Data.Text.Lazy               ( Text )
-import Happstack.Server
-import Happstack.Server.HSP.HTML
-import Happstack.Server.XMLGenT
-import HSP hiding (set)
-import HSP.Monad                    ( HSPT(..) )
-import Language.Haskell.HSX.QQ      ( hsx )
 
 type UCR = UniCard c => Renderer c
 type UCR' = UniCard c => Renderer' c

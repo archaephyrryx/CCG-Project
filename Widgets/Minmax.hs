@@ -1,6 +1,6 @@
 {-# LANGUAGE FlexibleContexts, FlexibleInstances, MultiParamTypeClasses, ScopedTypeVariables, TypeFamilies, UndecidableInstances, ViewPatterns, QuasiQuotes, OverloadedStrings #-}
 
-module Reformation (inputMin, inputMax) where
+module Widgets.Minmax where
 
 import HSP
 import qualified Text.Reform.Generalized as G
@@ -11,6 +11,16 @@ import Language.Haskell.HSX.QQ    (hsx)
 import Data.Maybe
 import CCG
 import Control.Applicative
+import Formal
+import Renderer.Core
+
+data MinMax = MinMax
+  { label :: String
+  , title :: String
+  , minid :: String
+  , maxid :: String
+  }
+
 
 -- |A highly general Reform input element that can be used for
 -- templating arbitrary types of Html input fields
@@ -81,3 +91,47 @@ inputMax = customInput inputField readMaybeHintError
 -- and a Right Maybe-Hint-value if successful
 readMaybeHintError :: (FormError error, FormInput input, ErrorInputType error ~ input, Hint number) => input -> Either error (Maybe number)
 readMaybeHintError i = readMaybeH <$> (getInputString i)
+
+minmax :: Renderer' MinMax
+minmax (MinMax l t n x) = collect
+  [ label # set for l #$ string t
+  , div # set id_ l #+
+    [ input #
+        set name n #
+        set placeholder "Min" #
+        set type_ "number" #
+        set min "0" #
+        set setep "1" #
+        set pattern "[0-9]+"
+    
+  
+  
+  
+  [hsx|
+    <div id="minmax">
+      <div>
+        <label for="powRange">Power</label>
+        <div id="powRange">
+          <input name="powmin" placeholder="Min" type="number" min="0" step="1" pattern="[0-9]+"/>
+          to
+          <input name="powmax" placeholder="Max" type="number" min="0" step="1" pattern="[0-9]+"/>
+        </div>
+      </div>
+      <div>
+        <label for="costRange">Cost</label>
+        <div id="costRange">
+          <input name="costmin" placeholder="Min" type="number" min="0" step="1" pattern="[0-9]+"/>
+          to
+          <input name="costmax" placeholder="Max" type="number" min="0" step="1" pattern="[0-9]+"/>
+        </div>
+      </div>
+      <div>
+        <label for="reqRange">Requirement</label>
+        <div id="reqRange">
+          <input name="reqmin" placeholder="Min" type="number" min="0" step="1" pattern="[0-9]+"/>
+          to
+          <input name="reqmax" placeholder="Max" type="number" min="0" step="1" pattern="[0-9]+"/>
+        </div>
+      </div>
+    </div> :: Html
+  |]

@@ -34,6 +34,7 @@ import Text.Reform
     , Form, FormError(..), decimal, prove, transformEither, transform )
 --------------------------------------------------
 import API.Database
+import API.Filter
 import Data.IxSet
 import Data.Map                   ( Map )
 import qualified Data.Map         as Map
@@ -45,9 +46,11 @@ import Control.Monad.State	        ( get, put )
 import Data.List                    hiding (insert)
 --------------------------------------------------
 import CCG hiding (Text)
+import Util
 --------------------------------------------------
 import Application
 import Reformation
+import Renderer.Core
 import Pages.Common (template)
 import Pages.Card (reqtify, empower, pronounce)
 ---------------------------------------------------
@@ -56,8 +59,6 @@ newtype AppError = AppCFE (CommonFormError [Input])
     deriving (Show)
 
 type SimpleForm = Form (AppT IO) [Input] AppError [Html] ()
-type CFilterSig = ([Maybe Power],[Maybe Cost],[Maybe Req]) -> Maybe [Color] -> Maybe [CSet] -> Maybe [Rarity] -> Maybe [CardType] -> Html
-type DFilterSig = Maybe [Color] -> Maybe [CSet] -> Maybe [Rarity] -> Maybe [CardType] -> Html
 
 instance (Functor m, Monad m) => EmbedAsChild (AppT' m) AppError where
   asChild (AppCFE cfe)      =
@@ -67,122 +68,48 @@ instance FormError AppError where
     type ErrorInputType AppError = [Input]
     commonFormError = AppCFE
 
-data Filter = CardFilter
-                { powMin :: Maybe Power
-                , powMax :: Maybe Power
-                , costMin :: Maybe Cost
-                , costMax :: Maybe Cost
-                , reqMin :: Maybe Req
-                , reqMax :: Maybe Req
-                , colors :: [Color]
-                , sets :: [CSet]
-                , types :: [CardType]
-                , rarities :: [Rarity]
-                }
-             | DeckFilter
-                { colors :: [Color]
-                , sets :: [CSet]
-                , types :: [CardType]
-                , rarities :: [Rarity]
-                }
-        deriving (Eq, Ord, Read, Show)
-
-mhfilter :: Filter -> IxSet GenCard -> IxSet GenCard
-mhfilter c@CardFilter{..} = (if isJust powMin then (@>= (fromJust powMin)) else id) . (if isJust powMax then (@<= (fromJust powMax)) else id) . (if isJust costMin then (@>= (fromJust costMin)) else id) . (if isJust costMax then (@<= (fromJust costMax)) else id) . (if isJust reqMin then (@>= (fromJust reqMin)) else id) . (if isJust reqMax then (@<= (fromJust reqMax)) else id)
-
-full :: [a] -> Bool
-full [] = False
-full _ = True
-
-mcfilter :: Filter -> IxSet GenCard -> IxSet GenCard
-mcfilter c@CardFilter{..} = (if full colors then (@+ colors) else id) . (if full sets then (@+ sets) else id) . (if full types then (@+ types) else id) . (if full rarities then (@+ rarities) else id)
-mcfilter d@DeckFilter{..} = (if full colors then (@+ colors) else id) . (if full sets then (@+ sets) else id) . (if full types then (@+ types) else id) . (if full rarities then (@+ rarities) else id)
-
-applyFilter :: Filter -> [GenCard]
-applyFilter c@CardFilter{..} = toList $ mcfilter c . mhfilter c $ cardDB
-applyFilter d@DeckFilter{..} = toList $ mcfilter d $ cardDB
-
-renderFilter :: Filter -> Html
-renderFilter fil = let gens = applyFilter fil in
-  [hsx|
-    <table>
-      <tr>
-        <td>#</td>
-        <td>Rarity</td>
-        <td>Type</td>
-        <td>Cost</td>
-        <td>Req.</td>
-        <td>Name</td>
-        <td>Power</td>
-      </tr>
-      <% mapM cardLine gens %>
-    </table> :: Html
-  |]
-
-cardLine :: GenCard -> Html
-cardLine g@GenCard{..} =
-  [hsx|
-    <tr>
-      <td><% genset g %></td>
-      <td><% brief grar %></td>
-      <td><% iconic ctype %></td>
-      <td><% fromMaybe "" (show.val <$> mcost) %></td>
-      <td><% reqtify g %></td>
-      <td><% pronounce (unravel gname, genset $ g)%></td>
-      <td><% empower g %></td>
-    </tr> :: Html
-  |]
-
-iconic :: CardType -> GCL
-iconic x = let ipath = "res/icns/"++(show x)++".png" in
-  [hsx|
-    <%>
-      <img class="icon" [ "src" := ipath :: Attr Text String ] />
-    </%> :: GCL
-  |]
-      
-cardForm :: ([Maybe Power],[Maybe Cost],[Maybe Req]) -> Maybe [Color] -> Maybe [CSet] -> Maybe [Rarity] -> Maybe [CardType] -> SimpleForm Filter
-cardForm ([mnp,mxp],[mnc,mxc],[mnr,mxr]) mc ms mr mt =
+cardForm :: Filter -> SimpleForm Filter
+cardForm f =
   CardFilter
-    <$> labelText "Power:"      ++> inputMin mnp
-    <*> labelText "to"          ++> inputMax mxp            <++ br
-    <*> labelText "Cost:"       ++> inputMin mnc
-    <*> labelText "to"          ++> inputMax mxc            <++ br
-    <*> labelText "Requirement:"++> inputMin mnr
-    <*> labelText "to"          ++> inputMax mxr            <++ br
-    <*> labelText "Color"       ++> sv show colorValues  mc <++ br
-    <*> labelText "Set"         ++> sv show setValues    ms <++ br
-    <*> labelText "Type"        ++> sv show typeValues   mt <++ br
-    <*> labelText "Rarity"      ++> sv show rarityValues mr <++ br
+    <$> labelText "Power:"      ++> inputMin . powMin $ f
+    <*> labelText "to"          ++> inputMax . powMax $ f   <++ br
+    <*> labelText "Cost:"       ++> inputMin . costMin $ f
+    <*> labelText "to"          ++> inputMax . costMax $ f  <++ br
+    <*> labelText "Requirement:"++> inputMin . reqMin $ f
+    <*> labelText "to"          ++> inputMax . reqMax $ f   <++ br
+    <*> labelText "Color"       ++> svs colorValues . colors $ f <++ br
+    <*> labelText "Set"         ++> svs setValues   . sets   $ f <++ br
+    <*> labelText "Type"        ++> svs typeValues  . types  $ f <++ br
+    <*> labelText "Rarity"      ++> svs rarityValues. rarities $ f <++ br
     <*  inputSubmit "Filter"
 
-sv f vs (Nothing) = selectMultiple (map (\x -> (x, f x)) vs) (const False)
-sv f vs (Just xs) = selectMultiple (map (\x -> (x, f x)) vs) (`elem`xs)
-      
-deckForm :: Maybe [Color] -> Maybe [CSet] -> Maybe [Rarity] -> Maybe [CardType] -> SimpleForm Filter
+svs = sv show
+sv f vs [] = selectMultiple (map (\x -> (x, f x)) vs) (const False)
+sv f vs xs = selectMultiple (map (\x -> (x, f x)) vs) (`elem`xs)
+
+deckForm :: Filter -> SimpleForm Filter
 deckForm mc ms mr mt =
   DeckFilter
-    <$> labelText "Color"       ++> sv show colorValues  mc <++ br
-    <*> labelText "Set"         ++> sv show setValues    ms <++ br
-    <*> labelText "Type"        ++> sv show typeValues   mt <++ br
-    <*> labelText "Rarity"      ++> sv show rarityValues mr <++ br
+    <$> labelText "Color"       ++> svs colorValues . colors $ f <++ br
+    <*> labelText "Set"         ++> svs setValues   . sets   $ f <++ br
+    <*> labelText "Type"        ++> svs typeValues  . types  $ f <++ br
+    <*> labelText "Rarity"      ++> svs rarityValues. rarities $ f <++ br
     <*  inputSubmit "Filter"
 
-
-cardHtml :: CFilterSig
-cardHtml x mc ms mr mt = do
+cardHtml :: Renderer Filter
+cardHtml f = do
     let action = "/card" :: Text
-    result <- happstackEitherForm (form action) "card" (cardForm x mc ms mr mt)
+    result <- happstackEitherForm (form action) "card" (cardForm f)
     case result of
         (Left formHtml) ->
             template "Card Form" formHtml
         (Right flt) ->
             template "Card Result" $ [renderFilter flt]
-    
-deckHtml :: DFilterSig
-deckHtml mc ms mr mt = do
+
+deckHtml :: Renderer Filter
+deckHtml f = do
     let action = "/deck" :: Text
-    result <- happstackEitherForm (form action) "deck" (deckForm mc ms mr mt)
+    result <- happstackEitherForm (form action) "deck" (deckForm f)
     case result of
         (Left formHtml) ->
             template "Deck Form" formHtml

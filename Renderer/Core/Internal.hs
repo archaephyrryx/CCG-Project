@@ -19,32 +19,18 @@ import GHC.Tuple
 type App' m = HSPT XML (ServerPartT m)
 type App m  = XMLGenT (App' m)
 type Html = App IO XML
-type Html' = App' IO XML
 type GCL = GenChildList (App' IO)
 type GAL = GenAttributeList (App' IO)
 
 type Rendered = Html
 type Rendered' = GCL
 type Mattrs = [GAL]
+
 type Builder = ((Mattrs -> Rendered' -> Rendered), Mattrs)
+type Vacuum = ((Mattrs -> Rendered), Mattrs)
 
 type Renderer a = a -> Rendered
 type Renderer' a = a -> Rendered'
-
-appt :: Type -> Type
-appt f = AppT (ConT ''XMLGenT) (AppT (AppT (ConT ''HSPT) (ConT ''XML)) (AppT (ConT ''ServerPartT) f))
-
-gcl :: Type -> Type
-gcl f = AppT (ConT ''GenChildList) (AppT (AppT (ConT ''HSPT) (ConT ''XML)) (AppT (ConT ''ServerPartT) f))
-
-gal :: Type -> Type
-gal f = AppT (ConT ''GenAttributeList) (AppT (AppT (ConT ''HSPT) (ConT ''XML)) (AppT (ConT ''ServerPartT) f))
-
-tupt :: Type -> Type -> Type
-tupt x y = AppT (AppT (TupleT 2) x) y
-
-funt :: Type -> Type -> Type
-funt x y = AppT (AppT ArrowT x) y
 
 makeElement :: String -> Q [Dec]
 makeElement s = do id <- newName s
@@ -59,10 +45,23 @@ makeElement s = do id <- newName s
 makeElements :: [String] -> Q [Dec]
 makeElements ss = fmap concat $ sequence (map makeElement ss)
 
+makeVacuum :: String -> Q [Dec]
+makeVacuum s = do id <- newName s
+                  at <- newName "at"
+                  return $ [ ValD (VarP id) (NormalB (SigE (TupE
+                            [ LamE [VarP at] (AppE (AppE (VarE 'genEElement)
+                                (TupE [ConE 'Nothing, AppE (VarE 'fromStringLit) (LitE (StringL s))])
+                                (ListE [AppE (VarE 'asAttr) (VarE at)]))
+                            , (ListE [])]) (ConT ''Vacuum))) [] ]
 
 makeAttr :: String -> Q [Dec]
 makeAttr s = do id <- newName s
                 return [ ValD (VarP id) (NormalB (SigE (LitE (StringL s)) (ConT ''Text))) [] ]
+
+
+makeAttr' :: (String,String) -> Q [Dec]
+makeAttr' (s,s') = do id <- newName s
+                return [ ValD (VarP id) (NormalB (SigE (LitE (StringL s')) (ConT ''Text))) [] ]
 
 makeAttrs :: [String] -> Q [Dec]
 makeAttrs ss = fmap concat $ sequence (map makeAttr ss)

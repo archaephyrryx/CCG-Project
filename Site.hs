@@ -31,9 +31,10 @@ import Text.Reform.HSP.Text
 import qualified Pages.Vanilla as Vanilla
 import qualified Pages.Reform as Reformed
 import Pages.Reform (cardHtml, deckHtml, CFilterSig, DFilterSig)
+import Renderer.Core
+import CCG hiding (text)
 import Pages.Common
 import Pages.Card
-import CCG.Cards.Common
 
 sitename = "HappleJack"
 
@@ -59,12 +60,12 @@ home = base pagename $
   where
     pagename = sitename
 
-card :: CFilterSig
-card x mc ms mr mt = base pagename (cardHtml x mc ms mr mt)
+card :: Renderer Filter
+card = base pagename . cardHtml
   where
     pagename = sitename ++ ": Cards"
 
-deck :: DFilterSig
-deck mc ms mr mt = base pagename (deckHtml mc ms mr mt)
+deck :: Renderer Filter
+deck = base pagename . deckHtml
   where
     pagename = sitename ++ ": Deck Builder"
