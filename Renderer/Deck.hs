@@ -1,4 +1,3 @@
-{-# LANGUAGE RecordWildCards, QuasiQuotes, OverloadedStrings #-} 
 module Renderer.Deck where
 -------------------------------------------------
 import Prelude hiding (div, span)
@@ -10,23 +9,12 @@ import API.Database
 import Data.IxSet
 --------------------------------------------------
 import CCG
---------------------------------------------------
 import Util
 --------------------------------------------------
 import Renderer.Core
 import Renderer.Cards
 import Renderer.SingleCard
 --------------------------------------------------
-import qualified Data.Text          as Strict
-import qualified Data.Text.Lazy     as Lazy
-import Data.Text.Lazy               ( Text )
-import Happstack.Server
-import Happstack.Server.HSP.HTML
-import Happstack.Server.XMLGenT
-import HSP
-import HSP.Monad                    ( HSPT(..) )
-import Language.Haskell.HSX.QQ      ( hsx )
----------------------------------------------------
 
 construct :: Deck -> (Builder -> Rendered)
 construct d = (#+[ structure "mane" (mheader nmane) manes

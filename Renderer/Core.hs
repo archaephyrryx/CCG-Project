@@ -29,7 +29,7 @@ infixl 7 #$
 --- Operators
  
 set :: ToValue v => String -> v -> (a, Mattrs) -> (a, Mattrs)
-set a v = (>$((at a $ toValue v):))
+set a v = (>$(atval a v))
 
 (#) :: a -> (a -> b) -> b
 (#) = flip ($)
@@ -55,6 +55,8 @@ morph xs = sequence_ xs
 collect :: [Rendered'] -> Rendered'
 collect xs = sequence_ xs
 
+evac = zap
+
 --- Elements
 
 hr :: Rendered
@@ -74,6 +76,7 @@ $(makeElements ["table", "tr", "th", "td"])
 $(makeElements ["dl", "dd", "dt"])
 $(makeElements ["ul", "li"])
 $(makeElements ["b", "i"])
+$(makeElement "label")
 $(makeVacuum "img")
 $(makeVacuum "input")
 

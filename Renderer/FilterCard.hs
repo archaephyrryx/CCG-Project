@@ -1,4 +1,4 @@
-{-# LANGUAGE RecordWildCards, Rank2Types #-}
+{-# LANGUAGE RecordWildCards #-}
 
 module Renderer.FilterCard where
 

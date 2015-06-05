@@ -34,6 +34,9 @@ stat s = let t = T.pack s
 at :: String -> (AttributeValue -> Attribute)
 at x = attribute (stringTag x) (stringTag $ (' ':x++"=\""))
 
+atval :: ToValue v => String -> v -> Mattrs -> Mattrs
+atval a v = ((at a $ toValue v):)
+
 vacate :: Rendered -> Mattrs -> Rendered
 vacate = foldl (!)
 
@@ -61,8 +64,8 @@ makeElements ss = fmap concat $ sequence (map makeElement ss)
 
 makeVacuum :: String -> Q [Dec]
 makeVacuum s = do id <- newName s
-                   at <- newName "at"
-                   return $ [ ValD (VarP id) (NormalB (SigE (TupE
+                  at <- newName "at"
+                  return $ [ ValD (VarP id) (NormalB (SigE (TupE
                            [ LamE [VarP at] (AppE (AppE (VarE 'vacate)
                                  (AppE (VarE 'vacant) (LitE (StringL s))))
                                (VarE at))

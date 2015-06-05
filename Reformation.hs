@@ -26,6 +26,8 @@ customInput f getField initialValue = G.input getField f initialValue
 
 
 inputNumber :: (Monad m , FormError error, FormInput input , ErrorInputType error ~ input , ToValue number , Hint number) => (Maybe number) -> Form m input error Html () (Maybe number)
+-- ^A generic but concrete application of 'customInput' that permits
+-- non-negative numbers as input and yields a Hint instance as output
 inputNumber = customInput inputField readMaybeHintError
   where
     inputField :: (ToValue number, Hint number) => (FormId -> (Maybe number) -> Html)
@@ -36,7 +38,6 @@ inputNumber = customInput inputField readMaybeHintError
                                    ! A.step "1" ! A.pattern "[0-9]+"
                                    ! A.id (toValue i) ! A.name (toValue i)
 
-inputMin :: (Monad m , FormError error, FormInput input , ErrorInputType error ~ input , ToValue number , Hint number) => (Maybe number) -> Form m input error Html () (Maybe number)
 inputMin = customInput inputField readMaybeHintError
   where
     inputField :: (ToValue number, Hint number) => (FormId -> (Maybe number) -> Html)
@@ -68,6 +69,3 @@ inputMax = customInput inputField readMaybeHintError
 -- and a Right Maybe-Hint-value if successful
 readMaybeHintError :: (FormError error, FormInput input, ErrorInputType error ~ input, Hint number) => input -> Either error (Maybe number)
 readMaybeHintError i = readMaybeH <$> (getInputString i)
-  where
-    readMaybeH "" = Nothing
-    readMaybeH x = Just (readH x)
