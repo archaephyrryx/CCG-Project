@@ -1,8 +1,7 @@
 {-# LANGUAGE FlexibleContexts, FlexibleInstances,
     MultiParamTypeClasses, ScopedTypeVariables,
     TypeFamilies, TypeSynonymInstances,
-    OverlappingInstances,
-    QuasiQuotes, OverloadedStrings #-}
+    OverlappingInstances, OverloadedStrings #-}
 
 module Pages.Common where
 

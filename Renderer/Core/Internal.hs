@@ -2,6 +2,7 @@
 
 module Renderer.Core.Internal where
 
+import Control.Applicative
 import Data.Maybe
 import Happstack.Server
 import Happstack.Server.Internal.Monads (ServerPartT)
@@ -12,7 +13,7 @@ import HSP.Monad (HSPT(..))
 import HSP.XML (XML(..))
 import HSP.XMLGenerator
 import Language.Haskell.TH
-import Data.Text.Lazy (Text)
+import Data.Text.Lazy (Text, pack)
 -----
 import GHC.Tuple
 
@@ -31,6 +32,9 @@ type Vacuum = ((Mattrs -> Rendered), Mattrs)
 
 type Renderer a = a -> Rendered
 type Renderer' a = a -> Rendered'
+
+atval :: String -> Strig -> Mattrs -> Mattrs
+atval t s = (toAttr ((pack t) := s):)
 
 makeElement :: String -> Q [Dec]
 makeElement s = do id <- newName s
@@ -56,12 +60,11 @@ makeVacuum s = do id <- newName s
 
 makeAttr :: String -> Q [Dec]
 makeAttr s = do id <- newName s
-                return [ ValD (VarP id) (NormalB (SigE (LitE (StringL s)) (ConT ''Text))) [] ]
-
+                return [ ValD (VarP id) (NormalB (LitE (StringL s))) [] ]
 
 makeAttr' :: (String,String) -> Q [Dec]
 makeAttr' (s,s') = do id <- newName s
-                return [ ValD (VarP id) (NormalB (SigE (LitE (StringL s')) (ConT ''Text))) [] ]
+                      return [ ValD (VarP id) (NormalB (LitE (StringL s'))) []]
 
 makeAttrs :: [String] -> Q [Dec]
 makeAttrs ss = fmap concat $ sequence (map makeAttr ss)

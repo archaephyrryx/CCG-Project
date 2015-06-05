@@ -41,13 +41,13 @@ instance (Functor m, Monad m) =>
 
 --- Operators
  
-set :: Text -> String -> Builder -> Builder
-set t s = (>$((asAttr $ (t := s)):))
+set :: String -> String -> (a, Mattrs) -> (a, Mattrs)
+set a v = (>$(atval a v))
 
 (#) :: a -> (a -> b) -> b
 (#) = flip ($)
 
-(#.) :: Builder -> String -> Builder
+(#.) :: (a, Mattrs) -> String -> (a, Mattrs)
 (#.) b s = b # set "class" s
 
 (#+) :: Builder -> [Rendered] -> Rendered
@@ -80,6 +80,8 @@ $(makeElement "a")
 $(makeElement "p")
 $(makeElement "span")
 $(makeElement "div")
+$(makeElement "nav")
+$(makeElement "form")
 $(makeElements ((:) <$> "h" <*> (show <$> [1..6])))
 $(makeElements ["table", "tr", "th", "td"])
 $(makeElements ["dl", "dd", "dt"])
@@ -94,11 +96,17 @@ $(makeVacuum "input")
 $(makeAttr "src")
 $(makeAttr "href")
 $(makeAttr "text")
-$(makeAttr "for")
-$(makeAttr' ("id_","id"))
-$(makeAttr "name")
+$(makeAttr' ("type_", "type"))
 $(makeAttr "placeholder")
-$(makeAttr' ("type_","type"))
-$(makeAttr "min")
-$(makeAttr "step")
-$(makeAttr "pattern")
+
+
+--- Backbone
+
+$(makeElement "html")
+$(makeElements ["head", "title"])
+$(makeElement "body")
+$(makeVacuum "meta")
+$(makeVacuum "link")
+
+$(makeAttr' ("httpEquiv", "http-equiv"))
+$(makeAttrs ["charset","rel","name","content"])

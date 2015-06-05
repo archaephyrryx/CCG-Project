@@ -1,8 +1,7 @@
 {-# LANGUAGE FlexibleContexts, FlexibleInstances,
     MultiParamTypeClasses, ScopedTypeVariables,
-    TypeFamilies, TypeSynonymInstances,
-    OverlappingInstances,
-    QuasiQuotes, OverloadedStrings #-}
+	TypeFamilies, TypeSynonymInstances,
+	OverloadedStrings #-}
 
 module Site where
 
@@ -23,9 +22,6 @@ import Language.Haskell.HSX.QQ    (hsx)
 import Application
 import Text.Reform.Happstack
 import Text.Reform
-    ( CommonFormError(..), Form, FormError(..), Proof(..), (++>)
-    , (<++), commonFormErrorStr, decimal, prove
-    , transformEither, transform )
 import Text.Reform.Happstack
 import Text.Reform.HSP.Text
 import qualified Pages.Vanilla as Vanilla

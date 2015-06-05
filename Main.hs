@@ -14,12 +14,15 @@ import Query
 main :: IO ()
 main = simpleHTTP nullConf $ msum
         [ dir "res"  $ resServe
+        , dir "card" $ path $ page.single
+        , dir "home" $ page home
         , handlebar
+        , page home
         ]
     where resServe = serveDirectory EnableBrowsing [] "res"
 
 handlebar :: ServerPartT IO Response 
-handlebar = page $ do
+handlebar = do
     decodeBody (defaultBodyPolicy "/tmp" 0 10000 10000)
     msum [ dir "card" $ msum
             [ nullDir >> parseCardFilter >>= card
@@ -27,6 +30,4 @@ handlebar = page $ do
             ]
          , dir "deck" $
               nullDir >> parseDeckFilter >>= deck
-         , dir "home" $ home
-         , home
          ]

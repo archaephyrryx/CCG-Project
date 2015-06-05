@@ -35,13 +35,9 @@ cardImgs :: UCR
 cardImgs = (table #+).map cimage.curls
 
 curls :: UniCard c => c -> [String]
-curls = map <$> ((++).("static/cards/"++).setnum) <*> (suffixes.utype)
+curls = map <$> (++).("static/cards/"++).setnum <*> suf
     where
-      suffixes :: CardType -> [String]
-      suffixes x = id:boost x <*> [suffix]
-      boost TMane = [('b':)]
-      boost _ = []
-      suffix = ".jpg"
+      suf = (<*>[".jpg"]).(id:).(consd (utype.=TMane) [('b':)] [])
 
 cimage :: String -> Rendered
 cimage s = tr #: td #: a # set href s #: img #. "card" # set src s #+ []
@@ -101,10 +97,13 @@ propLink s f x = (a #. s # set R.text (f x) #+ [])
 
 setLink :: UCR
 setLink = propLink "set" (show.uset)
+
 typeLink :: UCR
 typeLink = propLink "type" (show.utype)
+
 rarLink :: UCR
 rarLink = propLink "rarity" (show.urar)
+
 colLink :: UCR
 colLink = propLink "color" (maybe "Wild" show . ucolor)
 
