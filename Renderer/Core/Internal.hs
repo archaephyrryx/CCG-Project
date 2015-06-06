@@ -6,9 +6,9 @@ import Control.Applicative
 import Data.Maybe
 import Happstack.Server
 import Happstack.Server.Internal.Monads (ServerPartT)
+import qualified Text.Blaze.Html5 as H (hr)
 import Text.Blaze.Html5 (toValue, toHtml)
 import Text.Blaze.Html5.Attributes
-import Text.Blaze.Internal (StaticString(..), attribute, MarkupM(..), Tag(..), stringTag)
 import Text.Blaze.Internal
 import Text.Blaze.Html
 import Text.Blaze (ToValue)
@@ -26,6 +26,21 @@ type Vacuum = ((Mattrs -> Rendered), Mattrs)
 
 type Renderer a = a -> Rendered
 type Renderer' a = a -> Rendered'
+
+orph :: Rendered -> Rendered'
+orph x = x
+
+morph :: [Rendered] -> Rendered'
+morph xs = sequence_ xs
+
+collect :: [Rendered'] -> Rendered'
+collect xs = sequence_ xs
+
+hr :: Rendered
+hr = H.hr
+
+string :: String -> Rendered'
+string str = toHtml str
 
 stat :: String -> StaticString
 stat s = let t = T.pack s

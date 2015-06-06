@@ -40,7 +40,7 @@ curls = map <$> (++).("static/cards/"++).setnum <*> suf
       suf = (<*>[".jpg"]).(id:).(consd (utype.=TMane) [('b':)] [])
 
 cimage :: String -> Rendered
-cimage s = tr #: td #: a # set href s #: img #. "card" # set src s # evac
+cimage s = tr #: td #: a # set href s #: img #. "card" # set src s # zap
 
 cardText :: UCR
 cardText c = let m = maneText c

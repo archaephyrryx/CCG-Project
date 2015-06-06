@@ -1,6 +1,4 @@
-{-# LANGUAGE RecordWildCards, TypeSynonymInstances, FlexibleInstances, MultiParamTypeClasses #-}
 {-# LANGUAGE TemplateHaskell #-}
-{-# LANGUAGE OverloadedStrings #-} 
 module Renderer.Core (
     module Renderer.Core.Internal
   , module Renderer.Core
@@ -10,10 +8,8 @@ import Control.Applicative
 import qualified Data.Text          as Strict
 import qualified Data.Text.Lazy     as Lazy
 import Data.Text.Lazy               ( Text )
-import Text.Blaze ((!), ToValue(..), toValue)
-import Text.Blaze.Html (toHtml)
+import Text.Blaze (ToValue)
 import Happstack.Server
-import qualified Text.Blaze.Html5 as H (hr)
 ---------------------------------------------------
 import Util
 import Language.Haskell.TH
@@ -46,24 +42,7 @@ set a v = (>$(atval a v))
 (#:) :: Builder -> Rendered -> Rendered
 (#:) (renr,attrs) rens = renr attrs $ orph rens
 
-orph :: Rendered -> Rendered'
-orph x = x
-
-morph :: [Rendered] -> Rendered'
-morph xs = sequence_ xs
-
-collect :: [Rendered'] -> Rendered'
-collect xs = sequence_ xs
-
-evac = zap
-
 --- Elements
-
-hr :: Rendered
-hr = H.hr
-
-string :: String -> Rendered'
-string str = toHtml str
 
 $(makeElement "a")
 $(makeElement "p")
