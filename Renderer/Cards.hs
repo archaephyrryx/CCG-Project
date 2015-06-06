@@ -1,39 +1,48 @@
-{-# LANGUAGE RecordWildCards, TypeSynonymInstances, FlexibleInstances #-} 
+{-# LANGUAGE TupleSections, Rank2Types #-}
 
 module Renderer.Cards where
 -------------------------------------------------
 import Data.Maybe
-import Data.List
+import Data.List hiding (span)
+import Control.Applicative
+import Prelude hiding (span)
 --------------------------------------------------
-import CCG.Cards.Generic
-import CCG.Cards.Common
+import CCG hiding (set)
+import Util
 --------------------------------------------------
 import Renderer.Core
-import qualified Graphics.UI.Threepenny            as UI
-import qualified Graphics.UI.Threepenny.Core       as UI
-import qualified Graphics.UI.Threepenny.Elements   as UI
-import qualified Graphics.UI.Threepenny.Attributes as UI
-import Graphics.UI.Threepenny.Core hiding (get, set)
 --------------------------------------------------
 
-type GCR = GenCard -> Rendered
-type GCR' = GenCard -> Rendered'
+type UCR = UniCard c => Renderer c
+type UCR' = UniCard c => Renderer' c
 
-iconic :: CardType -> Rendered
-iconic x = let ipath = "static/icns/"++(show x)++".png" in
-          UI.img #. "icon typeIcon" # UI.set UI.src ipath
+iconic :: Renderer CardType
+iconic x = img #. "icon typeIcon" # set src ipath # zap
+  where
+      ipath :: String
+      ipath = ("static/icns/"++(show x)++".png")
 
-reqtify :: GCR
-reqtify g@GenCard{..} = cbox (show.val<$>mreq, mcolor)
+colored :: Hint h => (forall c. UniCard c => c -> Maybe h) -> UCR
+colored f = cbox . ((,) <$> ((showH <$>) . f) <*> ucolor)
 
-empower :: GCR
-empower g@GenCard{..} = cbox (show.val<$>mpower, mcolor)
+reqtify :: UCR
+reqtify = colored ureq
 
-cbox :: (Maybe String, Maybe Color) -> Rendered
-cbox (Nothing,_) = UI.span #+ []
-cbox (Just s, c) = UI.span #. (unwords ["element","label",(colorize c)]) #+ [string s]
+empower :: UCR
+empower = colored upower
+
+appraise :: UCR
+appraise = colored ucost
+
+cbox :: Renderer (Maybe String, Maybe Color)
+cbox (Nothing,_) = span #+ []
+cbox (Just s, c) = span #. (unwords ["element","label",(colorize c)]) #$ string s
   where
     colorize :: Maybe Color -> String
-    colorize (Nothing) = "NoColor"
-    colorize (Just Wild) = "Wild"
-    colorize (Just c) = show c
+    colorize = maybe "NoColor" show
+
+conf :: UCR
+conf = (span #+).map (cbox.zmap (pure,pure).(show.<val$<).swap).(fst?/).upreqs
+
+conf' :: UCR
+conf' = (span #+).(once (cbox.(pure.<show.<val$<).(,Nothing).snd)?/).upreqs

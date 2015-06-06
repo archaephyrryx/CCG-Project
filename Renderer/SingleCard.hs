@@ -1,78 +1,73 @@
-{-# LANGUAGE RecordWildCards, OverloadedStrings, TypeSynonymInstances, FlexibleInstances #-}
+{-# LANGUAGE RecordWildCards, TupleSections #-}
+{-# LANGUAGE TypeSynonymInstances, FlexibleInstances #-}
+{-# LANGUAGE Rank2Types, ImpredicativeTypes #-}
+{-# LANGUAGE OverloadedStrings #-}
 
 module Renderer.SingleCard where
 -------------------------------------------------
 import Data.Maybe
-import Data.List
+import Data.List hiding (span)
 import Data.List.Split
 import Data.Char
+import Data.Tuple
+import Prelude hiding (span, div)
 -------------------------------------------------
 import Control.Applicative
 import Control.Monad
 --------------------------------------------------
-import CCG
+import CCG hiding (set)
+import API.Parser
 --------------------------------------------------
-import Renderer.Cards
 import Util
 --------------------------------------------------
-import qualified Graphics.UI.Threepenny            as UI
-import qualified Graphics.UI.Threepenny.Core       as UI
-import qualified Graphics.UI.Threepenny.Elements   as UI
-import qualified Graphics.UI.Threepenny.Attributes as UI
-import Graphics.UI.Threepenny.Core hiding (get, set, text)
+import Renderer.Cards
+import Renderer.Core hiding (text)
+import qualified Renderer.Core as R (text)
+--------------------------------------------------
 
-renderCard :: GCR'
-renderCard g = [ UI.div #. "card-imgs" #+ [cardImgs g]
-               , UI.div #. "card-text" #+ [cardText g]
-               ]
+renderCard :: UniCard c => c -> (Builder -> Rendered)
+renderCard c =
+  (#+ [ div #. "card-imgs" #: cardImgs c
+      , div #. "card-text" #: cardText c
+      ])
 
-cardImgs :: GCR
-cardImgs = (UI.table #+).(map cimage.curls)
+cardImgs :: UCR
+cardImgs = (table #+).map cimage.curls
 
-curls :: GenCard -> [String]
-curls g@GenCard{..} = let sn = genset g in map (("static/cards/"++sn)++) (suffixes ctype)
+curls :: UniCard c => c -> [String]
+curls = map <$> (++).("static/cards/"++).setnum <*> suf
     where
-      suffixes :: CardType -> [String]
-      suffixes x = id:boost x <*> [suffix]
-      boost TMane = [('b':)]
-      boost _ = []
-      suffix = ".jpg"
+      suf = (<*>[".jpg"]).(id:).(consd (utype.=TMane) [('b':)] [])
 
-cimage :: String -> UI Element
-cimage s = UI.tr #+ [UI.td #+ [UI.a # UI.set (attr "href") s #+ [UI.img #. "card" # UI.set (attr "src") s]]]
+cimage :: String -> Rendered
+cimage s = tr #: td #: a # set href s #: img #. "card" # set src s # zap
 
-cardText :: GCR
-cardText g = let m = maneText g
+cardText :: UCR
+cardText c = let m = maneText c
                  labs =((++) <$> ["","Boosted "] <*> ["Card Text"])
-             in UI.dlist #+ (map dbox $ zip m labs)
+             in dl #$ (collect $ map (morph.dbox) $ zip m labs)
+    where
+      textBox :: [String] -> Rendered
+      textBox = (div #+) . map ((p #$).string)
+      maneText :: UniCard c => c -> [Rendered]
+      maneText = map textBox . pbreaks . parseTexts
+      dbox :: (Rendered, String) -> [Rendered]
+      dbox (disp,lab) = [ dt #$ string lab, dd #: disp ]
 
-dbox :: ([UI Element], String) -> UI Element
-dbox (disp,lab) = UI.div #+ [ UI.dterm #+ [string lab]
-                            , UI.ddef #+ disp]
+cardInfo :: UCR
+cardInfo c =
+    div #. "panel panel-default quick-facts" #+
+      [ div #. "panel-heading" #: (h3 #. "panel-title" #$ string "Quick Facts")
+      , div #. "panel-body" #: (ul #$ info c)
+      ]
 
-maneText :: GenCard -> [[UI Element]]
-maneText g@GenCard{..} = case ctype of
-    TMane -> let ((infront):back:[]) = head . filter ((==2).length) . map (\x -> splitOn x (unravel gtext)) $ [" Back: ", " BACK: "]
-                 front = tail . snd . break (isSpace) $ infront
-             in map textBox [front,back]
-    _ -> [textBox (unravel gtext)]
-
-textBox :: String -> [UI Element]
-textBox = map ((UI.p #+).(:[]).string) . splitOn "<P>"
-
-cardInfo :: GCR
-cardInfo g@GenCard{..} = UI.div #. "panel panel-default quick-facts" #+ [
-                            UI.div #. "panel-heading" #+ [UI.h3 #. "panel-title" #+ [string "Quick Facts"]]
-                          , UI.div #. "panel-body" #+ [UI.ul #+ info g]
-                          ]
-
-info :: GenCard -> [UI Element]
-info g@GenCard{..} = let items = (maskfilter mask allitems) in map renderi items
+info :: UCR'
+info c = let items = (maskfilter mask allitems) in morph $ map renderi items
   where
     mask :: [Int]
-    mask = typemask ctype
-    renderi :: (String, GCR) -> UI Element
-    renderi (nam, gcr) = UI.li #+ [UI.bold #+ [string nam], gcr g]
+    mask = typemask . utype $ c
+    renderi :: (String, UCR) -> Rendered
+    renderi (nam, ucr) = li #+ [b #$ string nam, ucr c]
     maskfilter [] [] = []
     maskfilter (x:xs) (y:ys) = ([id,(y:)]!!x) $ maskfilter xs ys
 
@@ -85,7 +80,7 @@ typemask x = case x of
     TTroublemaker -> [1,1,0,1,0,0,0,0,1]
     TProblem      -> [1,1,0,0,0,0,1,1,0]
 
-allitems :: [(String, GCR)]
+allitems :: [(String, UCR)]
 allitems = [ ("Type", typeLink)
            , ("Rarity", rarLink)
            , ("Color", colLink)
@@ -97,31 +92,23 @@ allitems = [ ("Type", typeLink)
            , ("Traits", cardTraits)
            ]
 
-propLink :: String -> (GenCard -> String) -> (GCR)
-propLink s f g = UI.a #. s # UI.set UI.text (f g)
+propLink :: String -> (forall c. UniCard c => c -> String) -> (UCR)
+propLink s f x = (a #. s # set R.text (f x) #+ [])
 
-setLink :: GCR
-setLink = propLink "set" (show.gset)
-typeLink :: GCR
-typeLink = propLink "type" (show.ctype)
-rarLink :: GCR
-rarLink = propLink "rarity" (show.grar)
-colLink :: GCR
-colLink = propLink "color" (maybe "Wild" show . mcolor)
+setLink :: UCR
+setLink = propLink "set" (show.uset)
 
-appraise :: GCR
-appraise g@GenCard{..} = cbox (show.val<$>mcost, Nothing)
+typeLink :: UCR
+typeLink = propLink "type" (show.utype)
 
-conf :: GCR
-conf g@GenCard{ctype=TProblem, ..} = UI.span #+ (map (\(y,x) -> cbox (pure.show.val $ x, pure $ y)).fst.fromJust $ mpreqs )
-conf _ = cbox (Nothing, Nothing)
+rarLink :: UCR
+rarLink = propLink "rarity" (show.urar)
 
-conf' :: GCR
-conf' g@GenCard{ctype=TProblem, ..} = (\x -> cbox (pure.show.val $ x, Nothing)).snd.fromJust $ mpreqs
-conf' _ = cbox (Nothing, Nothing)
+colLink :: UCR
+colLink = propLink "color" (maybe "Wild" show . ucolor)
 
-cardTraits :: GCR
-cardTraits g@GenCard{..} = UI.span #+ (map keyToTrait gkeywords)
+cardTraits :: UCR
+cardTraits = (span #+).map keyToTrait.ukeywords
 
-keyToTrait :: Keyword -> UI Element
-keyToTrait k = UI.span #+ [string (unbrace (unravel k))]
+keyToTrait :: Keyword -> Rendered
+keyToTrait k = span #$ string (unbrace (unravel k))
