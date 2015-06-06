@@ -1,27 +1,26 @@
+{-# LANGUAGE TypeSynonymInstances, FlexibleInstances, MultiParamTypeClasses #-}
 {-# LANGUAGE QuasiQuotes, TemplateHaskell, TypeFamilies #-}
 
 module Renderer.Core.Internal where
 
+import Application
+import qualified Data.Text as Strict
+import Data.Text.Lazy (Text)
+import qualified Data.Text.Lazy as Lazy
+-----
 import Control.Applicative
 import Data.Maybe
+import Data.Text.Lazy (Text, pack)
 import Happstack.Server
-import Happstack.Server.Internal.Monads (ServerPartT)
 import Happstack.Server.HSP.HTML
+import Happstack.Server.Internal.Monads (ServerPartT)
 import Happstack.Server.XMLGenT
 import HSP
 import HSP.Monad (HSPT(..))
-import HSP.XML (XML(..))
 import HSP.XMLGenerator
+import HSP.XML (XML(..))
+import Language.Haskell.HSX.QQ      ( hsx )
 import Language.Haskell.TH
-import Data.Text.Lazy (Text, pack)
------
-import GHC.Tuple
-
-type App' m = HSPT XML (ServerPartT m)
-type App m  = XMLGenT (App' m)
-type Html = App IO XML
-type GCL = GenChildList (App' IO)
-type GAL = GenAttributeList (App' IO)
 
 type Rendered = Html
 type Rendered' = GCL
@@ -33,8 +32,37 @@ type Vacuum = ((Mattrs -> Rendered), Mattrs)
 type Renderer a = a -> Rendered
 type Renderer' a = a -> Rendered'
 
-atval :: String -> Strig -> Mattrs -> Mattrs
-atval t s = (toAttr ((pack t) := s):)
+--- Instance declarations
+
+instance (Functor m, Monad m) =>
+         EmbedAsAttr (App' m) (Attr Text Strict.Text) where
+    asAttr (n := v) = asAttr (n := Lazy.fromStrict v)
+
+instance (Functor m, Monad m) =>
+         EmbedAsAttr (App' m) (Attr Text String) where
+    asAttr (n := v) = asAttr (n := Lazy.pack v)
+
+--
+
+orph :: Rendered -> Rendered'
+orph x = [hsx|<%><% x %></%>|]
+
+morph :: [Rendered] -> Rendered'
+morph xs = [hsx|<%><% sequence xs %></%>|]
+
+collect :: [Rendered'] -> Rendered'
+collect xs = [hsx|<%><% sequence xs %></%>|]
+
+--- Elements
+
+string :: String -> Rendered'
+string str = [hsx| <%> <% str %> </%> :: Rendered' |]
+
+hr :: Rendered
+hr = [hsx| <hr/> :: Rendered |]
+
+atval :: String -> String -> Mattrs -> Mattrs
+atval t s = (asAttr ((pack t) := s):)
 
 makeElement :: String -> Q [Dec]
 makeElement s = do id <- newName s
@@ -54,7 +82,7 @@ makeVacuum s = do id <- newName s
                   at <- newName "at"
                   return $ [ ValD (VarP id) (NormalB (SigE (TupE
                             [ LamE [VarP at] (AppE (AppE (VarE 'genEElement)
-                                (TupE [ConE 'Nothing, AppE (VarE 'fromStringLit) (LitE (StringL s))])
+                                (TupE [ConE 'Nothing, AppE (VarE 'fromStringLit) (LitE (StringL s))]))
                                 (ListE [AppE (VarE 'asAttr) (VarE at)]))
                             , (ListE [])]) (ConT ''Vacuum))) [] ]
 

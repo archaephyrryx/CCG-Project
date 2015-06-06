@@ -17,7 +17,7 @@ type UCR = UniCard c => Renderer c
 type UCR' = UniCard c => Renderer' c
 
 iconic :: Renderer CardType
-iconic x = in img #. "icon typeIcon" # set src ipath
+iconic x = img #. "icon typeIcon" # set src ipath # zap
   where
       ipath :: String
       ipath = ("static/icns/"++(show x)++".png")

@@ -7,8 +7,8 @@ import HSP
 import HSP.Monad (HSPT(..))
 
 type Page = ServerPartT IO Response
-type AppT m  = XMLGenT (AppT' m)
-type AppT' m = HSPT XML (ServerPartT m)
-type Html = AppT IO XML
-type Html' = AppT' IO XML
-type GCL = GenChildList (AppT' IO)
+type App m  = XMLGenT (App' m)
+type App' m = HSPT XML (ServerPartT m)
+type Html = App IO XML
+type GCL = GenChildList (App' IO)
+type GAL = GenAttributeList (App' IO)
