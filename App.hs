@@ -30,6 +30,7 @@ import Renderer.FilterCard
 import Renderer.SingleCard
 import Renderer.Cards
 import Renderer.Deck
+import qualified Renderer.Core as R
 ------------------------------
 import App.Filtering
 import App.Widgets
@@ -161,13 +162,13 @@ setup window = void $ do
 
   --- UI Elements and layout
     scSelect <- UI.span
-    element scSelect # sink UI.text ((gname!?"Nothing selected") <$> bResults <*> bQMatches)
+    element scSelect # sink UI.text ((uname!?"Nothing selected") <$> bResults <*> bQMatches)
 
     scIndex <- UI.span
     element scIndex # sink UI.text (show <$> bResults)
 
     cardSide <- UI.div
-    element cardSide # sink (kinder (maybe [bstring "Show Card"] ((:[]).cardInfo))) bSingle
+    element cardSide # sink (kinder (maybe [bstring "Show Card"] (once cardInfo))) bSingle
 
     scCenter <- UI.div
     element scCenter # sink (kinder (maybe [bstring "Show Card"] renderCard)) bSingle
@@ -176,7 +177,7 @@ setup window = void $ do
     element deckSide # sink (kinder construct) bDeck
 
   --- UI section elements
-    hmContent <- column ([ UI.h1 #+ [string appfname] ]++(map ((UI.p #+).(:[]).string) welcomeText))
+    hmContent <- column ((R.h1 R.#$ R.string appfname):(map ((R.p R.#$).R.string) welcomeText))
     fcContent <- element qList
     dbContent <- element qGrid
     scContent <- element scCenter

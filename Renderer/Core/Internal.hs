@@ -11,7 +11,6 @@ import Language.Haskell.TH
 -----
 import Util
 
-m
 type Rendered = UI Element
 type Rendered' = [UI Element]
 type Mattrs = [(WriteAttr Element String, String)]

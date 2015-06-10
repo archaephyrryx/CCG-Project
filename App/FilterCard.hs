@@ -22,12 +22,15 @@ import Renderer.FilterCard
 import Renderer.Cards
 -----------------------------
 
+{-
 theader :: UI Element
 theader = UI.tr #+ (map (\x -> UI.th #+ [string x]) ["#", "Rarity", "Type", "Cost", "Req.", "Name", "Power"])
+-}
 
-tabulate :: GenCard -> LiquidLink Int -> UI Element
-tabulate g@GenCard{..} l = UI.tr #+ (map (\x -> UI.td #+ [x]) $
-            [ UI.string $ genset g
+tabulate :: UniCard c => c -> LiquidLink Int -> UI Element
+tabulate c l = trow (const (element l)) c
+{-tabulate g@GenCard{..} l = UI.tr #+ (map (\x -> UI.td #+ [x]) $
+            [ UI.string $ setnum g
             , UI.string $ brief grar
             , iconic ctype
             , UI.string $ fromMaybe "" (show.val <$> mcost)
@@ -35,6 +38,7 @@ tabulate g@GenCard{..} l = UI.tr #+ (map (\x -> UI.td #+ [x]) $
             , element l
             , empower g
             ])
+-}
 
 namedMultiSelect :: String -> Element -> MultiSelect a -> UI Element
 namedMultiSelect s cler sel = column [ row [ UI.bold #+ [ string s ], element cler ], row [ element sel ] ]

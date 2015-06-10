@@ -8,6 +8,7 @@ import Data.Char
 import Data.IxSet
 import Data.List
 import Data.Maybe
+import Data.Typeable (Typeable)
 import Util
 
 data Filter = CardFilter

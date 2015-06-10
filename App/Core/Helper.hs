@@ -1,11 +1,16 @@
 module App.Core.Helper where
 
-import Renderer.Core
+import Graphics.UI.Threepenny.Core
+import Graphics.UI.Threepenny.Elements
+import Graphics.UI.Threepenny.Attributes
+import Reactive.Threepenny
 import Util
 
-glue :: Rendered
-glue = string " "
+glue :: UI Element
+glue = string (" " :: String)
 
+hlink :: String -> String -> UI Element
+hlink url str = a # set href url # settext str
 
 pss :: Show a => Behavior (a -> UI Element)
 pss = pure (string . show)
@@ -15,16 +20,14 @@ psss = pure (string . show . succ)
 
 plss :: Show a => Behavior (a -> UI Element)
 plss = pure (estring li . show)
-settext = set text
 
 noop :: UI Element
 noop = a
-hlink :: String -> String -> Rendered
-hlink url str = a # set href url # settext str
 
+estring :: UI Element -> String -> UI Element
+estring el = (el #+) . once string
 
-estring :: Builder -> String -> Rendered
-estring el = (el #$).string
+bstring = estring bold
+istring = estring italics
 
-bstring = estring b
-istring = estring i
+settext = set text
