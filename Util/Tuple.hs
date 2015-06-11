@@ -9,10 +9,14 @@ module Util.Tuple ( (+++)
 import Data.Function
 import Control.Monad
 import Util.Tuple.Apply
-import Data.Tuple (swap)
 
 infixr 5 +++
 
+-- |'swap' reverses the order of a pair
+swap :: (a,b) -> (b,a)
+swap = uncurry (flip (,))
+
+-- |Concatenates corresponding items in a list 3-tuple
 (+++) :: ([a],[b],[c]) -> ([a],[b],[c]) -> ([a],[b],[c])
 (d,e,f)+++(g,h,i) = (d++g,e++h,f++i)
 
@@ -31,11 +35,14 @@ knock6 = (((((tap.).).).).).knock5
 knock7 :: (a0 -> a1 -> a2 -> a3 -> a4 -> a5 -> a6 -> b, a0 -> a1 -> a2 -> a3 -> a4 -> a5 -> a6 -> c) -> a0 -> a1 -> a2 -> a3 -> a4 -> a5 -> a6 -> (b, c)
 knock7 = ((((((tap.).).).).).).knock6
 
+-- |'trefoil' \'folds\' a 3-tuple into an item-pair pair
 trefoil :: (a, b, c) -> (a, (b, c))
 trefoil (x, y, z) = (x, (y, z))
 
+-- |'unfoil' \'unfolds\' an item-pair pair into a 3-tuple
 unfoil :: (a, (b, c)) -> (a, b, c)
 unfoil (x,(y,z)) = (x, y, z)
 
+-- |'mhall' maps a triplet of functions over a triplet of values
 mhall :: ((x -> x1),(y -> y1),(z -> z1)) -> (x,y,z) -> (x1,y1,z1)
 mhall = (unfoil.).(.trefoil).zmap.zmap(id,zmap).trefoil

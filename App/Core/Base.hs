@@ -24,6 +24,12 @@ template pagename content =
 base :: String -> [Rendered] -> Rendered
 base pagename = template pagename . morph . (nav:)
 
+content :: Renderer Rendered'
+content = (div #. "content" #$)
+
+sidebar :: Renderer Rendered'
+sidebar = (div #. "side-bar" #$)
+
 nav :: Rendered
 nav = R.nav #+ [ a # set href "/home" #: logo
                , a # set href "/card" #$ string "Cards"
@@ -31,4 +37,4 @@ nav = R.nav #+ [ a # set href "/home" #: logo
                , form #: input # set type_ "search" # set placeholder "Search"
                ]
     where
-        logo = img #. "logo" # set src "/res/logo.png"
+        logo = img #. "logo" # set src "/res/logo.png" # zap

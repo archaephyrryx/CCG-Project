@@ -1,7 +1,4 @@
-{-# LANGUAGE RecordWildCards, TupleSections #-}
-{-# LANGUAGE TypeSynonymInstances, FlexibleInstances #-}
 {-# LANGUAGE Rank2Types, ImpredicativeTypes #-}
-{-# LANGUAGE OverloadedStrings #-}
 
 module Renderer.SingleCard where
 -------------------------------------------------
@@ -25,11 +22,10 @@ import Renderer.Core hiding (text)
 import qualified Renderer.Core as R (text)
 --------------------------------------------------
 
-renderCard :: UniCard c => c -> (Builder -> Rendered)
-renderCard c =
-  (#+ [ div #. "card-imgs" #: cardImgs c
-      , div #. "card-text" #: cardText c
-      ])
+renderCard :: UCR'
+renderCard c = [ div #. "card-imgs" #: cardImgs c
+               , div #. "card-text" #: cardText c
+               ]
 
 cardImgs :: UCR
 cardImgs = (table #+).map cimage.curls

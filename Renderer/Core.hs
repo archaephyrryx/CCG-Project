@@ -5,11 +5,7 @@ module Renderer.Core (
   ) where
 
 import Control.Applicative
-import qualified Data.Text          as Strict
-import qualified Data.Text.Lazy     as Lazy
-import Data.Text.Lazy               ( Text )
 import Text.Blaze (ToValue)
-import Happstack.Server
 ---------------------------------------------------
 import Util
 import Language.Haskell.TH

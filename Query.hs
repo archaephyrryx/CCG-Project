@@ -5,7 +5,6 @@ import Control.Monad
 import Control.Applicative
 import Happstack.Server
 import Site
-import Application
 import CCG
 import Formal
 

@@ -1,5 +1,4 @@
-{-# LANGUAGE QuasiQuotes, TemplateHaskell, TypeFamilies #-}
-
+{-# LANGUAGE QuasiQuotes, TemplateHaskell #-}
 module Renderer.Core.Internal where
 
 import Control.Applicative
@@ -13,10 +12,10 @@ import Text.Blaze.Internal
 import Text.Blaze.Html
 import Text.Blaze (ToValue)
 import Language.Haskell.TH
-import qualified Data.Text as T
-import qualified Data.Text.Encoding as T
+--import qualified Data.Text as T
+--import qualified Data.Text.Encoding as T
 -----
-import GHC.Tuple
+import Util
 
 type Rendered = Html
 type Rendered' = Rendered
@@ -27,6 +26,7 @@ type Vacuum = ((Mattrs -> Rendered), Mattrs)
 type Renderer a = a -> Rendered
 type Renderer' a = a -> Rendered'
 
+-- Library-specific operator code
 orph :: Rendered -> Rendered'
 orph x = x
 
@@ -39,6 +39,7 @@ collect xs = sequence_ xs
 hr :: Rendered
 hr = H.hr
 
+-- Library-specific non-builder elements
 string :: String -> Rendered'
 string str = toHtml str
 
@@ -63,6 +64,7 @@ vacant s = Leaf (stat s) (stat ("<"++s)) (stat (">"))
 
 elmer :: String -> (Rendered' -> Rendered)
 elmer s = Parent (stat s) (stat ("<"++s)) (stat ("</"++s++">"))
+-- TH library->Renderer declarations
 
 makeElement :: String -> Q [Dec]
 makeElement s = do id <- newName s

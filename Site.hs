@@ -29,8 +29,10 @@ import qualified Pages.Reform as Reformed
 import Pages.Reform (cardHtml, deckHtml, CFilterSig, DFilterSig)
 import Renderer.Core
 import CCG hiding (text)
-import Pages.Common
-import Pages.Card
+import Renderer.Cards
+import Renderer.FilterCard
+import Renderer.SingleCard
+import Renderer.Deck
 
 sitename = "HappleJack"
 
