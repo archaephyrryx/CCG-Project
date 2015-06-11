@@ -17,10 +17,10 @@ import Renderer.SingleCard
 --------------------------------------------------
 
 construct :: Deck -> Rendered'
-construct d = [ structure "mane" (mheader nmane) manes
-              , structure "problem" (pheader nprob start) probs
-              , structure "draw" (dheader ndraw) draws
-              ]
+construct d = collect [ structure "mane" (mheader nmane) manes
+                      , structure "problem" (pheader nprob start) probs
+                      , structure "draw" (dheader ndraw) draws
+                      ]
     where
       parts@(manes, probs, draws) = tpart d
       lens@(nmane,nprob,ndraw) = mhall (length,length,length) parts

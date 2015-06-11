@@ -1,8 +1,7 @@
 {-# LANGUAGE DeriveDataTypeable, FlexibleContexts,
     FlexibleInstances, GeneralizedNewtypeDeriving,
     MultiParamTypeClasses, OverlappingInstances,
-    IncoherentInstances,
-    OverloadedStrings, QuasiQuotes, RecordWildCards,
+    IncoherentInstances, OverloadedStrings,
     ScopedTypeVariables, TemplateHaskell, TypeFamilies,
     TypeSynonymInstances #-} 
 
@@ -16,53 +15,39 @@ import Control.Monad.Identity       ( Identity(runIdentity) )
 import Data.Char
 import Data.Data		            ( Data, Typeable )
 import Data.Maybe
+import Data.Monoid
 import Data.String                  ( IsString(fromString) ) 
-import qualified Data.Text          as Strict
-import qualified Data.Text.Lazy     as Lazy
 import Data.Text.Lazy               ( Text )
 import Happstack.Server
-import Happstack.Server.HSP.HTML
-import Happstack.Server.XMLGenT
-import HSP
-import HSP.Monad                    ( HSPT(..) )
-import Language.Haskell.HSX.QQ      ( hsx )
-import Text.Reform.Happstack
-import Text.Reform.HSP.Text
-
+--import Happstack.Server.XMLGenT
+import qualified Data.Text          as Strict
+import qualified Data.Text.Lazy     as Lazy
+{-import qualified Text.Blaze.Html5 as H
+import qualified Text.Blaze.Html5.Attributes as A
+import Text.Blaze ((!)) -}
+import Text.Blaze.Html5 (Html, ToMarkup, toHtml, toMarkup, toValue)
+import Text.Blaze.Internal (MarkupM)
 import Text.Reform
-    ( CommonFormError(..), Proof(..), (++>), (<++), commonFormErrorStr
-    , Form, FormError(..), decimal, prove, transformEither, transform )
+import Text.Reform.Happstack
+import Text.Reform.Blaze.String
 --------------------------------------------------
-import API.Database
 import API.Filter
-import Data.IxSet
-import Data.Map                   ( Map )
-import qualified Data.Map         as Map
-import Data.Set                   ( Set )
-import qualified Data.Set         as Set
-import Control.Exception	        ( bracket )
-import Control.Monad.Reader         ( ask )
-import Control.Monad.State	        ( get, put )
-import Data.List                    hiding (insert)
---------------------------------------------------
 import CCG hiding (Text)
 import Util
 --------------------------------------------------
 import Application
-import Reformation
-import Renderer.Core
-import Pages.Common (template)
-import Pages.Card (reqtify, empower, pronounce)
+import Widgets.Minmax
+import Renderer.Core hiding (form)
+import App.Core.Base (template)
 ---------------------------------------------------
 
 newtype AppError = AppCFE (CommonFormError [Input])
     deriving (Show)
-
-type SimpleForm = Form (AppT IO) [Input] AppError [Html] ()
-
-instance (Functor m, Monad m) => EmbedAsChild (AppT' m) AppError where
-  asChild (AppCFE cfe)      =
-     asChild $ commonFormErrorStr show cfe
+{-
+instance ToMarkup AppError where
+  toMarkup (AppCFE cfe) = toMarkup $ commonFormErrorStr show cfe
+-}
+type SimpleForm = Form (ServerPartT IO) [Input] AppError Rendered ()
 
 instance FormError AppError where
     type ErrorInputType AppError = [Input]
@@ -88,7 +73,7 @@ sv f vs [] = selectMultiple (map (\x -> (x, f x)) vs) (const False)
 sv f vs xs = selectMultiple (map (\x -> (x, f x)) vs) (`elem`xs)
 
 deckForm :: Filter -> SimpleForm Filter
-deckForm mc ms mr mt =
+deckForm f =
   DeckFilter
     <$> labelText "Color"       ++> svs colorValues . colors $ f <++ br
     <*> labelText "Set"         ++> svs setValues   . sets   $ f <++ br
@@ -115,3 +100,6 @@ deckHtml f = do
             template "Deck Form" formHtml
         (Right flt) ->
             template "Deck Result" $ [renderFilter flt]
+
+renderFilter :: Renderer Filter
+renderFilter = 

@@ -15,6 +15,7 @@ import Prelude hiding (div, span)
 infixl 8 #+
 infixl 8 #.
 infixl 8 #
+infixl 8 !
 infixr 7 #:
 infixl 7 #$
 
@@ -25,6 +26,9 @@ set a v = (>$(atval a v))
 
 (#) :: a -> (a -> b) -> b
 (#) = flip ($)
+
+(!) :: a -> (a -> b) -> b
+(!) = flip ($)
 
 (#.) :: (a, Mattrs) -> String -> (a, Mattrs)
 (#.) b s = b # set "class" s
@@ -61,7 +65,13 @@ $(makeAttr "src")
 $(makeAttr "href")
 $(makeAttr "text")
 $(makeAttr' ("type_", "type"))
+$(makeAttr' ("id_", "id"))
+$(makeAttr' ("for_", "for"))
 $(makeAttr "placeholder")
+$(makeAttr "min")
+$(makeAttr "step")
+$(makeAttr "pattern")
+$(makeAttr "value")
 
 
 --- Backbone
@@ -73,4 +83,5 @@ $(makeVacuum "meta")
 $(makeVacuum "link")
 
 $(makeAttr' ("httpEquiv", "http-equiv"))
-$(makeAttrs ["charset","rel","name","content"])
+$(makeAttr' ("content_", "content"))
+$(makeAttrs ["charset","rel","name"])

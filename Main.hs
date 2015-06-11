@@ -6,7 +6,7 @@ import Control.Monad
 import Control.Applicative
 import Happstack.Server
 import Site
-import Pages.Card (single)
+import App.SingleCard (single)
 import CCG
 import Query
 

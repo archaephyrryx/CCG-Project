@@ -12,8 +12,8 @@ import Text.Blaze.Internal
 import Text.Blaze.Html
 import Text.Blaze (ToValue)
 import Language.Haskell.TH
---import qualified Data.Text as T
---import qualified Data.Text.Encoding as T
+import qualified Data.Text as T
+import qualified Data.Text.Encoding as T
 -----
 import Util
 

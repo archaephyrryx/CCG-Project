@@ -9,6 +9,7 @@ import Data.IxSet
 import Data.List
 import Data.Maybe
 import Util
+import Data.Typeable (Typeable)
 
 data Filter = CardFilter
                 { powMin :: Maybe Power

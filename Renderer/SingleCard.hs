@@ -23,9 +23,9 @@ import qualified Renderer.Core as R (text)
 --------------------------------------------------
 
 renderCard :: UCR'
-renderCard c = [ div #. "card-imgs" #: cardImgs c
-               , div #. "card-text" #: cardText c
-               ]
+renderCard c = collect $ [ div #. "card-imgs" #: cardImgs c
+                         , div #. "card-text" #: cardText c
+                         ]
 
 cardImgs :: UCR
 cardImgs = (table #+).map cimage.curls

@@ -9,7 +9,7 @@ glue = string " "
 settext = set text
 
 hlink :: String -> String -> Rendered
-hlink url str = a # set href url # settext str
+hlink url str = a # set href url # settext str #+ []
 
 noop :: Rendered
 noop = a #+ []
