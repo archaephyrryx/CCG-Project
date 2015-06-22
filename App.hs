@@ -1,4 +1,4 @@
-{-# LANGUAGE RecordWildCards, OverloadedStrings, DoRec #-}
+{-# LANGUAGE RecordWildCards, OverloadedStrings, RecursiveDo #-}
 module App where
 ------------------------------
 import CCG

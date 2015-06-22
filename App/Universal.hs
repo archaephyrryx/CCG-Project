@@ -1,4 +1,4 @@
-{-# LANGUAGE RecordWildCards, DoRec #-}
+{-# LANGUAGE RecordWildCards, RecursiveDo #-}
 
 module App.Universal where
 
@@ -68,7 +68,9 @@ selectors bMulti eModeChange = do
         (oSelectSet, _) <- monoSelectVDC bSetValues    bSetSelect pss (istring "Set")
         (oSelectRar, _) <- monoSelectVDC bRarityValues bRarSelect pss (istring "Rarity")
 
-        let rus = rumors . userSelections
+        let
+            rus = rumors . userSelections
+            steph :: [Event [a]] -> UI (Behavior [a])
             steph es = stepper [] $ head <$> unions es
             
 
@@ -95,7 +97,9 @@ selectors bMulti eModeChange = do
         (minCost, maxCost) <- minmax bCostMin bCostMax (pure (show.val))
         (minReq, maxReq) <- minmax bReqMin  bReqMax (pure (show.val))
 
-        let stepr n f x = stepper n $ head <$> unions [ rumors . f $ x, Nothing <$ eModeChange ]
+        let
+            stepr :: (Maybe a) -> (s0 -> Tidings (Maybe a)) -> s0 -> UI (Behavior (Maybe a))
+            stepr n f x = stepper n $ head <$> unions [ rumors . f $ x, Nothing <$ eModeChange ]
         bPowMin  <- stepr powerless userMin minPow
         bPowMax  <- stepr powerless userMax maxPow
         bCostMin <- stepr priceless userMin minCost

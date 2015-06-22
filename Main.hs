@@ -17,8 +17,8 @@ import App
 main :: IO ()
 main = do
 	startGUI defaultConfig
-		{ tpPort	= Just 10000
-		, tpStatic	= Just "res/"
+		{ jsPort	= Just 10000
+		, jsStatic	= Just "res/"
 --        , tpCustomHTML = Just "ccg.html"
 		} setup
 
