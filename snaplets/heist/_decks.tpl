@@ -1,5 +1,5 @@
 <div id="sidebar">
   <deck-boxes>
-  <deck-box />
+    <deck-box />
   </deck-boxes>
 </div>
