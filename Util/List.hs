@@ -82,4 +82,4 @@ x!@[] = []
 (x:xs)!@(i:is)
   | i == 0 = x:xs!@map pred is
   | i <  0 = []
-  | otherwise = xs!@map pred is
+  | otherwise = xs!@map pred (i:is)
