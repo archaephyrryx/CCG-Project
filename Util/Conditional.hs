@@ -16,12 +16,18 @@ boolbit :: Int -> Bool
 boolbit 0 = False
 boolbit _ = True
 
+-- |Functional if-then-else (sugar-free)
+if_ :: Bool -> a -> a -> a
+-- > if_ p x y = if p then x else y
+if_ True x _ = x
+if_ False _ y = y
+
 -- |A conditional function applicator that avoids unwieldy if-then-else clauses
 cond :: (a -> Bool) -- ^ Predicate function
      -> (a -> b) -- ^ True branch
      -> (a -> b) -- ^ False branch
      -> (a -> b) -- ^ Resulting function
-cond p f g = \x -> if p x then f x else g x
+cond p f g = if_ <$> p <*> f <*> g
 
 -- |Applies a transformation if an evaluated predicate is true, 'id' if false
 (?.) :: (a -> Bool) -> (a -> a) -> (a -> a)
@@ -38,12 +44,6 @@ p?.f = cond p f id
 -- prop> (const x.=y) == (x==y)
 (.=) :: Eq b => (a -> b) -> b -> (a -> Bool)
 f.=x = (==x).f
-
--- |Functional if-then-else (sugar-free)
-if_ :: Bool -> a -> a -> a
--- > if_ p x y = if p then x else y
-if_ True x _ = x
-if_ False _ y = y
 
 
 -- * Conditional transformation operators
