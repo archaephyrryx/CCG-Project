@@ -3,13 +3,13 @@
 module API.Filter where
 
 import CCG
-import Data.Data (Typeable)
 import API.Database
 import Data.Char
 import Data.IxSet
 import Data.List
 import Data.Maybe
 import Util
+import Data.Typeable
 
 data Filter = CardFilter
                 { powMin :: Maybe Power

@@ -1,5 +1,4 @@
 {-# LANGUAGE OverloadedStrings, TemplateHaskell #-}
-{-# LANGUAGE CPP #-}
 
 module Main where
 
@@ -19,9 +18,11 @@ import qualified    Heist.Interpreted as I
 import              Snap.Http.Server
 import              Snap.Snaplet.Config
 import              System.IO
-import              Site
+import              Test
+{-import              Site
 import              Application
 import              Snaplets
+-}
 
 main :: IO ()
 main = serveSnaplet defaultConfig app

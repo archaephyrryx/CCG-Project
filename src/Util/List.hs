@@ -4,6 +4,7 @@ import Util.Conditional
 
 infix 9 !?
 infix 9 ??
+infixl 9 !@
 
 full = not . null
 
@@ -29,3 +30,20 @@ one = (:[])
 once :: (a -> b) -> (a -> [b])
 once = (one.)
 
+headDef :: a -> [a] -> a
+headDef x [] = x
+headDef _ (x:_) = x
+
+neck = (!!1)
+body = (!!2)
+
+mmap :: (a -> b) -> Maybe [a] -> [b]
+mmap = (?/).map
+
+(!@) :: [a] -> [Int] -> [a]
+[]!@i = []
+x!@[] = []
+(x:xs)!@(i:is)
+  | i == 0 = x:xs!@map pred is
+  | i <  0 = []
+  | otherwise = xs!@map pred (i:is)

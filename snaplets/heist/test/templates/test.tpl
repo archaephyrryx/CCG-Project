@@ -1,0 +1,3 @@
+<splicer>
+  * <spliced />
+</splicer>

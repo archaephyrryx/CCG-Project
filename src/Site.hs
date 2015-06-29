@@ -1,11 +1,15 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-module Site ( app ) where
+------------------------------------------------------------------------------
+-- | This module is where all the routes and handlers are defined for your
+-- site. The 'app' function is the initializer that combines everything
+-- together and is exported by this module.
+module Site
+  ( app
+  ) where
 
 ------------------------------------------------------------------------------
 import           Control.Applicative
-import           Data.IORef
-import           Control.Monad.IO.Class
 import           Data.ByteString (ByteString)
 import qualified Data.Text as T
 import           Snap.Core
@@ -29,11 +33,11 @@ import           Snaplets
 app :: SnapletInit App App
 app = makeSnaplet "snapplejack" "The SnappleJack Web Server" Nothing $ do
     hs <- nestSnaplet "heist" heist $ heistInit ""
-    fs <- nestSnaplet "foo" foo $ fooInit
-    bs <- nestSnaplet "bar" bar $ nameSnaplet "newname" $ barInit foo
+    --fs <- nestSnaplet "foo" foo $ fooInit
+    --bs <- nestSnaplet "bar" bar $ nameSnaplet "newname" $ barInit foo
     addRoutes routes
-    ref <- liftIO $ newIORef "snapplejack"
-    return $ App hs fs bs ref
+    --ref <- liftIO $ newIORef "snapplejack"
+    return $ App hs -- fs bs ref
     where
         routes :: [(ByteString, Handler App App ())]
         routes = [ ("/card", cardHandler)

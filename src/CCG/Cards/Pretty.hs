@@ -4,6 +4,7 @@ module CCG.Cards.Pretty where
 
 import CCG.Cards
 import CCG.Cards.Common
+import CCG.Cards.Universal
 import Data.List.Split
 import Data.List
 import Data.Maybe (fromJust)
