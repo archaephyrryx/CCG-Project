@@ -1,6 +1,18 @@
 {-# LANGUAGE TupleSections #-}
 
-module Util.Tuple.Apply where
+module Util.Tuple.Apply (
+    -- * Tuple Element Selectors
+    fsts, snds,
+    -- * Tuple-Functorial Operations
+    zap, zmap, tmup, dup, tap,
+    -- * Left and Right tuple operators
+    -- ** Left-Handed Operators
+    -- | '.<' and '$<' are the equivalent of '.' and '$' for the first-element functor on tuples.
+    (.<), ($<),
+    -- ** Right-Handed Operators
+    -- | '>.' and '>$' are the equivalent of '.' and '$' for the second-element functor on tuples.
+    (>.), (>$)
+) where
 
 import Data.Function
 import Control.Monad
@@ -10,9 +22,6 @@ infixl 9 .<
 infixl 1 $<
 infixr 9 >.
 infixr 1 >$
-
--- *Tuple Element Selectors
--- 
 
 -- |'fsts' applies 'fst' to a pair of pairs, returning a pair consisting
 -- of their respective first elements
@@ -46,37 +55,38 @@ dup x = (x,x)
 tap :: (a -> b, a -> c) -> a -> (b, c)
 tap = flip (flip (uncurry (***)). dup)
 
--- * Left and Right tuple operators
--- Operators for selectively applying functions to the left or right
--- elements of a pair.
-
-{-|
-  '.<' and '$<' are the equivalent of '.' and '$' for the first-element functor on tuples.
-  '.<' is merely syntactic sugar for '.'
-
-  > f.<g = f.g
-  > f$<(x,y) = (f x, y)
-
-  prop> f.<id = f
-  prop> id.<f = f
-  prop> f.<g$<x = f$<(g$<x)
-  prop> id$<x = x
-
--}
+-- |'.<' is a first-element composition operator, which is syntactic
+-- sugar for '.'
+--
+-- > f.<g = f.g
+--
+-- prop> f.<id = f
+-- prop> id.<f = f
 (.<) :: (b -> c) -> (a -> b) -> (a -> c)
 f.<g = f.g
 
+-- |'$<' is a first-element application operator, to be used with '.<'
+-- 
+--  > f$<(x,y) = (f x, y)
+--
+--  prop> f.<g$<x = f$<(g$<x)
+--  prop> id$<x = x
 ($<) :: (a -> b) -> (a, c) -> (b, c)
 ($<) = zmap.(,id)
 
 -- |'>.' is a second-element composition operator, which is syntactic
 -- sugar for a reversed '.'
 --
--- prop> g>.f = f.g
+-- > g>.f = f.g
+--
+-- prop> id>.f = f
+-- prop> f>.id = f
 (>.) :: (a -> b) -> (b -> c) -> (a -> c)
 g>.f = f.g
 
 -- |'>$' is a second-element application operator, to be used with '>.'
 -- 
+--  prop> x>$g.f = (x>$g)>$f
+--  prop> x>$id = x
 (>$) :: (a, b) -> (b -> c) -> (a, c)
 (>$) = flip (zmap.(id,))

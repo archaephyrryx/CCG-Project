@@ -1,4 +1,20 @@
-module Util.Conditional where
+module Util.Conditional (
+  -- * Booleans and Conditionals 
+  -- ** Functions
+  boolbit, if_, cond,
+  -- ** Operators
+  (?.), (?:), (.=),
+  -- * Conditional Transformer Operators
+  -- |The following operators all conditionally apply a given transformation or
+  -- the identity transformation based on a property of their second
+  -- argument. Here we use the term transformation to mean any function
+  -- with the same type signature as 'id', namely @a -> a@.
+  (?), (?<), (?+),
+  -- * Functorial Maybe-to-List Operator
+  (?/)
+) where
+
+import Control.Applicative ((<*>),(<$>))
 
 infix 9 ?
 infix 9 ?/
@@ -8,8 +24,6 @@ infix 9 ?:
 infixr 8 ?.
 infix 9 .=
 
--- * Booleans and Conditionals 
-
 -- |A C-style int-to-bool converter (/=0)
 -- Mostly for semantic clarification of C-style int->bool casting
 boolbit :: Int -> Bool
@@ -17,8 +31,8 @@ boolbit 0 = False
 boolbit _ = True
 
 -- |Functional if-then-else (sugar-free)
-if_ :: Bool -> a -> a -> a
 -- > if_ p x y = if p then x else y
+if_ :: Bool -> a -> a -> a
 if_ True x _ = x
 if_ False _ y = y
 
@@ -30,29 +44,21 @@ cond :: (a -> Bool) -- ^ Predicate function
 cond p f g = if_ <$> p <*> f <*> g
 
 -- |Applies a transformation if an evaluated predicate is true, 'id' if false
-(?.) :: (a -> Bool) -> (a -> a) -> (a -> a)
 -- >  p?.f = \x -> if p x then f x else x
+(?.) :: (a -> Bool) -> (a -> a) -> (a -> a)
 p?.f = cond p f id
 
 -- |Applies a transformation if a predicate is true, 'id' if false
-(?:) :: Bool -> (a -> a) -> (a -> a)
 -- >  p?:f = if p then f else id
+(?:) :: Bool -> (a -> a) -> (a -> a)
 (?:) = (?.).const
 
 -- |Equality test against function result
+-- 
 -- prop> (id.=) == (==)
--- prop> (const x.=y) == (x==y)
+-- prop> (const x.=y) == const (x==y)
 (.=) :: Eq b => (a -> b) -> b -> (a -> Bool)
 f.=x = (==x).f
-
-
--- * Conditional transformation operators
-{-|
-  The following operators all conditionally apply a given transformation or
-  the identity transformation based on a property of their second
-  argument. Here we use the term transformation to mean any function
-  with the same type signature as 'id', namely @a -> a@.
--}    
 
 -- | Conditional transformer-generator over a Maybe value
 -- Given a function that takes a value and returns a transformation,

@@ -8,16 +8,17 @@ import Util.List (one)
 afor :: (Applicative f) => f Bool -> f Bool -> f Bool
 afor = liftA2 (||)
 
--- |Ceiling-division
+-- |Ceiling-division for calculating how many bins to use
 cdiv :: Int -> Int -> Int
 x`cdiv`y | x`mod`y == 0 = x`div`y
          | otherwise = x`div`y + 1
 
--- |The 'mpair' function converts paired monads to monadic pairs
+-- |A function that converts paired monads to monadic pairs
 mpair :: Monad m => (m a, m b) -> m (a,b)
 mpair (mx, my) = do { x <- mx; y <- my; return (x, y) }
 
--- |The 'wrapped' function wraps values in singleton lists
+-- |A 'wrapped' function treats values as singleton lists
+-- > wrapped f $ x = f [x]
 wrapped :: ([a] -> b) -> (a -> b)
 wrapped = (.one)
 
