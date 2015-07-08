@@ -55,50 +55,50 @@ fromBoosted (Boosted x) = (Power x)
 toBoosted :: Power -> Boosted
 toBoosted (Power x) = (Boosted x)
 
-getCardType :: GenCard -> [CardType]
-getCardType c@GenCard{..} = [ctype]
+getCardType :: Unifier [CardType]
+getCardType = once utype
 
-getCardName :: GenCard -> [Name]
-getCardName c@GenCard{..} = [gname]
+getCardName :: Unifier [Name]
+getCardName = once uname
 
-getNameWords :: GenCard -> [Nameword]
+getNameWords :: Unifier [Nameword]
 getNameWords c@GenCard{..} = concatMap ((map ravel).subsequences.(filter isAlphaNum)) (words gname)
 
-getSet :: GenCard -> [CSet]
-getSet c@GenCard{..} = [gset]
+getSet :: Unifier [CSet]
+getSet = once gset
 
-getNum :: GenCard -> [Number]
-getNum c@GenCard{..} = [gnum]
+getNum :: Unifier [Number]
+getNum = once unum
 
-getSetNum :: GenCard -> [SetNum]
-getSetNum c = [ravel . setnum $ c]
+getSetNum :: Unifier [SetNum]
+getSetNum = once $ ravel . setnum
 
-getRar :: GenCard -> [Rarity]
-getRar c@GenCard{..} = [grar]
+getRar :: Unifier [Rarity]
+getRar = once urar
 
-getKeyword :: GenCard -> [Keyword]
-getKeyword c@GenCard{..} = gkeywords
+getKeyword :: Unifier [Keyword]
+getKeyword = once ukeywords
 
-getColor :: GenCard -> [Color]
-getColor c@GenCard{ctype = TProblem, ..} = concat (map classify (fromMaybe [Wild] (mpreqs >>= return.(map fst).fst)))
-getColor c@GenCard{..} = classify $ fromMaybe Wild mcolor
+getColor :: Unifier [Color]
+getColor = fcond ((concatMap classify.).maybe [Wild]) (utype.=TProblem) (map fst.fst <$> upreqs) (once <$> ucolor)
 
-getCost :: GenCard -> [Cost]
-getCost c@GenCard{..} = fromMaybe ([]) (mcost >>= wrapped return)
+getCost :: Unifier [Cost]
+getCost = (one?/).ucost
 
-getReq :: GenCard -> [Req]
-getReq c@GenCard{..} = fromMaybe ([]) (mreq >>= wrapped return)
+getReq :: Unifier [Req]
+getReq = (one?/).ureq
 
-getPower :: GenCard -> [Power]
-getPower c@GenCard{..} = fromMaybe ([]) (mpower >>= wrapped return)
+getPower :: Unifier [Power]
+getPower = (one?/).upower
 
-getBoosted :: GenCard -> [Boosted]
-getBoosted c@GenCard{..} = map (toBoosted) (fromMaybe ([]) (mboosted >>= wrapped return))
+getBoosted :: Unifier [Boosted]
+getBoosted = mmap toBoosted . mono . uboosted
 
-getPoints :: GenCard -> [Points]
-getPoints c@GenCard{..} = fromMaybe ([]) (mpoints >>= wrapped return)
+getPoints :: Unifier [Points]
+getPoints = (one?/).upoints
 
-instance Indexable GenCard where
+instance UniCard c => Indexable c where
+--instance Indexable GenCard where
     empty = ixSet 
                 [ ixFun getSetNum
                 , ixFun getSet

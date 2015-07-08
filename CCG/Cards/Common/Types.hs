@@ -23,15 +23,15 @@ type ProblemReq = ([(Color,Power)],Power)
 
 -- Integral newtypes: Power, Cost, Req, Points
 
-newtype Power = Power Int deriving (Read, Show, Ord, Eq, Data, Typeable, SafeCopy)
-newtype Cost = Cost Int deriving (Read, Show, Ord, Eq, Data, Typeable, SafeCopy)
-newtype Req = Req Int deriving (Read, Show, Ord, Eq, Data, Typeable, SafeCopy)
-newtype Points = Points Int deriving (Read, Show, Ord, Eq, Data, Typeable, SafeCopy)
+newtype Power = Power Int deriving (Read, Show, Ord, Eq, Data, Typeable)
+newtype Cost = Cost Int deriving (Read, Show, Ord, Eq, Data, Typeable)
+newtype Req = Req Int deriving (Read, Show, Ord, Eq, Data, Typeable)
+newtype Points = Points Int deriving (Read, Show, Ord, Eq, Data, Typeable)
 
 -- String newtypes: Keyword, card text
 
-newtype Keyword = Keyword String deriving (Ord, Eq, Data, Typeable, SafeCopy)
-newtype Text = Text String deriving (Ord, Eq, Data, Typeable, SafeCopy)
+newtype Keyword = Keyword String deriving (Ord, Eq, Data, Typeable)
+newtype Text = Text String deriving (Ord, Eq, Data, Typeable)
 
 -- Datatypes: Color, card number, card set, rarity, card type
 

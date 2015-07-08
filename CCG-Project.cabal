@@ -25,8 +25,27 @@ library
     Util.String
     Util.Tuple
     Util.Tuple.Apply
+    CCG
+    CCG.Cards
+    CCG.Deck
+    CCG.MLPCCG
+    CCG.Cards.Universal
+    CCG.Cards.Safe
+    CCG.Cards.Common
+    CCG.Cards.Common.Types
+    CCG.Cards.Common.Invotomorph
+    CCG.Cards.Common.Dimorph
+    CCG.Cards.Common.Instances
+    CCG.Cards.Common.Values
+    CCG.Cards.Generic
+    CCG.Cards.Pretty
+    CCG.Cards.Parser
   build-depends:
-        base >=4.7 && <4.8
+        base >=4.7 && <4.8,
+        array >=0.5 && <0.6,
+        safecopy >=0.8 && <0.9,
+        containers >= 0.5 && <0.6,
+        split >=0.2 && <0.3
   default-language: Haskell2010
 
 executable ccgserver

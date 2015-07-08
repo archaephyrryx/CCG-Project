@@ -2,7 +2,7 @@ module Util.Helper where
 
 import Control.Monad
 import Control.Applicative
-import Util.List (one)
+import Util.List (for, one)
 
 -- |The @||@ operator lifted to applicative functors
 afor :: (Applicative f) => f Bool -> f Bool -> f Bool
@@ -25,3 +25,11 @@ wrapped = (.one)
 -- |Converts a normal string-parser into a basic Read(er)
 rdr :: (String -> a) -> (ReadS a)
 rdr = (wrapped (`zip`[""]) .)
+
+-- |Composes a list of same-type transformations
+proc :: [a -> a] -> a -> a
+proc = foldl1 (.)
+
+-- |Composes transformation generators over the same seed
+procmap :: [a -> b -> b] -> a -> b -> b
+procmap = (proc.).(.flip ($)).for
