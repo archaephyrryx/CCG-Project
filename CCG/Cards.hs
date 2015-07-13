@@ -27,8 +27,10 @@ type Cardlist = Set Card
   specialized for the MLP CCG in particular, and thus must be ported
   appropriately if ever used for a different CCG.
   -}
-data Card = Mane -- ^ Constructor for \'Mane\' cards
-            { name     :: Name
+data Card = 
+          -- | Constructor for \'Mane\' cards 
+          Mane {
+              name     :: Name
             , set      :: CSet
             , num      :: Number
             , rar      :: Rarity
@@ -38,8 +40,9 @@ data Card = Mane -- ^ Constructor for \'Mane\' cards
             , boosted  :: Power
             , text     :: Text
             }
-          | Friend -- ^ Constructor for \'Friend\' cards
-            { name     :: Name
+          | -- | Constructor for \'Friend\' cards 
+            Friend {
+              name     :: Name
             , set      :: CSet
             , num      :: Number
             , rar      :: Rarity
@@ -50,8 +53,9 @@ data Card = Mane -- ^ Constructor for \'Mane\' cards
             , power    :: Power
             , text     :: Text
             }
-          | Resource -- ^ Constructor for \'Resource\' cards
-            { name     :: Name
+          | -- | Constructor for \'Resource\' cards
+            Resource {
+              name     :: Name
             , set      :: CSet
             , num      :: Number
             , rar      :: Rarity
@@ -62,8 +66,9 @@ data Card = Mane -- ^ Constructor for \'Mane\' cards
             , power    :: Power
             , text     :: Text
             }
-          | Event -- ^ Constructor for \'Event\' cards
-            { name     :: Name
+          | -- | Constructor for \'Event\' cards
+            Event {
+              name     :: Name
             , set      :: CSet
             , num      :: Number
             , rar      :: Rarity
@@ -74,8 +79,9 @@ data Card = Mane -- ^ Constructor for \'Mane\' cards
             , power    :: Power
             , text     :: Text
             }
-          | Troublemaker -- ^ Constructor for \'Troublemaker\' cards
-            { name     :: Name
+          | -- | Constructor for \'Troublemaker\' cards
+            Troublemaker {
+              name     :: Name
             , set      :: CSet
             , num      :: Number
             , rar      :: Rarity
@@ -84,8 +90,9 @@ data Card = Mane -- ^ Constructor for \'Mane\' cards
             , points   :: Points
             , text     :: Text
             }
-          | Problem -- ^ Constructor for \'Problem\' cards
-            { name     :: Name
+          | -- | Constructor for \'Problem\' cards
+            Problem {
+              name     :: Name
             , set      :: CSet
             , num      :: Number
             , rar      :: Rarity

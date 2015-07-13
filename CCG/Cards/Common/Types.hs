@@ -37,7 +37,7 @@ newtype Text = Text String deriving (Ord, Eq, Data, Typeable)
 
 data Color =    Blue |    Yellow |    Purple |    Pink |    White |    Orange
            | NonBlue | NonYellow | NonPurple | NonPink | NonWhite | NonOrange
-           | Wild deriving (Show, Read, Eq, Ord, Data, Typeable)
+           | Wild deriving (Show, Enum, Read, Eq, Ord, Data, Typeable)
 
 instance Invotomorph Color where
     classX = spect
@@ -96,7 +96,7 @@ data CSet = Premiere | CanterlotNights | RockNRave | CelestialSolstice | Crystal
 
 data Rarity = Common | Uncommon | Fixed | Rare | UltraRare | Promotional deriving (Enum, Eq, Ord, Show, Read, Data, Typeable)
 
-data CardType = TMane | TFriend | TResource | TEvent | TTroublemaker | TProblem deriving (Eq, Ord, Data, Typeable)
+data CardType = TMane | TFriend | TResource | TEvent | TTroublemaker | TProblem deriving (Enum, Eq, Ord, Data, Typeable)
 
 transCT :: Dimorph CardType String
 transCT = let typeX = [TMane, TFriend, TResource, TEvent, TTroublemaker, TProblem]
