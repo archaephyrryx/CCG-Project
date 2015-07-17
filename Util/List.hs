@@ -1,9 +1,11 @@
 module Util.List where
 
 import Util.Conditional
+import Data.Functor
 
 infix 9 !?
 infix 9 ??
+infixr 8 ??.
 infixl 9 !@
 
 -- |Convenience function to test for non-emptiness
@@ -31,6 +33,10 @@ filtrate (p:ps) (x:xs) = (p?:(x:)) $ filtrate ps xs
 f??[]=id
 f??x =f x
 
+-- |Generator for '??'
+(??.) :: ([a] -> (b -> b)) -> (c -> [a]) -> c -> (b -> b)
+f??.g = (f??).g
+
 -- |'for' is syntactic convenience for 'map' where the function is more
 -- complicated than the list; it is purely an argument-flipped 'map'.
 for :: [a] -> (a -> b) -> [b]
@@ -43,6 +49,10 @@ one = (:[])
 -- |'once' wraps a function result in a singleton list
 once :: (a -> b) -> (a -> [b])
 once = (one.)
+
+-- |'mono' converts a @Maybe a@ to a @Maybe [a]@ by lifted wrapping
+mono :: Maybe a -> Maybe [a]
+mono = fmap one
 
 -- |The 'headDef' function returns a default value for an empty list, or
 -- the head of a non-empty list

@@ -2,9 +2,10 @@
     GeneralizedNewtypeDeriving, MultiParamTypeClasses,
     TemplateHaskell, TypeFamilies, RecordWildCards #-}
 
-module TagState where
+module API.TagState where
 
 import CCG
+import Util
 --------------------------------------------
 import API.Database
 import API.IxMap

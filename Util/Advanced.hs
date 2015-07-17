@@ -4,14 +4,14 @@ import Util.Tuple.Apply
 import Util.Conditional
 
 -- |Like 'cond', but with a pre-application after the test
+-- >  precond h p f g = cond p (f.h) (g.h)
 precond :: (a -> b) -> (a -> Bool) -> (b -> c) -> (b -> c) -> (a -> c)
--- >  precond h = cond p (f.h) (g.h)
 precond = fcond . flip (.)
 
 -- |Like 'cond', only the conditional function is derived by applying a
 -- generator function to a conditional parameter
-fcond :: (x -> (a -> b)) -> (a -> Bool) -> x -> x -> (a -> b)
 -- >  fcond h p f g = cond p (h f) (h g)
+fcond :: (x -> (a -> b)) -> (a -> Bool) -> x -> x -> (a -> b)
 fcond = (curry.).flip((.).uncurry.cond).tmup
 
 -- |A case of 'fcond' with 'const' as the generator, returning one of
