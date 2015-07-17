@@ -1,7 +1,7 @@
 #!/bin/bash
 
 arg=${1:-"main"}
-ghc=${2:-"/usr/bin/ghc"}
+ghc="/usr/local/bin/ghc"
 
 case "$arg" in
 	main) 
@@ -9,7 +9,7 @@ case "$arg" in
 		;;
 	clean)
 		rm -rf ccgserver
-		find . -regex '.*\.\(hi\|o\)$' | xargs rm
+		find . -regex '.*\.\(dyn_\)?\(hi\|o\)$' | xargs rm
 		;;
 	unpack)
 		tar xzf jpgs.tgz

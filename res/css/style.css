@@ -42,6 +42,14 @@
     cursor: pointer;
 }
 
+.clear-btn {
+    background:none!important;
+    border:none; 
+    padding:0!important;
+    border-bottom:1px solid #444; 
+    cursor: pointer;
+}
+
 .softlink {
     background:none!important;
     border:none; 
