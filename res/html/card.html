@@ -1,0 +1,209 @@
+<!doctype html>
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html;charset=UTF-8">
+    <meta charset="utf-8">
+    <meta name="description" content="My Little Pony CCG Metadatabase">
+    <meta name="keywords" content="my little pony, mlp, ccg, tcg, enterplay, tabletop, brony">
+    <link rel="stylesheet" type="text/css" href="css/style.css">
+  </head>
+  <body>
+    <div id="nav-bar">
+      <nav id="nav">
+	<ul>
+	  <li><button>Home</button></li>
+	  <li><button>Card</button></li>
+	  <li><button>Deck</button></li>
+	</ul>
+      </nav>
+    </div>
+    <div id="header">
+      <div class="table-row">
+	<div class="table-cell">
+	  <div class="table-row">
+	    <div class="table-cell">
+	      <label for="pow">Power:</label>
+	      <span id="pow">
+		<input type="number" step="1" min="0" placeholder="Min"/>
+		to
+		<input type="number" step="1" min="0" placeholder = "Max">
+	      </span>
+	    </div>
+	  </div>
+	  <div class="table-row">
+	    <div class="table-cell">
+	      <label for="cost">Cost:</label>
+	      <span id="cost">
+		<input type="number" step="1" min="0" placeholder="Min"/>
+		to
+		<input type="number" step="1" min="0" placeholder = "Max">
+	      </span>
+	    </div>
+	  </div>
+	  <div class="table-row">
+	    <div class="table-cell">
+	      <label for="req">Req:</label>
+	      <span id="req">
+		<input type="number" step="1" min="0" placeholder="Min"/>
+		to
+		<input type="number" step="1" min="0" placeholder = "Max">
+	      </span>
+	    </div>
+	  </div>
+	</div>
+	<div class="table-cell">
+	  <div class="table-row">
+	    <div class="table-cell">
+	      <div class="table-row">
+		<div class="table-cell">
+		  <b>Type</b>
+		</div>
+		<div class="table-cell">
+		  <button class="clear-btn">clear</button>
+		</div>
+	      </div>
+	      <div class="table-row">
+		<div class="table-cell">
+		  <select multiple="true">
+		    <option value="0">Mane</option>
+		    <option value="1">Friend</option>
+		    <option value="2">Resource</option>
+		    <option value="3">Event</option>
+		    <option value="4">Troublemaker</option>
+		    <option value="5">Problem</option>
+		  </select>
+		</div>
+	      </div>
+	    </div>
+	    <div class="table-cell">
+	      <div class="table-row">
+		<div class="table-cell">
+		  <b>Color</b>
+		</div>
+		<div class="table-cell">
+		  <button class="clear-btn">clear</button>
+		</div>
+	      </div>
+	      <div class="table-row">
+		<div class="table-cell">
+		  <select multiple="true">
+		    <option value="0">Pink</option>
+		    <option value="1">Purple</option>
+		    <option value="2">Orange</option>
+		    <option value="3">White</option>
+		    <option value="4">Blue</option>
+		    <option value="5">Yellow</option>
+		    <option value="6">Wild</option>
+		  </select>
+		</div>
+	      </div>
+	    </div>
+	    <div class="table-cell">
+	      <div class="table-row">
+		<div class="table-cell">
+		  <b>Set</b>
+		</div>
+		<div class="table-cell">
+		  <button class="clear-btn">clear</button>
+		</div>
+	      </div>
+	      <div class="table-row">
+		<div class="table-cell">
+		  <select multiple="true">
+		    <option value="0">Premiere</option>
+		    <option value="1">Canterlot Nights</option>
+		    <option value="2">Rock and Rave</option>
+		    <option value="3">Celestial Solstice</option>
+		    <option value="4">Crystal Games</option>
+		  </select>
+		</div>
+	      </div>
+	    </div>
+	    <div class="table-cell">
+	      <div class="table-row">
+		<div class="table-cell">
+		  <b>Rarity</b>
+		</div>
+		<div class="table-cell">
+		  <button class="clear-btn">clear</button>
+		</div>
+	      </div>
+	      <div class="table-row">
+		<div class="table-cell">
+		  <select multiple="true">
+		    <option value="0">Fixed</option>
+		    <option value="1">Common</option>
+		    <option value="2">Uncommon</option>
+		    <option value="3">Rare</option>
+		    <option value="4">Ultra-Rare</option>
+		    <option value="5">Promo</option>
+		  </select>
+		</div>
+	      </div>
+	    </div>
+	  </div>
+	</div>
+      </div>
+    </div>
+    <div id="content">
+      <table>
+	<tr>
+	  <th>#</th>
+	  <th>Rarity</th>
+	  <th>Type</th>
+	  <th>Cost</th>
+	  <th>Req.</th>
+	  <th>Name</th>
+	  <th>Power</th>
+	</tr>
+	<tr>
+	  <td>pr01</td>
+	  <td>F</td>
+	  <td><img class="icon" src="icns/Mane.png"/></td>
+	  <td></td>
+	  <td><span></span></td>
+	  <td><button class="liquidlink">Rainbow Dash, Flier Extraordinaire</button></td>
+	  <td><span class="element label Blue">1</span></td>
+	</tr>
+	<tr>
+	  <td>pr02</td>
+	  <td>F</td>
+	  <td><img class="icon" src="icns/Mane.png"/></td>
+	  <td></td>
+	  <td><span></span></td>
+	  <td><button class="liquidlink">Applejack, Steadfast Farmpony</button></td>
+	  <td><span class="element label Orange">1</span></td>
+	</tr>
+	<tr>
+	  <td>pr03</td>
+	  <td>F</td>
+	  <td><img class="icon" src="icns/Mane.png"/></td>
+	  <td></td>
+	  <td><span></span></td>
+	  <td><button class="liquidlink">Pinkie Pie, Party Animal</button></td>
+	  <td><span class="element label Pink">1</span></td>
+	</tr>
+	<tr>
+	  <td>pr04</td>
+	  <td>F</td>
+	  <td><img class="icon" src="icns/Mane.png"/></td>
+	  <td></td>
+	  <td><span></span></td>
+	  <td><button class="liquidlink">Twilight Sparkle, Faithful Student</button></td>
+	  <td><span class="element label Purple">1</span></td>
+	</tr>
+      </table>
+    </div>
+    <div id="sidebar">
+      <a></a>
+    </div>
+    <span id="footer">
+      <button class="ranger-but prev">&lt;</button>
+      <span class="ranger-item cur">1</span>
+      <button class="ranger-but next">&gt;</button>
+    </span>
+    <span id="debugger">
+      Text Goes Here!
+    </span>
+  </body>
+</html>

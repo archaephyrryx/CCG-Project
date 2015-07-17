@@ -2,67 +2,79 @@
 module CCG.Cards.Common.Instances where
 
 import CCG.Cards.Common.Types
+import CCG.Cards.Common.Dimorph
 import Data.Maybe
 import Data.Char
+import Util
 
-import Util.Helper
+-- * Typeclasses
 
--- Class declarations
+-- | The "Hint" class represents wrapped "Int" values
 class Hint a where
-    val :: a -> Int
-    unval :: Int -> a
-    readH :: String -> a
+    val :: a -> Int -- ^ Extract an Int
+    unval :: Int -> a -- ^ Encapsulate an Int
+    readH :: String -> a -- ^ Read an Int, then encapsulate
     readH = unval.read 
-    showH :: a -> String
+    showH :: a -> String -- ^ Extract, then Show an Int
     showH = show.val
 
+-- | The "Abbrev" class represents Data-types that can be printed in a
+-- verbose way or an abbreviated way
 class Abbrev a where
-    short :: String -> a
-    long :: String -> a
-    brief :: a -> String
-    verbose :: a -> String
+    short :: String -> a -- ^ Read an abbreviated string
+    long :: String -> a -- ^ Read an verbose string
+    brief :: a -> String -- ^ Show as an abbreviated string
+    verbose :: a -> String -- ^ Show as a verbose string
 
+-- | The "Stringe" class represents wrapped "String" values
 class Stringe a where
-    ravel :: String -> a
-    unravel :: a -> String
-    shew :: a -> String
+    ravel :: String -> a -- ^ Wrap a string
+    unravel :: a -> String -- ^ Unwrap a string
+    shew :: a -> String -- ^ Unwrap, then show (with inner quotes)
     shew = show.unravel
 
--- Implicit Instances
+-- * Implicit Instances
 
+-- | Trivial "Hint" instance for "Int"
 instance Hint Int where
     val = id
     unval = id
     readH = read
     showH = show
 
+-- | Trivial "Stringe" instance for "String"
 instance Stringe String where
     ravel = id
     unravel = id
     shew = show
 
--- Derived functions
+-- * Derived Functions
 
+-- | readMaybeH converts an empty string to "Nothing", or an integral
+-- string to a "Just" value of a "Hint"-encapsulated "Int"
 readMaybeH :: (Hint a) => String -> Maybe a
 readMaybeH "" = Nothing
 readMaybeH x = Just (readH x)
 
+-- | Adds two "Hint" values
 plus :: (Hint a) => a -> a -> a
 plus = (unval.).(.val).(+).val
 
+-- | Subtract one "Hint" value from another
 minus :: (Hint a) => a -> a -> a
 minus = (unval.).(.val).(-).val
 
+-- | Increment a "Hint" value by an Int value
 inc :: (Hint a) => Int -> a -> a
 inc = (unval.).(.val).(+)
 
+-- | Decrement a "Hint" value by an Int value
 dec :: (Hint a) => Int -> a -> a
 dec = (unval.).(.val).(+).negate
 
+-- * Implemented Instances
 
--- Implemented Instances
-
--- hints
+-- ** Hint Instances
 
 instance Hint Power where
     val (Power x) = x
@@ -80,7 +92,7 @@ instance Hint Points where
     val (Points x) = x
     unval x = (Points x)
 
--- stringes
+-- ** Stringe Instances
 
 instance Stringe Keyword where
     ravel x = Keyword x
@@ -95,13 +107,7 @@ instance Show Keyword where
 instance Show Text where
     show = shew
 
--- abbrevs
-
-instance Abbrev CSet where
-    short = readCS
-    long = readCS.shorten
-    brief = shorten.show
-    verbose = show
+-- ** Abbrev Instances
 
 instance Abbrev Rarity where
     short = readR
@@ -109,32 +115,36 @@ instance Abbrev Rarity where
     brief = (filter isUpper).show
     verbose = show
 
--- Helpers for instances of Abbrev
+-- *** Functions for Abbrev Instance Declarations
+
+transCS :: Dimorph CSet String
+transCS = let x = [ Premiere
+                  , CanterlotNights
+                  , RockNRave
+                  , CelestialSolstice
+                  , CrystalGames
+                  ]
+              y = [ "Premiere"
+                  , "Canterlot Nights"
+                  , "Rock and Rave"
+                  , "Celestial Solstice"
+                  , "Crystal Games"
+                  ]
+          in Dimorph x y
 
 instance Read CSet where
-    readsPrec = const (readsSet.(map toLower))
-
-readsSet :: ReadS CSet
-readsSet = rdr readSet
-  where
-  
-      readSet s = case s of
-        ('p':_)     -> Premiere
-        ('r':_)     -> RockNRave
-        ('c':'r':_) -> CrystalGames
-        ('c':'g':_) -> CrystalGames
-        ('c':'a':_) -> CanterlotNights
-        ('c':'n':_) -> CanterlotNights
-        ('c':'s':_) -> CelestialSolstice
-        ('c':'e':_) -> CelestialSolstice
+    readsPrec = const $ rdr . from $ transCS
 
 instance Show CSet where
-    show Premiere = "Premiere"
-    show CanterlotNights = "Canterlot Nights"
-    show RockNRave = "Rock and Rave"
-    show CelestialSolstice = "Celestial Solstice"
-    show CrystalGames = "Crystal Games"
+    show = to transCS
 
+instance Abbrev CSet where
+    short = readCS
+    long = readCS.shorten
+    brief = shorten.show
+    verbose = show
+
+-- | 'readCS' is an Abbrev-based reader/parser for readCS
 readCS :: String -> CSet
 readCS x = case x of
         "pr" -> Premiere
@@ -144,11 +154,12 @@ readCS x = case x of
         "cg" -> CrystalGames
         _ -> error ("No cardset parse for '"++x++"'")
 
+-- | The 'shorten' function converts an unabbreviated CSet string to its
+-- abbreviated version; this conversion filters out all words of a
+-- string that begin with an uppercase letter, and takes the first two
+-- characters if there is only one such word, or the initials otherwise.
 shorten :: String -> String
-shorten x = let y = (filter (isUpper.head) (words x))
-    in if (length y) == 1
-        then (map toLower (take 2 (head y)))
-        else (map toLower (map (head) y))
+shorten = map toLower . cond (length.=1) (take 2.head) (map head) . filter (isUpper.head) . words
 
 readR :: String -> Rarity
 readR x = case x of 

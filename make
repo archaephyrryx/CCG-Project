@@ -1,13 +1,15 @@
 #!/bin/bash
 
 arg=${1:-"main"}
+ghc="/usr/local/bin/ghc"
 
 case "$arg" in
 	main) 
-		ghc --make Main.hs -o fuget -package fudgets
+		$ghc --make Main.hs -o ccgserver -rtsopts
 		;;
 	clean)
-		rm -rf *.o *.hi */*.o */*.hi fuget
+		rm -rf ccgserver
+		find . -regex '.*\.\(dyn_\)?\(hi\|o\)$' | xargs rm
 		;;
 	unpack)
 		tar xzf jpgs.tgz
