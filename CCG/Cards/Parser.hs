@@ -1,9 +1,21 @@
 {-# LANGUAGE RecordWildCards #-} 
 
-module CCG.Cards.Parser (parsage, unquote, unbrace, ocrBlock) where
+module CCG.Cards.Parser (
+      parsage
+    , unquote
+    , unbrace
+    , ocrBlock
+    , headline
+    , makeline
+    , fields
+    , findBreakPoint
+    , keys
+    ) where
 
 import CCG.Cards
 import CCG.Cards.Common
+import Control.Applicative
+import qualified CCG.Cards.Parser.Fields as F (OrderedField(..), FieldWrapper(..), getField, wrapFields)
 import Data.List
 import Data.List.Split
 import Data.Char
@@ -12,68 +24,25 @@ import Data.Set (Set)
 import qualified Data.Map as Map
 import Data.Map (Map)
 import Data.Function (on)
-import Util.String
-import Util.List
+import Util
 
-newtype OrderedField = OrderedField { flds :: [String] }
 
-getField :: String -> OrderedField -> [([String] -> String)]
-getField x y = map (flip (!!)) (elemIndices x (flds y))
-
-data FieldWrapper =
-     FieldWrapper
-     { nam   :: String
-     , set'  :: String
-     , num'  :: String
-     , rar'  :: String
-     , typ   :: String
-     , key   :: String
-     , col   :: String
-     , cos   :: String
-     , req   :: String
-     , pow   :: String
-     , boo   :: String
-     , poi   :: String
-     , preq1 :: String
-     , col1  :: String
-     , preq2 :: String
-     , col2  :: String
-     , opreq :: String
-     , text' :: String
-     }
-     deriving (Show)
-
-wrapFields :: OrderedField -> [String] -> FieldWrapper
-wrapFields ordfs fs =
-  let nam   = (head $ getField "Name" ordfs) $ fs
-      set'  = (head $ getField "Set" ordfs) $ fs
-      num'  = (head $ getField "Number" ordfs) $ fs
-      rar'  = (head $ getField "Rarity" ordfs) $ fs
-      typ   = (head $ getField "Type" ordfs) $ fs
-      key   = (head $ getField "Keywords" ordfs) $ fs
-      col   = (head $ getField "Color" ordfs) $ fs
-      cos   = (head $ getField "Cost" ordfs) $ fs
-      req   = (head $ getField "Req" ordfs) $ fs
-      pow   = (head $ getField "Power" ordfs) $ fs
-      boo   = (head $ getField "Boosted" ordfs) $ fs
-      poi   = (head $ getField "Points" ordfs) $ fs
-      preq1 = (head $ getField "Problem Req" ordfs) $ fs
-      col1  = (neck $ getField "Color" ordfs) $ fs
-      preq2 = (neck $ getField "Problem Req" ordfs) $ fs
-      col2  = (body $ getField "Color" ordfs) $ fs
-      opreq = (head $ getField "Opponent Req" ordfs) $ fs
-      text' = (head $ getField "Text" ordfs) $ fs
-  in FieldWrapper{..}
-
-ocrBlock :: String -> [Card]
+-- |Parser to convert the full text of an OCR file into a list of Cards
+ocrBlock :: String -- ^ Unprocessed contents of an OCR file
+         -> [Card] -- ^ List of Cards from OCR text string
 ocrBlock str = let (h:xs) = lines str
                    header = headline h
                    line = makeline header
                in map line xs
 
+-- | Line-to-fields string-splitter based on a tab-delimited OCR with
+-- each field possibly wrapped in single quotes (independent of other
+-- fields)
 fieldSplit :: String -> [String]
 fieldSplit = map unquote . split (dropInitBlank . dropDelims $ oneOf "\t")
 
+-- | Given an opening character and closing character to search for,
+-- returns the indices of the spanning delimters, 
 between :: Char -> Char -> String -> (Int,Int)
 between o c s = let open = elemIndices o s
                     fopen = headDef 0 open
@@ -83,6 +52,7 @@ between o c s = let open = elemIndices o s
                                 else succ . headDef (-1) $ close
                 in (fopen,lclose)
 
+-- | Give
 findBreakPoint :: String -> Int
 findBreakPoint "" = 0
 findBreakPoint s = let ws = split (condense . dropDelims $ oneOf " [],") s
@@ -110,16 +80,16 @@ fields ls str = zip ls (fieldSplit str)
 
 parseLine :: [(String,String)] -> Card
 parseLine lf = let (l,f) = unzip lf in
-                cardParse (wrapFields (OrderedField l) f)
+                cardParse (F.wrapFields (F.OrderedField l) f)
 
-cardParse :: FieldWrapper -> Card
-cardParse fw@FieldWrapper{..} =
+cardParse :: F.FieldWrapper -> Card
+cardParse fw =
         let key' = keys key
             text = ravel text'
             set = long set'
             num = readN num'
             rar = readR rar'
-        in case typ of
+        in case F.typ fw of
             "Mane"
                 -> let boo' = readH boo
                        pow' = readH pow
@@ -149,10 +119,24 @@ cardParse fw@FieldWrapper{..} =
                    in (Troublemaker nam set num rar key' pow' poi' text)
             "Problem"
                 -> let poi' = readH poi
-                       preqs' = if preq2 == ""
-                                  then ([(readC col1, readH preq1)], readH opreq)
-                                  else ([(readC col1, readH preq1), (readC col2, readH preq2)], readH opreq)
+                       preqs' = (,) <$> (fcond ((:) <$> ((,) <$> readC.F.col1 <*> readH.F.preq1) <*>) (F.preq2.="") (const []) (((:[]).).(,) <$> readC.F.col2 <*> readH.F.preq2)) <*> (readH.F.opreq) $ fw
+                                  --then ([(readC . F.col1 $ fw, readH . F.preq1 $ fw)], readH F.opreq)
+                                  --else ([(readC . F.col1 $ fw, readH . F.preq1 $ fw), (readC F.col2, readH F.preq2)], readH F.opreq)
                    in (Problem nam set num rar poi' key' preqs' text)
+  where
+    nam = F.nam fw
+    key = F.key fw
+    text' = F.text' fw
+    set' = F.set' fw
+    num' = F.num' fw
+    rar' = F.rar' fw
+    boo = F.boo fw
+    pow = F.pow fw
+    col = F.col fw
+    cos = F.cos fw
+    req = F.req fw
+    poi = F.poi fw
+
 
 
 keys :: String -> Keywords

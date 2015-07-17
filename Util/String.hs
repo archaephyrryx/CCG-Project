@@ -1,15 +1,22 @@
 module Util.String where
 
-unquote :: String -> String
-unquote x | null x = x
-          | head x == '\'' && last x == '\'' = init.tail $ x
-          | last x == '\'' = tail $ x
-          | head x == '\'' = init $ x
-          | otherwise = x
+import Util.Conditional
+import Util.List
 
+-- |'unquote' strips an optional leading single-quote
+-- and an optional trailing single-quote from a string
+unquote :: String -> String
+unquote = full?.hstrip '\''.estrip '\''
+
+-- |'unbrace' strips an optional leading open-square-bracket
+-- and an optional trailing close-square-bracket from a string
 unbrace :: String -> String
-unbrace x | null x = x
-          | head x == '[' && last x == ']' = init.tail $ x
-          | head x == '[' = tail $ x
-          | last x == ']' = init $ x
-          | otherwise = x
+unbrace = full?.hstrip '['.estrip ']'
+
+-- |Head-Strip: Optionally strip a character from the head of a string
+hstrip :: Char -> String -> String
+hstrip c = full?.head.=c?.tail
+
+-- |End-Strip: Optionally strip a character from the end of a string
+estrip :: Char -> String -> String
+estrip c = full?.last.=c?.init

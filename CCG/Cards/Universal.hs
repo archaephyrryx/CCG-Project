@@ -1,9 +1,12 @@
+{-# LANGUAGE Rank2Types #-}
 module CCG.Cards.Universal where
 
 import CCG.Cards
 import CCG.Cards.Generic
 import CCG.Cards.Common
 import Control.Applicative
+
+type Unifier x = UniCard a => a -> x
 
 class UniCard a where
     uname     :: a -> Name
