@@ -1,4 +1,4 @@
-{-# LANGUAGE TypeSynonymInstances, FlexibleInstances, DoRec, RecordWildCards #-}
+{-# LANGUAGE TypeSynonymInstances, FlexibleInstances, RecursiveDo, RecordWildCards #-}
 module Test.ShowCard where
 
 import App.Core
@@ -29,8 +29,8 @@ import qualified Graphics.UI.Threepenny as UI
 main :: IO ()
 main = do
 	startGUI defaultConfig
-		{ tpPort	= Just 10000
-		, tpStatic	= Just "res/"
+		{ jsPort	= Just 10000
+		, jsStatic	= Just "res/"
 		} setup
 
 setup :: Window -> UI ()

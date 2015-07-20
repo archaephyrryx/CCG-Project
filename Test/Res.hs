@@ -1,4 +1,4 @@
-{-# LANGUAGE TypeSynonymInstances, FlexibleInstances, DoRec #-}
+{-# LANGUAGE TypeSynonymInstances, FlexibleInstances, RecursiveDo #-}
 
 module Test.Res where
 
@@ -19,8 +19,8 @@ import API.Database
 main :: IO ()
 main = do
 	startGUI defaultConfig
-		{ tpPort	= Just 10000
-		, tpStatic	= Just "res/"
+		{ jsPort	= Just 10000
+		, jsStatic	= Just "res/"
 		} setup
 
 setup :: Window -> UI ()

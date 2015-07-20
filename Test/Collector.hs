@@ -1,4 +1,4 @@
-{-# LANGUAGE TypeSynonymInstances, FlexibleInstances, DoRec #-}
+{-# LANGUAGE TypeSynonymInstances, FlexibleInstances, RecursiveDo #-}
 
 module Test.Collector where
 
@@ -15,12 +15,13 @@ import qualified	Graphics.UI.Threepenny 			as UI
 import				Graphics.UI.Threepenny.Core
 import App.Widgets
 import App.Core.Helper
+import Util
 
 main :: IO ()
 main = do
 	startGUI defaultConfig
-		{ tpPort	= Just 10000
-		, tpStatic	= Just "../wwwroot/"
+		{ jsPort	= Just 10000
+		, jsStatic	= Just "../wwwroot/"
 		} setup
 
 numers = [ "Zero"

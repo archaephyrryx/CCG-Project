@@ -1,4 +1,4 @@
-{-# LANGUAGE TypeSynonymInstances, FlexibleInstances, DoRec #-}
+{-# LANGUAGE TypeSynonymInstances, FlexibleInstances, RecursiveDo #-}
 
 module Test where
 
@@ -17,8 +17,8 @@ import App.Widgets
 main :: IO ()
 main = do
 	startGUI defaultConfig
-		{ tpPort	= Just 10000
-		, tpStatic	= Just "../wwwroot/"
+		{ jsPort	= Just 10000
+		, jsStatic	= Just "../wwwroot/"
 		} setup
 
 setup :: Window -> UI ()
