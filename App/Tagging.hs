@@ -1,4 +1,4 @@
-{-# LANGUAGE TypeSynonymInstances, FlexibleInstances, DoRec #-} 
+{-# LANGUAGE TypeSynonymInstances, FlexibleInstances, RecursiveDo #-} 
 
 module App.Tagging where
 -------------------------------------------------
