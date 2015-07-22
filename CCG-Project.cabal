@@ -11,7 +11,7 @@ license-file:        LICENSE
 author:              Archaephyrryx
 maintainer:          caufeminecraft@gmail.com
 -- copyright:           
-category:            Web
+category:            Graphics
 build-type:          Simple
 cabal-version:       >=1.10
 
@@ -48,58 +48,35 @@ library
         split >=0.2 && <0.3
   default-language: Haskell2010
 
-executable ccgserver
-  main-is:
+executable ccgui
+  main-is:          
         Main.hs
-  hs-source-dirs:
-        ./
-  other-modules:       
+  -- other-modules:       
   other-extensions:
-        RecordWildCards,
+        CPP,
+        DeriveDataTypeable,
         FlexibleContexts,
         FlexibleInstances,
-        MultiParamTypeClasses,
-        ScopedTypeVariables,
-        TypeFamilies,
-        UndecidableInstances,
-        ViewPatterns,
-        OverloadedStrings,
-        DeriveDataTypeable,
         GeneralizedNewtypeDeriving,
-        OverlappingInstances,
-        IncoherentInstances,
-        TemplateHaskell,
-        TypeSynonymInstances,
-        TupleSections,
-        QuasiQuotes,
-        CPP,
-        Rank2Types,
         ImpredicativeTypes,
-        RankNTypes,
-        NamedFieldPuns
+        MultiParamTypeClasses,
+        NamedFieldPuns,
+        Rank2Types,
+        RecordWildCards,
+        TemplateHaskell,
+        TupleSections,
+        TypeFamilies,
+        UndecidableInstances
   build-depends:
         base >=4.7 && <4.8,
-        happstack-server >=7.4 && <7.5,
-        bytestring >=0.10 && <0.11,
-        reform >=0.2 && <0.3,
-        happstack-hsp >=7.3 && <7.4, 
-        hsp >=0.10 && <0.11,
-        reform-hsp >=0.2 && <0.3,
-        -- reform-happstack >=0.2 && <0.3,
-        blaze-html >=0.8 && <0.9,
-        blaze-markup >=0.7 && <0.8,
-        blaze-builder >=0.4 && <0.5,
-        --reform-blaze >=0.2 && <0.3,
-        mtl >=2.1 && <2.2,
-        text >=1.1 && <1.2,
+        wx >=0.91 && <0.92,
         template-haskell >=2.9 && <2.10,
-        hsp >=0.10 && <0.11,
-        hsx2hs >=0.13 && <0.14,
+        containers >=0.5 && <0.6,
+        mtl >=2.1 && <2.2,
         acid-state >=0.12 && <0.13,
         ixset >=1.0 && <1.1,
         bifunctors >=5 && <5.1,
         safecopy >=0.8 && <0.9,
-        containers >=0.5 && <0.6,
         split >=0.2 && <0.3,
         array >=0.5 && <0.6
   -- hs-source-dirs:      

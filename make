@@ -5,10 +5,10 @@ ghc="/usr/local/bin/ghc"
 
 case "$arg" in
 	main) 
-		$ghc --make Main.hs -o ccgserver -rtsopts
+		$ghc --make Main.hs -o ccgui -rtsopts
 		;;
 	clean)
-		rm -rf ccgserver
+		rm -rf ccgui
 		find . -regex '.*\.\(dyn_\)?\(hi\|o\)$' | xargs rm
 		;;
 	unpack)
