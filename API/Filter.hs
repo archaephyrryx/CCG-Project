@@ -1,6 +1,6 @@
 module API.Filter (
     -- * Filter
-    Filter, blankCardFilter, blankDeckFilter,
+    Filter(..), blankCardFilter, blankDeckFilter,
     -- * Filtering Functions
     -- ** Transformers
     -- | Functions that take a "Filter" and return a transformation of an "GenCard"-"IxSet"
