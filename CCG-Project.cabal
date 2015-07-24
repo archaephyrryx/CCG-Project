@@ -25,6 +25,8 @@ library
     Util.String
     Util.Tuple
     Util.Tuple.Apply
+    Data.Invotomorph
+    Data.Dimorph
     CCG
     CCG.Cards
     CCG.Deck
@@ -33,8 +35,6 @@ library
     CCG.Cards.Safe
     CCG.Cards.Common
     CCG.Cards.Common.Types
-    CCG.Cards.Common.Invotomorph
-    CCG.Cards.Common.Dimorph
     CCG.Cards.Common.Instances
     CCG.Cards.Common.Values
     CCG.Cards.Generic

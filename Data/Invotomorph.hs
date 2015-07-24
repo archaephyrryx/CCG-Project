@@ -1,4 +1,4 @@
-module CCG.Cards.Common.Invotomorph (
+module Data.Invotomorph (
     -- * Invotomorph
     --
     -- | The Invotomorph class is designed for ADT's with an inherent symmetry,

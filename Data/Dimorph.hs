@@ -1,6 +1,6 @@
 {-# LANGUAGE MultiParamTypeClasses, FlexibleInstances,
     UndecidableInstances #-}
-module CCG.Cards.Common.Dimorph (
+module Data.Dimorph (
   -- * Dimorph
   --
   -- | The Dimorph datatype is a representation of a Theseus-style
