@@ -28,7 +28,8 @@ instance Applicative (Tidings t) where
 pair :: Tidings t a -> Tidings t b -> Tidings t (a,b)
 pair (T bx ex) (T by ey) = T b e
   where
-    b = (,) <$> bx <*> by
     x = flip (,) <$> by <@> ex
     y = (,) <$> bx <@> ey
-    e = unionWith (\(x,_) (_,y) -> (x,y)) x y
+    outer = curry $ (,) <$> fst.fst <*> snd.snd
+    b = (,) <$> bx <*> by
+    e = unionWith outer x y
