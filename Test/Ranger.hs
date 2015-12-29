@@ -35,27 +35,25 @@ test = do
 
     set f [layout := grid 5 5 $ [[ widget v, widget r ]]]
 
-    let networkDescription :: forall t. Frameworks t => Moment t ()
+    let networkDescription :: MomentIO ()
         networkDescription = mdo
                 range <- ranger r bLoc bMin bMax (pure show)
 
-                let tRanger :: Tidings t Int
+                let tRanger :: Tidings Int
                     tRanger = tide range
 
-                    bAnthology :: Behavior t [String]
+                    bAnthology :: Behavior [String]
                     bAnthology = pure anthology
 
-                    eLoc :: Event t Int
+                    eLoc :: Event Int
                     eLoc = rumors $ tRanger
 
-                    bLoc :: Behavior t Int
-                    bLoc = stepper 0 eLoc
-
-                    bMin :: Behavior t Int
+                    bMin :: Behavior Int
                     bMin = pure 0
 
-                    bMax :: Behavior t Int
+                    bMax :: Behavior Int
                     bMax = pure (length anthology - 1)
+                bLoc <- stepper 0 $ eLoc
 
                 sink v [ text :== (!!) <$> bAnthology <*> bLoc ]
 

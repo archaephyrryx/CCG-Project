@@ -2,12 +2,9 @@
 
 module Main where
 
-import Graphics.UI.WX hiding (Event)
-import Reactive.Banana
-import Reactive.Banana.WX
 import Widgets.MultiSelect
+import Widgets.Core
 import Data.List
-import Tidings
 
 main :: IO ()
 main = start test
@@ -38,25 +35,25 @@ test = do
 
     set f [layout := margin 10 $ grid 10 5 $ [[minsize (sz 200 300) $ widget choicer, glue, widget clear], [widget choice]] ]
 
-    let networkDescription :: forall t. Frameworks t => Moment t ()
+    let networkDescription :: MomentMonad m => m ()
         networkDescription = mdo
                 eClear <- event0 clear command
 
                 tSelections <- multiSelect choicer bAnthology bSelections bDisplay
 
-                let eSelections :: Event t [String]
+                let eSelections :: Event [String]
                     eSelections = rumors tSelections
-                
-                    bSelections :: Behavior t [String]
+
+                    bSelections :: Behavior [String]
                     bSelections = stepper [] $ unions [ eSelections, [] <$ eClear ]
 
-                    bResults :: Behavior t String
+                    bResults :: Behavior String
                     bResults = intercalate ", " <$> bSelections
 
-                    bAnthology :: Behavior t [String]
+                    bAnthology :: Behavior [String]
                     bAnthology = pure anthology
 
-                    bDisplay :: Behavior t (String -> String)
+                    bDisplay :: Behavior (String -> String)
                     bDisplay = pure id
 
                 sink choice [ text :== bResults ]
@@ -94,7 +91,7 @@ arithmetic = do
         networkDescription = do
             binput1 <- behaviorText input1 ""
             binput2 <- behaviorText input2 ""
-            
+
             let
                 result :: Behavior t (Maybe Int)
                 result = f <$> binput1 <*> binput2
@@ -119,7 +116,7 @@ counter = do
 
     let networkDescription :: forall t. Frameworks t => Moment t ()
         networkDescription = do
-            
+
             eup   <- event0 bup   command
             edown <- event0 bdown command
 

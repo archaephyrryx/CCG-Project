@@ -2,13 +2,10 @@
 
 module Test where
 
-import Graphics.UI.WX hiding (Event)
-import Reactive.Banana
-import Reactive.Banana.WX
 import Widgets.MultiSelect
+import Widgets.Core
 import Widgets.Links
 import Data.List
-import Tidings
 
 main :: IO ()
 main = start test
@@ -44,34 +41,34 @@ test = do
 
     set f [layout := margin 10 $ row 5 $ [minsize (sz 200 300) $ widget choicer, widget choice, widget counter, widget inc, widget plus] ]
 
-    let networkDescription :: forall t. Frameworks t => Moment t ()
+    let networkDescription :: MomentMonad m => m ()
         networkDescription = mdo
                 eClear <- event0 clear command
 
                 tSelections <- multiSelect choicer bAnthology bSelections bDisplay
-                
+
                 bPlus <- softLink plus 1
                 tInc <- liquidLink inc (pure (('+':).show)) (accumB 0 $ (+) <$> rumors bPlus)
 
-                let eSelections :: Event t [String]
+                let eSelections :: Event [String]
                     eSelections = rumors tSelections
-                
-                    bSelections :: Behavior t [String]
+
+                    bSelections :: Behavior [String]
                     bSelections = stepper [] $ unions [ eSelections, [] <$ eClear ]
 
-                    bResults :: Behavior t String
+                    bResults :: Behavior String
                     bResults = intercalate ", " <$> bSelections
 
-                    bAnthology :: Behavior t [String]
+                    bAnthology :: Behavior [String]
                     bAnthology = pure anthology
 
-                    bDisplay :: Behavior t (String -> String)
+                    bDisplay :: Behavior (String -> String)
                     bDisplay = pure id
 
-                    eInc :: Event t Int
+                    eInc :: Event Int
                     eInc = rumors tInc
 
-                    bCount :: Behavior t Int
+                    bCount :: Behavior Int
                     bCount = accumB 0 $ (+) <$> eInc
 
                 sink choice [ text :== bResults ]
