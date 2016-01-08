@@ -41,16 +41,18 @@ test = do
 
     set f [layout := margin 10 $ row 5 $ [minsize (sz 200 300) $ widget choicer, widget choice, widget counter, widget inc, widget plus] ]
 
-    let networkDescription :: MomentMonad m => m ()
+    let networkDescription :: MonadMoment m => m ()
         networkDescription = mdo
                 eClear <- event0 clear command
 
-                tSelections <- multiSelect choicer bAnthology bSelections bDisplay
+                selector <- multiSelect choicer bAnthology bSelections bDisplay
+                increaser <- softLink plus 1
+                incrementor <- liquidLink inc (pure (('+':).show)) (accumB 0 $ (+) <$> rumors . tide $ increaser)
 
-                bPlus <- softLink plus 1
-                tInc <- liquidLink inc (pure (('+':).show)) (accumB 0 $ (+) <$> rumors bPlus)
+                let tSelections :: Tidings [String]
+                    tSelections = tide selector
 
-                let eSelections :: Event [String]
+                    eSelections :: Event [String]
                     eSelections = rumors tSelections
 
                     bSelections :: Behavior [String]
@@ -66,7 +68,7 @@ test = do
                     bDisplay = pure id
 
                     eInc :: Event Int
-                    eInc = rumors tInc
+                    eInc = rumors . tide $ incrementor
 
                     bCount :: Behavior Int
                     bCount = accumB 0 $ (+) <$> eInc

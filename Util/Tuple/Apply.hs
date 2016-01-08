@@ -66,7 +66,7 @@ tap = flip (flip (uncurry (***)). dup)
 f.<g = f.g
 
 -- |'$<' is a first-element application operator, to be used with '.<'
--- 
+--
 --  > f$<(x,y) = (f x, y)
 --
 --  prop> f.<g$<x = f$<(g$<x)
@@ -85,7 +85,7 @@ f.<g = f.g
 g>.f = f.g
 
 -- |'>$' is a second-element application operator, to be used with '>.'
--- 
+--
 --  prop> x>$g.f = (x>$g)>$f
 --  prop> x>$id = x
 (>$) :: (a, b) -> (b -> c) -> (a, c)

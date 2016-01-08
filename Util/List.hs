@@ -50,8 +50,8 @@ one = (:[])
 once :: (a -> b) -> (a -> [b])
 once = (one.)
 
--- |'mono' converts a @Maybe a@ to a @Maybe [a]@ by lifted wrapping
-mono :: Maybe a -> Maybe [a]
+-- |'mono' wraps values inside functors, converting @f a@ to a @f [a]@ by lifted wrapping
+mono :: Functor f => f a -> f [a]
 mono = fmap one
 
 -- |The 'headDef' function returns a default value for an empty list, or

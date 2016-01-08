@@ -27,8 +27,8 @@ type Cardlist = Set Card
   specialized for the MLP CCG in particular, and thus must be ported
   appropriately if ever used for a different CCG.
   -}
-data Card = 
-          -- | Constructor for \'Mane\' cards 
+data Card =
+          -- | Constructor for \'Mane\' cards
           Mane {
               name     :: Name
             , set      :: CSet
@@ -40,7 +40,7 @@ data Card =
             , boosted  :: Power
             , text     :: Text
             }
-          | -- | Constructor for \'Friend\' cards 
+          | -- | Constructor for \'Friend\' cards
             Friend {
               name     :: Name
             , set      :: CSet
@@ -105,11 +105,11 @@ data Card =
 
 -- | Reflection from "Card" to "CardType"
 cardtype :: Card -> CardType
-cardtype (Mane{..})     = TMane
+cardtype (Mane{..})         = TMane
 cardtype (Friend{..})       = TFriend
-cardtype (Resource{..}) = TResource
+cardtype (Resource{..})     = TResource
 cardtype (Event{..})        = TEvent
-cardtype (Troublemaker{..})= TTroublemaker
+cardtype (Troublemaker{..}) = TTroublemaker
 cardtype (Problem{..})      = TProblem
 
 -- | "Eq" instance for "Card" testing for equality of names

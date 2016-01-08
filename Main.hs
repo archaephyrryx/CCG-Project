@@ -35,7 +35,7 @@ test = do
 
     set f [layout := margin 10 $ grid 10 5 $ [[minsize (sz 200 300) $ widget choicer, glue, widget clear], [widget choice]] ]
 
-    let networkDescription :: MomentMonad m => m ()
+    let networkDescription :: MonadMoment m => m ()
         networkDescription = mdo
                 eClear <- event0 clear command
 

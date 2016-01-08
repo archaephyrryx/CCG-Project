@@ -19,3 +19,9 @@ fcond = (curry.).flip((.).uncurry.cond).tmup
 consd :: (a -> Bool) -> b -> b -> (a -> b)
 -- >  consd p x y a = if p a then x else y
 consd = fcond const
+
+condense :: (a -> Bool) -> (a -> b) -> (a -> c) -> [a] -> ([b],[c])
+-- > condense p f g [] = ([],[])
+-- > condense p f g (x:xs) = if_ (p x) ((f x:)$<) (>$(g x:)) $ xs
+condense = (((`foldr`([], [])).).).flip flip ((flip (>$).(:)).).((.).).(.((($<).(:)).)).cond
+
