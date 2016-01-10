@@ -1,6 +1,6 @@
 {-# LANGUAGE ScopedTypeVariables, RecursiveDo, NoMonomorphismRestriction #-}
 
-module Test where
+module Test.Ranger where
 
 import Widgets.Core
 import Widgets.Links
@@ -37,10 +37,10 @@ test = do
 
     let networkDescription :: MomentIO ()
         networkDescription = mdo
-                range <- ranger r bLoc bMin bMax (pure show)
+                ranged <- ranger r bLoc bMin bMax (pure show)
 
                 let tRanger :: Tidings Int
-                    tRanger = tide range
+                    tRanger = tide ranged
 
                     bAnthology :: Behavior [String]
                     bAnthology = pure anthology
