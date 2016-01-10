@@ -1,78 +1,53 @@
 {-# LANGUAGE ScopedTypeVariables, RecursiveDo, NoMonomorphismRestriction #-}
 
-module Test where
+module Test.Obscura where
 
-import Widgets.MultiSelect
 import Widgets.Core
+import Widgets.Obscura
 import Widgets.Links
+import Widgets.Ranger
 import Data.List
+import Util (mono)
 
 main :: IO ()
 main = start test
 
-anthology :: [String]
-anthology =
-  [ "A Midsummer Night's Dream"
-  , "A Comedy of Errors"
-  , "Much Ado About Nothing"
-  , "King Lear"
-  , "Richard III"
-  , "Romeo and Juliet"
-  , "Macbeth"
-  , "Hamlet"
-  , "The Tempest"
-  , "Twelfth Night"
-  , "Taming of the Shrew"
-  , "Merchant of Venice"
-  , "Othello"
-  ]
-
 test :: IO ()
 test = do
     f <- frame [text := "Test"]
-    clear <- button f [text := "clear"]
-    choicer <- multiListBox f []
-    choice <- staticText f []
+    d <- staticText f []
+    o <- bitmapButton f []
+    r <- range f
 
-    counter <- staticText f []
-    inc <- button f [ text := "+0" ]
-    plus <- button f [ text := "+" ]
+    set f [layout := margin 10 $ column 5 $ [margin 10 $ row 5 $ [ widget d, widget o ], widget r]]
 
-
-    set f [layout := margin 10 $ row 5 $ [minsize (sz 200 300) $ widget choicer, widget choice, widget counter, widget inc, widget plus] ]
-
-    let networkDescription :: MomentMonad m => m ()
+    let networkDescription :: MomentIO ()
         networkDescription = mdo
-                eClear <- event0 clear command
+                ranged <- ranger r cur (pure 'a') (pure 'z') (pure renderValue)
 
-                tSelections <- multiSelect choicer bAnthology bSelections bDisplay
+                let tRanger :: Tidings Char
+                    tRanger = tide ranged
 
-                bPlus <- softLink plus 1
-                tInc <- liquidLink inc (pure (('+':).show)) (accumB 0 $ (+) <$> rumors bPlus)
+                    eLoc :: Event Char
+                    eLoc = rumors $ tRanger
 
-                let eSelections :: Event [String]
-                    eSelections = rumors tSelections
+                cur <- stepper 'a' $ eLoc
 
-                    bSelections :: Behavior [String]
-                    bSelections = stepper [] $ unions [ eSelections, [] <$ eClear ]
+                obscured <- obscura o (pure charToPath) cur
 
-                    bResults :: Behavior String
-                    bResults = intercalate ", " <$> bSelections
+                let
+                    tAction :: Tidings Char
+                    tAction = tide obscured
 
-                    bAnthology :: Behavior [String]
-                    bAnthology = pure anthology
+                    eAct :: Event Char
+                    eAct = rumors tAction
 
-                    bDisplay :: Behavior (String -> String)
-                    bDisplay = pure id
+                act <- stepper 'a' $ eAct
 
-                    eInc :: Event Int
-                    eInc = rumors tInc
-
-                    bCount :: Behavior Int
-                    bCount = accumB 0 $ (+) <$> eInc
-
-                sink choice [ text :== bResults ]
-                sink counter [ text :== (show <$> bCount) ]
+                sink d [ text :== mono act ]
 
     network <- compile networkDescription
     actuate network
+
+charToPath :: Char -> String
+charToPath c = "/home/peter/ccg/CCG-Project/res/test/" ++ (c:".png")
