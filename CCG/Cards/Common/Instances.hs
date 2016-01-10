@@ -2,7 +2,7 @@
 module CCG.Cards.Common.Instances where
 
 import CCG.Cards.Common.Types
-import CCG.Cards.Common.Dimorph
+import Data.Dimorph
 import Data.Maybe
 import Data.Char
 import Util
