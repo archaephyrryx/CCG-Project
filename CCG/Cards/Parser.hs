@@ -1,4 +1,4 @@
-{-# LANGUAGE RecordWildCards #-} 
+{-# LANGUAGE RecordWildCards #-}
 
 module CCG.Cards.Parser (
       parsage
@@ -24,7 +24,7 @@ import Data.Set (Set)
 import qualified Data.Map as Map
 import Data.Map (Map)
 import Data.Function (on)
-import Util
+import Util hiding (condense)
 
 
 -- |Parser to convert the full text of an OCR file into a list of Cards
@@ -42,7 +42,7 @@ fieldSplit :: String -> [String]
 fieldSplit = map unquote . split (dropInitBlank . dropDelims $ oneOf "\t")
 
 -- | Given an opening character and closing character to search for,
--- returns the indices of the spanning delimters, 
+-- returns the indices of the spanning delimters,
 between :: Char -> Char -> String -> (Int,Int)
 between o c s = let open = elemIndices o s
                     fopen = headDef 0 open
@@ -67,7 +67,7 @@ findBreakPoint s = let ws = split (condense . dropDelims $ oneOf " [],") s
 
 
 splitOn' :: Eq a => [a] -> [a] -> [[a]]
-splitOn' str = split (dropBlanks . dropDelims . onSublist $ str) 
+splitOn' str = split (dropBlanks . dropDelims . onSublist $ str)
 
 headline :: String -> [String]
 headline hl = fieldSplit hl

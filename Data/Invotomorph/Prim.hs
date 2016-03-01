@@ -1,4 +1,4 @@
-module Data.Invotomorph (
+module Data.Invotomorph.Prim (
     -- * Invotomorph
     --
     -- | The Invotomorph class is designed for ADT's with an inherent symmetry,
@@ -56,6 +56,7 @@ module Data.Invotomorph (
     Rule(..),
     -- ** Checking and Conversion
     regulate, ruling
+    ) where
 
 import Data.List (nub)
 

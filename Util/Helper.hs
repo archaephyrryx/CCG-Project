@@ -42,4 +42,6 @@ procmap = (proc.).(.flip ($)).for
 -- |Converts a string to titlecase (first character uppercase, all others
 -- lowercase)
 titleCase :: String -> String
-titleCase = (:) <$> toUpper.head <*> map toLower.tail
+titleCase xs = case xs of
+                 [] -> []
+                 y:ys -> toUpper y : map toLower ys

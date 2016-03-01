@@ -1,7 +1,9 @@
 module Util.Advanced where
 
 import Util.Tuple.Apply
+import Util.Tuple (primary, secondary)
 import Util.Conditional
+import Util.List (initLast, headTail, fracture)
 
 -- |Like 'cond', but with a pre-application after the test
 -- >  precond h p f g = cond p (f.h) (g.h)
@@ -20,8 +22,20 @@ consd :: (a -> Bool) -> b -> b -> (a -> b)
 -- >  consd p x y a = if p a then x else y
 consd = fcond const
 
+-- |'condense' maps two functions over a predicate-partitioned list;
+--   given a predicate function @p@ and the branch functions @f@ and @g@:
 condense :: (a -> Bool) -> (a -> b) -> (a -> c) -> [a] -> ([b],[c])
+-- prop> condense p f g == (map f.filter p, map g.filter (not.p))
+-- Specically:
 -- > condense p f g [] = ([],[])
 -- > condense p f g (x:xs) = if_ (p x) ((f x:)$<) (>$(g x:)) $ xs
 condense = (((`foldr`([], [])).).).flip flip ((flip (>$).(:)).).((.).).(.((($<).(:)).)).cond
 
+abscond :: ((a0,a1) -> Bool) -> (a0 -> a1 -> b) -> (a0 -> a1 -> b) -> (a -> Either b (a0,a1)) -> a -> b
+abscond = ((((.).either id).).).fcond uncurry
+
+hcond :: b -> (a -> Bool) -> (a -> [a] -> b) -> (a -> [a] -> b) -> [a] -> b
+hcond z p f g = abscond (primary p) f g (fracture z headTail)
+
+lcond :: b -> (a -> Bool) -> ([a] -> a -> b) -> ([a] -> a -> b) -> [a] -> b
+lcond z p f g = abscond (secondary p) f g (fracture z initLast)

@@ -1,6 +1,6 @@
 {-# LANGUAGE MultiParamTypeClasses, FlexibleInstances,
     UndecidableInstances #-}
-module Data.Dimorph (
+module Data.Dimorph.Prim (
   -- * Dimorph
   --
   -- | The Dimorph datatype is a representation of a Theseus-style
@@ -14,9 +14,9 @@ module Data.Dimorph (
   Dimorph(..),
   -- ** Dimorph Functions
   to, from,
-  
+
   -- * Mappings
-  -- 
+  --
   -- | A Mapping is a data-type representing an atomic rule for
   -- transformation between the two types covered by a Dimorph. Each
   -- mapping simultaneously represents a pattern match on the LHS for the 'to'
@@ -25,7 +25,7 @@ module Data.Dimorph (
   -- overlap LHS patterns or RHS patterns in the Mapping-list of a
   -- single Dimorph.
   Mapping(..),
-    
+
   -- ** Checking and Conversion
   survey, mapping
   ) where
@@ -60,7 +60,7 @@ consistent ms = let (l,r) = tap (map lhs, map rhs) ms in nub l == l && nub r == 
 -- any Mappings are duplicated in a list, duplicates are removed after
 -- the first consistency check fails, and the unique list is then
 -- checked for consistency; if this fails, an error is raised.
--- 
+--
 -- The consistency check for Mappings consist of two seperate tests for
 -- duplication among the elements of the LHS, and the RHS, of a list of
 -- Mappings; if either test finds any duplicates, the check returns
