@@ -41,20 +41,20 @@ test = do
 
     set f [layout := margin 10 $ row 5 $ [minsize (sz 200 300) $ widget choicer, widget choice, widget counter, widget inc, widget plus] ]
 
-    let networkDescription :: MomentMonad m => m ()
+    let networkDescription :: MomentIO ()
         networkDescription = mdo
                 eClear <- event0 clear command
 
                 tSelections <- multiSelect choicer bAnthology bSelections bDisplay
 
-                bPlus <- softLink plus 1
-                tInc <- liquidLink inc (pure (('+':).show)) (accumB 0 $ (+) <$> rumors bPlus)
+                bPlus <- softLink plus show (1 :: Int)
+                bInc <- accumB 0 $ (+) <$> (rumors . tide $ bPlus)
+                tInc <- liquidLink inc (pure (('+':).show)) bInc
+
+                bSelections <- stepper [] $ priorityUnion [ eSelections, [] <$ eClear ]
 
                 let eSelections :: Event [String]
-                    eSelections = rumors tSelections
-
-                    bSelections :: Behavior [String]
-                    bSelections = stepper [] $ unions [ eSelections, [] <$ eClear ]
+                    eSelections = rumors . tide $ tSelections
 
                     bResults :: Behavior String
                     bResults = intercalate ", " <$> bSelections
@@ -66,10 +66,9 @@ test = do
                     bDisplay = pure id
 
                     eInc :: Event Int
-                    eInc = rumors tInc
+                    eInc = rumors . tide $ tInc
 
-                    bCount :: Behavior Int
-                    bCount = accumB 0 $ (+) <$> eInc
+                bCount <- accumB 0 $ (+) <$> eInc
 
                 sink choice [ text :== bResults ]
                 sink counter [ text :== (show <$> bCount) ]
