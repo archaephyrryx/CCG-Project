@@ -18,6 +18,10 @@ x`cdiv`y | x`mod`y == 0 = x`div`y
 mpair :: Monad m => (m a, m b) -> m (a,b)
 mpair (mx, my) = do { x <- mx; y <- my; return (x, y) }
 
+-- |A function that converts functors to functor pairs
+fpair :: Applicative f => (f a, f b) -> f (a,b)
+fpair (fx, fy) = (,) <$> fx <*> fy
+
 -- |A 'wrapped' function treats values as singleton lists
 -- > wrapped f $ x = f [x]
 wrapped :: ([a] -> b) -> (a -> b)
@@ -38,4 +42,6 @@ procmap = (proc.).(.flip ($)).for
 -- |Converts a string to titlecase (first character uppercase, all others
 -- lowercase)
 titleCase :: String -> String
-titleCase = (:) <$> toUpper.head <*> map toLower.tail
+titleCase xs = case xs of
+                 [] -> []
+                 y:ys -> toUpper y : map toLower ys

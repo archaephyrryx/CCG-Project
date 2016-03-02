@@ -1,4 +1,4 @@
-module Data.Invotomorph (
+module Data.Invotomorph.Prim (
     -- * Invotomorph
     --
     -- | The Invotomorph class is designed for ADT's with an inherent symmetry,
@@ -13,7 +13,7 @@ module Data.Invotomorph (
     -- It is usually more convenient to define @classX@ and @classY@, as
     -- those are the LHS and RHS of @rule@ and do not require '(:<->:)' to be imported beforehand
     Invotomorph(..),
-    
+
     -- * Rule
     --
     -- | A Rule is an atomic bi-directional pattern-match used to
@@ -31,7 +31,7 @@ module Data.Invotomorph (
     -- @
     --   data Quad = A | B | C | D
     -- @
-    -- 
+    --
     -- In this case, it is perfectly fine to define a @Dimorph Quad Quad@
     -- with mappings @[A:<=>:B, B:<=>:C, C:<=>:D, D:<=>:A]@, as a dimorphism is
     -- given as two seperate functions that do pattern matching on the
@@ -56,8 +56,7 @@ module Data.Invotomorph (
     Rule(..),
     -- ** Checking and Conversion
     regulate, ruling
-
-) where
+    ) where
 
 import Data.List (nub, nubBy)
 
@@ -111,4 +110,3 @@ class (Eq a) => Invotomorph a where
     invoto = regulate rule
     rule :: [Rule a]
     rule = zipWith (:<->:) classX classY
-    {-# MINIMAL rule | classX, classY #-}

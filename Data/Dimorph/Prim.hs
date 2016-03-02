@@ -1,6 +1,6 @@
 {-# LANGUAGE MultiParamTypeClasses, FlexibleInstances,
     UndecidableInstances #-}
-module Data.Dimorph (
+module Data.Dimorph.Prim (
   -- * Dimorph
   --
   -- | The Dimorph datatype is a representation of a Theseus-style

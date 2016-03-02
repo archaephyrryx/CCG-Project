@@ -33,11 +33,11 @@ fsts = fst *** fst
 snds :: ((a,b),(c,d)) -> (b,d)
 snds = snd *** snd
 
--- |'zap' is a "zippered application" function for function-value pairs
+-- |'zap': "zipped application" function for function-value pairs
 zap :: ((a -> b),a) -> b
 zap = uncurry ($)
 
--- |'zmap' is a "zippered map" function for a pair of functions and a pair of values
+-- |'zmap' is a "zipped map" function for a pair of functions and a pair of values
 zmap :: ((x -> x1),(y -> y1)) -> (x,y) -> (x1,y1)
 zmap = curry (tap (zap.fsts,zap.snds))
 
@@ -48,12 +48,12 @@ tmup = zmap.dup
 
 -- |'dup' is a "duplication" function that pairs a value with itself
 dup :: a -> (a,a)
-dup x = (x,x)
+dup = join (,)
 
 -- |'tap' is a "tuple-map" function for a pair of functions and a single
 -- value
 tap :: (a -> b, a -> c) -> a -> (b, c)
-tap = flip (flip (uncurry (***)). dup)
+tap = (.dup).uncurry (***)
 
 -- |'.<' is a first-element composition operator, which is syntactic
 -- sugar for '.'

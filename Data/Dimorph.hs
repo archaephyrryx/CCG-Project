@@ -1,3 +1,3 @@
-module Dimorph (module Dimorph.Prim) where
+module Data.Dimorph (module Data.Dimorph.Prim) where
 
-import Dimorph.Prim
+import Data.Dimorph.Prim

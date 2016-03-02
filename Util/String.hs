@@ -2,6 +2,8 @@ module Util.String where
 
 import Util.Conditional
 import Util.List
+import Util.Advanced
+import Control.Monad (join)
 
 -- |'unquote' strips an optional leading single-quote
 -- and an optional trailing single-quote from a string
@@ -15,8 +17,8 @@ unbrace = full?.hstrip '['.estrip ']'
 
 -- |Head-Strip: Optionally strip a character from the head of a string
 hstrip :: Char -> String -> String
-hstrip c = full?.head.=c?.tail
+hstrip c = hcond [] (==c) (\ _ h -> h) (:)
 
 -- |End-Strip: Optionally strip a character from the end of a string
 estrip :: Char -> String -> String
-estrip c = full?.last.=c?.init
+estrip c = (\t -> lcond [] (==c) (\f _ -> f) (\_ _ -> t) $ t)
