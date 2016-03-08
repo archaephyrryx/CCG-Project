@@ -4,7 +4,8 @@ import Text.Parsec
 import Text.Parsec.String
 import Text.Parsec.Expr
 import Text.Parsec.Token
-import Text.Parsec.Language import Control.Applicative
+import Text.Parsec.Language
+import Control.Applicative hiding (many)
 
 import Data.Dimorph.Language
 
@@ -23,14 +24,14 @@ TokenParser { parens = m_parens
             , semiSep1 = m_semiSep1
             , whiteSpace = m_whiteSpace } = makeTokenParser def
 
-defParse :: Parsec String () MDef
+defParse :: Parser MDef
 defParse = do m_whiteSpace
               iso <- isoParse
               maps <- many mappingParse
               eof
               return (MDef iso maps)
 
-isoParse :: Parsec String () Iso
+isoParse :: Parser Iso
 isoParse = do m_reserved "iso"
               m_whiteSpace
               a <- (do
@@ -43,10 +44,10 @@ isoParse = do m_reserved "iso"
               return (Iso a b)
 
 
-typParse :: Parsec String () TName
-typParse = m_identifier
+typParse :: Parser TName
+typParse = TName <$> m_identifier
 
-mappingParse :: Parsec String () QMapping
+mappingParse :: Parser QMapping
 mappingParse = do
                   l <- tagParse
                   m_reservedOp "<=>"
@@ -54,5 +55,8 @@ mappingParse = do
                   return (QMapping (LHS (Unary l)) (RHS (Unary r)))
 
 
-tagParse :: Parsec String () CName
-tagParse = m_identifier
+tagParse :: Parser CName
+tagParse = CName <$> m_identifier
+
+dimorphParse :: String -> Either ParseError MDef
+dimorphParse = runP defParse () ""

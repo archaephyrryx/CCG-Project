@@ -15,7 +15,10 @@ dimorph = QuasiQuoter
         }
 
 quoteDiExp :: String -> Q Exp
-quoteDiExp = lift
+quoteDiExp = \s -> let e = dimorphParse s
+                    in case e of
+                         (Left er) -> error "ParseError"
+                         (Right x) -> lift x
 quoteDiDec :: String -> Q [Dec]
 quoteDiDec = undefined
 quoteDiPat :: String -> Q Pat
