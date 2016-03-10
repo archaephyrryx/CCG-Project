@@ -1,5 +1,12 @@
 {-# LANGUAGE DeriveDataTypeable, TemplateHaskell #-}
-module Data.Dimorph.Language where
+module Data.Dimorph.Language (
+    TName(..) , CName(..)
+  , Iso(..)
+  , Term(..)
+  , LHS(..), RHS(..)
+  , QMapping(..)
+  , MDef(..)
+  ) where
 
 import Language.Haskell.TH
 import Language.Haskell.TH.Syntax
@@ -25,7 +32,7 @@ newtype LHS = LHS { getL :: Term }
 newtype RHS = RHS { getR :: Term }
     deriving (Data, Typeable, Show, Eq)
 
-data QMapping = QMapping LHS RHS
+data QMapping = QMap LHS RHS
     deriving (Data, Typeable, Show, Eq)
 
 data MDef = MDef Iso [QMapping]
@@ -54,19 +61,7 @@ instance Lift RHS where
 
 
 instance Lift QMapping where
-  lift (QMapping l r) = do
+  lift (QMap l r) = do
     lh <- lift l
     rh <- lift r
-    return (AppE (AppE (ConE 'QMapping) (lh)) (rh))
-
-instance Lift Iso where
-  lift (Iso a b) = do
-    x <- lift a
-    y <- lift b
-    return (AppE (AppE (ConE 'Iso) x) y)
-
-instance Lift MDef where
-  lift (MDef i x) = do
-    iso <- lift i
-    maps <- sequenceQ $ map lift x
-    return (AppE (AppE (ConE 'MDef) (iso)) (ListE maps))
+    return (AppE (AppE (ConE 'QMap) (lh)) (rh))

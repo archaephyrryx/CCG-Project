@@ -52,7 +52,7 @@ mappingParse = do
                   l <- tagParse
                   m_reservedOp "<=>"
                   r <- tagParse
-                  return (QMapping (LHS (Unary l)) (RHS (Unary r)))
+                  return (QMap (LHS (Unary l)) (RHS (Unary r)))
 
 
 tagParse :: Parser CName
