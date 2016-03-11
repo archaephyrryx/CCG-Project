@@ -1,12 +1,5 @@
 {-# LANGUAGE DeriveDataTypeable, TemplateHaskell #-}
-module Data.Dimorph.Language (
-    TName(..) , CName(..)
-  , Iso(..)
-  , Term(..)
-  , LHS(..), RHS(..)
-  , QMapping(..)
-  , MDef(..)
-  ) where
+module Data.Dimorph.Language where
 
 import Language.Haskell.TH
 import Language.Haskell.TH.Syntax
