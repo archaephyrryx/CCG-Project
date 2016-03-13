@@ -28,7 +28,7 @@ module Data.Dimorph.Prim (
 
   -- ** Checking and Conversion
   survey, mapping,
-  lhs, rhs, consistent,
+  lhs, rhs, consistent
   ) where
 
 import Util
