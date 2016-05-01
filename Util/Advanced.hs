@@ -3,7 +3,8 @@ module Util.Advanced where
 import Util.Tuple.Apply
 import Util.Tuple (primary, secondary)
 import Util.Conditional
-import Util.List (initLast, headTail, fracture)
+import Util.Helper (fromEither)
+import Util.List (initLast, headTail, fracture, shatter, headMidLast)
 
 -- |Like 'cond', but with a pre-application after the test
 -- >  precond h p f g = cond p (f.h) (g.h)
@@ -14,7 +15,7 @@ precond = fcond . flip (.)
 -- generator function to a conditional parameter
 -- >  fcond h p f g = cond p (h f) (h g)
 fcond :: (x -> (a -> b)) -> (a -> Bool) -> x -> x -> (a -> b)
-fcond = (curry.).flip((.).uncurry.cond).tmup
+fcond = (curry.).flip((.).uncurry.cond).both
 
 -- |A case of 'fcond' with 'const' as the generator, returning one of
 -- two values depending on the result of the test
@@ -29,7 +30,7 @@ condense :: (a -> Bool) -> (a -> b) -> (a -> c) -> [a] -> ([b],[c])
 -- Specifically:
 -- > condense p f g [] = ([],[])
 -- > condense p f g (x:xs) = if_ (p x) ((f x:)$<) (>$(g x:)) $ condense p f g xs
-condense = (((`foldr`([], [])).).).flip flip ((flip (>$).(:)).).((.).).(.((($<).(:)).)).cond
+condense = (((`foldr`([], [])).).).flip flip (((>$).(:)).).((.).).(.((($<).(:)).)).cond
 
 
 -- | 'abscond': uses a boolean on a tuple to decide between two curried branches,
@@ -47,9 +48,6 @@ lcond z p f g = abscond (secondary p) f g (fracture z initLast)
 
 -- | Condition on
 mcond :: b -> (a -> a -> Bool) -> (a -> [a] -> a -> b) -> (a -> [a] -> a -> b) -> [a] -> b
-mcond z p f g = \xs ->
-    let ex = shatter z xs in
-        case ex of
-          Right (h,ms,l) -> if_ (p h l) f g $ ex
-          Left ~y -> y
+mcond z p f g =
+    fromEither . shatter z (\x x' xs -> let (h,ms,l) = headMidLast x x' xs in (if_ (p h l) f g) h ms l)
 

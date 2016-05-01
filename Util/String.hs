@@ -11,11 +11,7 @@ undelim o e = full?.hstrip o.estrip e
 
 -- | undelim, but delimiters must be matched
 unmatch :: Char -> Char -> String -> String
-unmatch o e = \x -> if_ (full x)
-  where
-
-
-
+unmatch o e = \x -> mcond ((.(==e)).(&&).(==o)) (const const) (const $ const $ const x) x
 
 -- |'unquote' strips an optional leading single-quote
 -- and an optional trailing single-quote from a string

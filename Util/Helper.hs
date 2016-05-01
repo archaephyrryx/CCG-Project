@@ -58,3 +58,7 @@ fromRight x = case x of
                 (Left _) -> error "fromRight: (Left _)"
                 (Right x) -> x
 
+fromEither :: Either a a -> a
+fromEither x = case x of
+                 (Left y) -> y
+                 (Right y) -> y
