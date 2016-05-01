@@ -2,7 +2,8 @@ module Util.List where
 
 import Util.Conditional
 import Data.Functor
-import Util.Tuple (repair)
+import Util.Tuple (repair, unfoil)
+import Data.Maybe(fromMaybe)
 
 infix 9 !?
 infix 9 ??
@@ -45,6 +46,20 @@ for = flip map
 -- |'one' converts a value to a singleton list
 one :: a -> [a]
 one = (:[])
+
+-- | 'eno' extracts a value from a singleton list, wrapped in a Maybe
+-- monad to allow for empty lists or lists with more than one element
+eno :: [a] -> Maybe a
+eno = \x -> case x of
+              v:[] -> Just v
+              _    -> Nothing
+
+-- | assertive version of 'eno', which is undefined on non-singleton lists
+only :: [a] -> a
+only = fromMaybe err . eno
+  where
+    err = error "Util.List.only: assertion failed on non-singleton list"
+
 
 -- |'once' wraps a function result in a singleton list
 once :: (a -> b) -> (a -> [b])
@@ -103,6 +118,16 @@ x!@[] = []
   | i <  0 = []
   | otherwise = xs!@map pred (i:is)
 
+-- |`shatter`: auxillary function for `headMidLast` for easy casework on sub-singleton/super-singleton lists
+shatter :: b -> (a -> a -> [a] -> c) -> [a] -> Either b c
+shatter ~z f xs = case xs of
+                    [] -> Left z
+                    _:[] -> Left z
+                    y:y':ys -> Right $ f y y' ys
+
+
+headMidLast :: a -> a -> [a] -> (a,[a],a)
+headMidLast x y zs = unfoil (x, initLast y zs)
 
 -- |`fracture`: auxilliary function for `headTail` and `initLast` for easy casework on empty/non-empty lists
 fracture :: b -> (a -> [a] -> c) -> [a] -> Either b c
@@ -116,8 +141,10 @@ headTail = (,)
 
 -- | `initLast`: takes @x@ and @xs@, returns @(init (x:xs),last (x:xs))@ (efficiently)
 initLast :: a -> [a] -> ([a],a)
-initLast x xs = initLast' $ x:xs
+initLast x xs = il xs x
   where
-    initLast' :: [a] -> ([a],a)
-    initLast' [x] = ([],x)
-    initLast' (x:xs) = case initLast' xs of ~(zs,z) -> (x:zs,z)
+    il :: [a] -> a -> ([a],a)
+    --il [] = \x -> ([],x)
+    --il (x:xs) = \x0 -> case (il xs) x of ~(zs,z) -> (x0:zs,z)
+    il = foldr (\x f x0 -> case f x of ~(zs,z) -> (x0:zs,z)) (\x -> ([],x))
+

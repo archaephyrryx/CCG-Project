@@ -14,7 +14,7 @@ class Hint a where
     val :: a -> Int -- ^ Extract an Int
     unval :: Int -> a -- ^ Encapsulate an Int
     readH :: String -> a -- ^ Read an Int, then encapsulate
-    readH = unval.read 
+    readH = unval.read
     showH :: a -> String -- ^ Extract, then Show an Int
     showH = show.val
 
@@ -162,7 +162,7 @@ shorten :: String -> String
 shorten = map toLower . cond (length.=1) (take 2.head) (map head) . filter (isUpper.head) . words
 
 readR :: String -> Rarity
-readR x = case x of 
+readR x = case x of
     "C"  -> Common
     "U"  -> Uncommon
     "F"  -> Fixed

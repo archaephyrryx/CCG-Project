@@ -7,9 +7,9 @@ import Language.Haskell.TH.Quote
 import Data.Data
 import Data.Typeable
 
-newtype TName = TName { t :: String }
+newtype TName = TName { t :: Name }
   deriving (Data, Typeable, Show, Eq)
-newtype CName = CName { c :: String }
+newtype CName = CName { c :: Name }
   deriving (Data, Typeable, Show, Eq)
 
 
@@ -32,10 +32,10 @@ data MDef = MDef Iso [QMapping]
     deriving (Data, Typeable, Show)
 
 instance Lift CName where
-  lift = return . AppE (ConE 'CName). LitE . StringL . c
+  lift = return . AppE (ConE 'CName). ConE . c
 
 instance Lift TName where
-  lift = return . AppE (ConE 'TName). LitE . StringL . t
+  lift = return . AppE (ConE 'TName). ConE . t
 
 instance Lift Term where
   lift (Unary cn) = do

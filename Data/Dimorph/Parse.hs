@@ -1,5 +1,6 @@
 module Data.Dimorph.Parse where
 
+import Language.Haskell.TH
 import Text.Parsec
 import Text.Parsec.String
 import Text.Parsec.Expr
@@ -45,7 +46,7 @@ isoParse = do m_reserved "iso"
 
 
 typParse :: Parser TName
-typParse = TName <$> m_identifier
+typParse = TName . mkName <$> m_identifier
 
 mappingParse :: Parser QMapping
 mappingParse = do
@@ -56,7 +57,7 @@ mappingParse = do
 
 
 tagParse :: Parser CName
-tagParse = CName <$> m_identifier
+tagParse = CName . mkName <$> m_identifier
 
 dimorphParse :: String -> Either ParseError MDef
 dimorphParse = runP defParse () ""

@@ -45,3 +45,16 @@ titleCase :: String -> String
 titleCase xs = case xs of
                  [] -> []
                  y:ys -> toUpper y : map toLower ys
+
+
+fromLeft :: Either a b -> a
+fromLeft x = case x of
+               (Left x) -> x
+               (Right _) -> error "fromLeft: (Right _)"
+
+
+fromRight :: Either a b -> b
+fromRight x = case x of
+                (Left _) -> error "fromRight: (Left _)"
+                (Right x) -> x
+

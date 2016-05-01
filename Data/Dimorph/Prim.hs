@@ -34,6 +34,7 @@ module Data.Dimorph.Prim (
 import Util
 import Data.List (nub)
 import Data.Tuple
+import Control.Applicative
 
 infix 5 :<=>:
 
@@ -84,6 +85,9 @@ data Dimorph a b = Dimorph
              { typeX :: [a] -- ^ Ordered (but not sorted) domain
              , typeY :: [b] -- ^ Ordered (but not sorted) range
              }
+
+instance (Show a, Show b) => Show (Dimorph a b) where
+  show = (unlines.) . zipWith (\x y -> show x ++ "<=>" ++ show y) <$> typeX <*> typeY
 
 -- | Generate the to- and from-functions from a Dimorph
 dimo :: (Eq a, Eq b) => Dimorph a b -> (a -> b, b -> a)

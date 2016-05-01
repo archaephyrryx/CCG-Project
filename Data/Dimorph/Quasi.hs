@@ -4,12 +4,48 @@ module Data.Dimorph.Quasi where
 import qualified Language.Haskell.TH as TH
 import Language.Haskell.TH.Syntax
 import Language.Haskell.TH.Quote
+import Data.TypeCast
 import Data.Dimorph.Language
 import Data.Dimorph.Parse
 import Data.Dimorph.Alt
 import Data.Dimorph.Prim
-import Util.Conditional (if_)
-import Data.Either
+import Util
+
+diExp :: MDef -> Q Exp
+diExp m@(MDef (Iso (TName t1) (TName t2)) xs) = do
+  mexp <- qMDef m
+  return (SigE
+         (AppE (AppE (AppE (VarE 'if_)
+               (AppE (VarE 'consistent) mexp))
+               (AppE (AppE (ConE 'Dimorph)
+                  (AppE (AppE (VarE 'map) (VarE 'lhs)) mexp))
+                  (AppE (AppE (VarE 'map) (VarE 'rhs)) mexp)
+               ))
+                ((AppE (VarE 'error) (LitE (StringL "inconsistency in dimorph definition")))))
+                (AppT (AppT (ConT ''Dimorph) (ConT t1)) (ConT t2)))
+
+qMDef :: MDef -> Q Exp
+qMDef (MDef _ []) = return $ ListE []
+qMDef (MDef i (x:xt)) =
+  do
+    this <- qMapping i x
+    rest <- qMDef (MDef i xt)
+    return $ (InfixE (Just this) (ConE '(:)) (Just rest))
+
+qMapping :: Iso -> QMapping -> Q Exp
+qMapping (Iso (TName t1) (TName t2)) x =
+  do
+    let (c1,c2) = sides x
+    l <- sig c1 t1
+    r <- sig c2 t2
+    return $ (InfixE (Just l) (ConE '(:<=>:)) (Just r))
+
+
+sides :: QMapping -> (Name,Name)
+sides (QMap (LHS (Unary (CName x))) (RHS (Unary (CName y)))) = (x,y)
+---
+
+
 
 quoteDiPat :: String -> Q Pat
 quoteDiPat = undefined
@@ -34,121 +70,18 @@ biject = QuasiQuoter
        }
 
 quoteDiExp :: String -> Q Exp
-quoteDiExp s =  do
-  let MDef (Iso (TName t1) (TName t2)) xs = fromRight $ dimorphParse s
-  xss <- lift xs
-  xn <- newName "x"
-  yn <- newName "y"
-  mapsto <- [| (:<=>:) |]
-  let a = mkName t1
-      b = mkName t2
-  m <- newName "mappings"
-  return (LetE [ValD (VarP m)
-                     (NormalB
-                       ((AppE
-                         (AppE (VarE 'map)
-                         (LamE
-                           [ (ConP 'QMap [ ConP 'LHS [ConP 'Unary [ConP 'CName [VarP xn]]]
-                                         , ConP 'RHS [ConP 'Unary [ConP 'CName [VarP yn]]]
-                                         ]
-                             )
-                           ]
-                           (InfixE
-                             (Just (SigE (AppE (VarE 'read) (VarE xn)) (ConT a)))
-                             mapsto
-                             (Just (SigE (AppE (VarE 'read) (VarE yn)) (ConT b)))
-                           )
-                      )) xss)))
-                      [] ]
-           (SigE
-             (AppE
-               (AppE
-                 (AppE (VarE 'if_)
-                       (AppE
-                         (VarE 'consistent)
-                         (VarE m)
-                       )
-                 )
-                 (AppE
-                   (AppE (ConE 'Dimorph)
-                         (AppE (AppE (VarE 'map) (VarE 'lhs)) (VarE m)))
-                         (AppE (AppE (VarE 'map) (VarE 'rhs)) (VarE m)))
-                 )
-                 ((AppE (VarE 'error) (LitE (StringL "inconsistency in dimorph definition")))))
-                 (AppT (AppT (ConT ''Dimorph) (ConT a)) (ConT b))))
-
-fromRight :: Either a b -> b
-fromRight x = case x of
-                (Left _) -> error "fromRight"
-                (Right x) -> x
+quoteDiExp = diExp . fromRight . dimorphParse
 
 quoteDiDec :: String -> Q [Dec]
-quoteDiDec s =  do
-  let MDef (Iso (TName t1) (TName t2)) xs = fromRight $ dimorphParse s
-  xss <- lift xs
-  xn <- newName "x"
-  yn <- newName "y"
-  mapsto <- [| (:<=>:) |]
-  dim <- [| Dimorph |]
-  dimt <- [t| Dimorph |]
-  let a = mkName t1
-      b = mkName t2
-  m <- newName "mappings"
-  return [ ValD (VarP (mkName ("di" ++ '\'':t1 ++ '\'':t2)))
-           (NormalB
-           (SigE
-             (AppE
-               (AppE
-                 (AppE (VarE 'if_)
-                       (AppE
-                         (VarE 'consistent)
-                         (VarE m)
-                       )
-                 )
-                 (AppE
-                   (AppE dim
-                         (AppE (AppE (VarE 'map) (VarE 'lhs)) (VarE m)))
-                         (AppE (AppE (VarE 'map) (VarE 'rhs)) (VarE m)))
-                 )
-                 ((AppE (VarE 'error) (LitE (StringL "inconsistency in dimorph definition")))))
-                 (AppT (AppT dimt (ConT a)) (ConT b))))
-               [ValD (VarP m)
-                     (NormalB
-                     (AppE (AppE (VarE 'map)
-                       (LamE
-                           [ (ConP 'QMap [ ConP 'LHS [ConP 'Unary [ConP 'CName [VarP xn]]]
-                                         , ConP 'RHS [ConP 'Unary [ConP 'CName [VarP yn]]]
-                                         ]
-                             )
-                           ]
-                           (InfixE
-                             (Just (SigE (AppE (VarE 'read) (VarE xn)) (ConT a)))
-                             mapsto
-                             (Just (SigE (AppE (VarE 'read) (VarE yn)) (ConT b)))
-                           )
-                      )) xss))
-                      [] ] ]
+quoteDiDec s = do
+  let m@(MDef (Iso (TName t1) (TName t2)) _) = fromRight $ dimorphParse s
+      nam = mkName ("di" ++ '\'':(showName t1) ++ '\'':(showName t2))
+  e <- diExp m
+  return [ ValD (VarP nam) (NormalB e) [] ]
 
 bijectDec :: String -> Q [Dec]
 bijectDec s =  do
-  let MDef (Iso (TName t1) (TName t2)) xs = fromRight $ dimorphParse s
-  xss <- lift xs
-  xn <- newName "x"
-  yn <- newName "y"
-  mapsto <- [| (:<=>:) |]
-  let a = mkName t1
-      b = mkName t2
-  return [ InstanceD [] (AppT (AppT (ConT ''Bijection) (ConT a)) (ConT b))
-      [ValD (VarP (mkName "mappings"))
-            (NormalB
-              (AppE
-                (AppE (VarE 'map)
-                  (LamE
-                    [ (ConP 'QMap [ ConP 'LHS [ConP 'Unary [ConP 'CName [VarP xn]]]
-                                  , ConP 'RHS [ConP 'Unary [ConP 'CName [VarP yn]]]
-                                  ]) ]
-                    (InfixE
-                      (Just (SigE (AppE (VarE 'read) (VarE xn)) (ConT a)))
-                      mapsto
-                      (Just (SigE (AppE (VarE 'read) (VarE yn)) (ConT b)))
-                    ))) xss)) [] ] ]
+  let m@(MDef (Iso (TName t1) (TName t2)) _) = fromRight $ dimorphParse s
+  e <- qMDef m
+  return [ InstanceD [] (AppT (AppT (ConT ''Bijection) (ConT t1)) (ConT t2))
+      [ValD (VarP (mkName "mappings")) (NormalB e) [] ] ]
