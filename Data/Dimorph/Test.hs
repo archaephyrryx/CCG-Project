@@ -1,4 +1,9 @@
-{-# LANGUAGE TemplateHaskell, QuasiQuotes, MultiParamTypeClasses #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE QuasiQuotes           #-}
+{-# LANGUAGE TemplateHaskell       #-}
+{-# LANGUAGE TypeSynonymInstances  #-}
+{-# LANGUAGE FlexibleInstances  #-}
+{-# LANGUAGE EmptyCase #-}
 module Data.Dimorph.Test where
 
 import Data.Dimorph.Quasi
@@ -6,9 +11,13 @@ import Data.Dimorph.Prim
 import Data.Dimorph.Language
 import Data.Dimorph.Parse
 import Data.Dimorph.Alt
+import Data.Dimorph.Derive
+import Data.Dimorph.X
 
-data X = A | C deriving (Show, Read, Eq)
-
-data Y = B | D deriving (Show, Read, Eq)
-
-[dimorph|iso X Y A <=> B C <=> D|]
+[dimorph|
+iso X Integer
+A <=> 1
+C <=> 2
+E True <=> 3
+E False <=> 4
+|]

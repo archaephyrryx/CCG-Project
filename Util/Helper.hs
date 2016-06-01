@@ -4,6 +4,7 @@ import Control.Monad
 import Control.Applicative
 import Util.List (for, one)
 import Data.Char
+import Util.Generic
 
 -- |The @||@ operator lifted to applicative functors
 afor :: (Applicative f) => f Bool -> f Bool -> f Bool
@@ -50,13 +51,18 @@ titleCase xs = case xs of
 fromLeft :: Either a b -> a
 fromLeft x = case x of
                (Left x) -> x
-               (Right _) -> error "fromLeft: (Right _)"
+               (Right y) -> error $ "fromLeft: (Right "++(reveal y)++")"
 
 
 fromRight :: Either a b -> b
 fromRight x = case x of
-                (Left _) -> error "fromRight: (Left _)"
+                (Left y) -> error $ "fromRight: (Left "++(reveal y)++")"
                 (Right x) -> x
+
+fromRight' :: Show a => Either a b -> b
+fromRight' x = case x of
+                 (Left y) -> error $ "fromRight: (Left "++(show y)++")"
+                 (Right x) -> x
 
 fromEither :: Either a a -> a
 fromEither x = case x of

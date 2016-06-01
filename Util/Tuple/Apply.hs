@@ -6,7 +6,8 @@ module Util.Tuple.Apply (
     act, resp, each, dup, both,
     -- * Left and Right Application
     ($<),
-    (>$)
+    (>$),
+    tup
 ) where
 
 import Data.Function
@@ -51,3 +52,7 @@ each = uncurry (&&&)
 --  prop> x>$id = x
 (>$) :: (b -> c) -> (a, b) -> (a, c)
 (>$) = second
+
+-- | 'tup': test over uniform pair
+tup :: (a -> Bool) -> (a,a) -> Bool
+tup p = uncurry (||) . both p

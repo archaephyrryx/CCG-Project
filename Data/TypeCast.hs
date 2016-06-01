@@ -3,27 +3,23 @@ module Data.TypeCast where
 import Language.Haskell.TH
 import Language.Haskell.TH.Syntax
 import Util
+import Control.Applicative ((<$>))
 
-sig :: Name -> Name -> Q Exp
-sig e t = let e' = showName e
-              t' = showName t
+sig :: Either Integer Name -> Type -> Exp
+sig e t = let e' = showName <$> e
+              t' = showName . (\(ConT x) -> x) $ t
            in case t' of
-                "String" -> return $ LitE (StringL (restring e'))
-                "Char" -> return $ LitE (CharL (rechar e'))
-                "Bool" -> return $ LitE (BoolE (rebool e'))
-                "Integer" -> return $ LitE (IntegerL (reinteger e'))
-                "Int" -> return $ LitE (IntegerL (reinteger e'))
-                _ -> return $ (SigE (ConE e) (ConT t))
+                "String" -> LitE (StringL (restring e'))
+                "Char" ->  LitE (CharL (rechar e'))
+                "Integer" -> LitE (IntegerL (reinteger e'))
+                "Int" -> LitE (IntegerL (reinteger e'))
+                _ -> (SigE (ConE (fromRight e)) t)
 
-restring :: String -> String
-restring = full?.
+restring :: Either Integer String -> String
+restring = (full?.undelim '"' '"').fromRight
 
-rechar :: String -> Char
-rechar
+rechar :: Either Integer String -> Char
+rechar = only.(full?.undelim '\'' '\'').fromRight
 
-rebool :: String -> Bool
-rebool
-
-reinteger :: String -> Integer
-reinteger
-
+reinteger :: Either Integer String -> Integer
+reinteger = either id read

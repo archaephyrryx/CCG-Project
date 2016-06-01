@@ -1,5 +1,7 @@
-{-# LANGUAGE MultiParamTypeClasses, FlexibleInstances,
-    UndecidableInstances #-}
+{-# LANGUAGE FlexibleInstances     #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE UndecidableInstances  #-}
+{-# LANGUAGE RecordWildCards       #-}
 module Data.Dimorph.Prim (
   -- * Dimorph
   --
@@ -13,7 +15,7 @@ module Data.Dimorph.Prim (
   -- were it a class.
   Dimorph(..),
   -- ** Dimorph Functions
-  to, from,
+  to, from, maps,
 
   -- * Mappings
   --
@@ -52,7 +54,7 @@ rhs :: Mapping a b -> b
 rhs (x :<=>: y) = y
 
 consistent :: (Eq a, Eq b) => [Mapping a b] -> Bool
-consistent ms = let (l,r) = tap (map lhs, map rhs) ms in nub l == l && nub r == r
+consistent ms = let (l,r) = each (map lhs, map rhs) ms in nub l == l && nub r == r
 
 -- | The 'survey' conversion resolves a Mapping-list into a pair of
 -- functions representing the left-to-right and right-to-left
@@ -68,34 +70,36 @@ consistent ms = let (l,r) = tap (map lhs, map rhs) ms in nub l == l && nub r == 
 -- Mappings; if either test finds any duplicates, the check returns
 -- False, and otherwise returns True
 
-survey :: (Eq a, Eq b) => [Mapping a b] -> (a -> b, b -> a)
-survey rs | consistent rs = mapping rs
-          | consistent (nub rs) = mapping (nub rs)
-          | otherwise = error "Inconsistent"
+survey :: (Eq a, Eq b) => [Mapping a b] -> (a -> b) -> (b -> a) -> (a -> b, b -> a)
+survey rs | consistent rs = curry $ mapping rs
+          | consistent (nub rs) = curry $ mapping (nub rs)
+          | otherwise = \_ -> error "Inconsistent"
 
 
 -- | Resolves a Mapping list into the forward- and
 -- backward-tranformation functions; if any pattern isn't matched, an
 -- error is returned if a function is applied to it at runtime.
-mapping :: (Eq a, Eq b) => [Mapping a b] -> (a -> b, b -> a)
-mapping [] = (const (error "Non-exhaustive to-mapping"), const (error "Non-exhaustive from-mapping"))
-mapping (r@(x :<=>: y):rs) = (cond (==x) (const y) (fst (mapping rs)), cond (==y) (const x) (snd (mapping rs)))
+mapping :: (Eq a, Eq b) => [Mapping a b] -> (a -> b, b -> a) -> (a -> b, b -> a)
+mapping [] = id
+mapping (r@(x :<=>: y):rs) = resp
+  (cond (==x) (const y), cond (==y) (const x)).mapping rs
 
-data Dimorph a b = Dimorph
-             { typeX :: [a] -- ^ Ordered (but not sorted) domain
-             , typeY :: [b] -- ^ Ordered (but not sorted) range
-             }
+data Dimorph a b = Dimorph { typeX :: [a]
+                           , typeY :: [b]
+                           , nat :: (a -> b)
+                           , inv :: (b -> a)
+                           }
 
 instance (Show a, Show b) => Show (Dimorph a b) where
-  show = (unlines.) . zipWith (\x y -> show x ++ "<=>" ++ show y) <$> typeX <*> typeY
+  show = (unlines.) . zipWith (\x y -> show x ++ " <=> " ++ show y) <$> typeX <*> typeY
 
 -- | Generate the to- and from-functions from a Dimorph
 dimo :: (Eq a, Eq b) => Dimorph a b -> (a -> b, b -> a)
-dimo dm = survey (maps dm)
+dimo = survey <$> maps <*> nat <*> inv
 
 -- | Generate the Mapping-list from a Dimorph
 maps :: (Eq a, Eq b) => Dimorph a b -> [Mapping a b]
-maps dm = zipWith (:<=>:) (typeX dm) (typeY dm)
+maps = zipWith (:<=>:) <$> typeX <*> typeY
 
 -- | The @a -> b@ side of a Dimorph mapping
 to :: (Eq a, Eq b) => Dimorph a b -> (a -> b)

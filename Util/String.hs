@@ -11,7 +11,7 @@ undelim o e = full?.hstrip o.estrip e
 
 -- | undelim, but delimiters must be matched
 unmatch :: Char -> Char -> String -> String
-unmatch o e = \x -> mcond ((.(==e)).(&&).(==o)) (const const) (const $ const $ const x) x
+unmatch o e = \x -> mcond x ((.(==e)).(&&).(==o)) (const const) (const $ const $ const x) x
 
 -- |'unquote' strips an optional leading single-quote
 -- and an optional trailing single-quote from a string
@@ -29,4 +29,4 @@ hstrip = flip (flip (hcond [].(==)) (const id)) (:)
 
 -- |End-Strip: Optionally strip a character from the end of a string
 estrip :: Char -> String -> String
-estrip = join.(.const).flip (lcond [].(==)) const
+estrip = join.(.(const.const)).flip(lcond [].(==))const

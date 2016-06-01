@@ -1,5 +1,10 @@
-module Util.List where
+module Util.List
+  ( module Util.List
+  , module Util.List.Advanced
+  )
+  where
 
+import Util.List.Advanced
 import Util.Conditional
 import Data.Functor
 import Util.Tuple (repair, unfoil)
@@ -147,4 +152,3 @@ initLast x xs = il xs x
     --il [] = \x -> ([],x)
     --il (x:xs) = \x0 -> case (il xs) x of ~(zs,z) -> (x0:zs,z)
     il = foldr (\x f x0 -> case f x of ~(zs,z) -> (x0:zs,z)) (\x -> ([],x))
-

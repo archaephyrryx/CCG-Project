@@ -4,7 +4,8 @@ import Util.Tuple.Apply
 import Util.Tuple (primary, secondary)
 import Util.Conditional
 import Util.Helper (fromEither)
-import Util.List (initLast, headTail, fracture, shatter, headMidLast)
+import Util.List (initLast, headTail, fracture, shatter, headMidLast, permutes)
+import Control.Applicative ((<*>),(<$>))
 
 -- |Like 'cond', but with a pre-application after the test
 -- >  precond h p f g = cond p (f.h) (g.h)
@@ -32,6 +33,16 @@ condense :: (a -> Bool) -> (a -> b) -> (a -> c) -> [a] -> ([b],[c])
 -- > condense p f g (x:xs) = if_ (p x) ((f x:)$<) (>$(g x:)) $ condense p f g xs
 condense = (((`foldr`([], [])).).).flip flip (((>$).(:)).).((.).).(.((($<).(:)).)).cond
 
+-- |'precondense' is a version of 'condense' based on 'precond' instead of 'cond'
+precondense :: (a -> b) -> (a -> Bool) -> (b -> c) -> (b -> d) -> [a] -> ([c],[d])
+precondense = (((((`foldr`([], [])).).).flip flip (((>$).(:)).).((.).).(.((($<).(:)).))).).precond
+
+-- |'pairings' generates a list of lists of correspondences between elements of two lists
+pairings :: [a] -> [b] -> [[(a,b)]]
+pairings xs ys
+  | length xs == length ys = zip <$> [xs] <*> permutes ys
+  | otherwise = []
+
 
 -- | 'abscond': uses a boolean on a tuple to decide between two curried branches,
 --   with a built-in short-circuit based on the outcome of a function returning an Either value
@@ -46,8 +57,8 @@ hcond z p f g = abscond (primary p) f g (fracture z headTail)
 lcond :: b -> (a -> Bool) -> ([a] -> a -> b) -> ([a] -> a -> b) -> [a] -> b
 lcond z p f g = abscond (secondary p) f g (fracture z initLast)
 
--- | Condition on
+-- | Condition on head and last to perform a function on the head, mid, and last
 mcond :: b -> (a -> a -> Bool) -> (a -> [a] -> a -> b) -> (a -> [a] -> a -> b) -> [a] -> b
-mcond z p f g =
-    fromEither . shatter z (\x x' xs -> let (h,ms,l) = headMidLast x x' xs in (if_ (p h l) f g) h ms l)
-
+mcond z p f g = fromEither . shatter z k
+  where
+    k x x' xs = let (h,ms,l) = headMidLast x x' xs in (if_ (p h l) f g) h ms l

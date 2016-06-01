@@ -2,7 +2,8 @@
 module CCG.Cards.Common.Instances where
 
 import CCG.Cards.Common.Types
-import Data.Dimorph
+import Data.Dimorph hiding (to, from)
+import Data.Dimorph.Prim (to, from)
 import Data.Maybe
 import Data.Char
 import Util
@@ -117,26 +118,20 @@ instance Abbrev Rarity where
 
 -- *** Functions for Abbrev Instance Declarations
 
-transCS :: Dimorph CSet String
-transCS = let x = [ Premiere
-                  , CanterlotNights
-                  , RockNRave
-                  , CelestialSolstice
-                  , CrystalGames
-                  ]
-              y = [ "Premiere"
-                  , "Canterlot Nights"
-                  , "Rock and Rave"
-                  , "Celestial Solstice"
-                  , "Crystal Games"
-                  ]
-          in Dimorph x y
+[dimorph|
+  iso CSet String
+    Premiere           <=> Premiere
+    CanterlotNights    <=> Canterlot Nights
+    RockNRave          <=> Rock and Rave
+    CelestialSolstice  <=> Celestial Solstice
+    CrystalGames       <=> Crystal Games
+  |]
 
 instance Read CSet where
-    readsPrec = const $ rdr . from $ transCS
+    readsPrec = const $ rdr . from $ di'CSet'String
 
 instance Show CSet where
-    show = to transCS
+    show = to di'CSet'String
 
 instance Abbrev CSet where
     short = readCS
