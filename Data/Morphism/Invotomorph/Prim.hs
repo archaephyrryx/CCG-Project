@@ -1,4 +1,4 @@
-module Data.Invotomorph.Prim (
+module Data.Morphism.Invotomorph.Prim (
     -- * Invotomorph
     --
     -- | The Invotomorph class is designed for ADT's with an inherent symmetry,

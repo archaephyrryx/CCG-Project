@@ -2,7 +2,7 @@
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE UndecidableInstances  #-}
 {-# LANGUAGE RecordWildCards       #-}
-module Data.Dimorph.Prim (
+module Data.Morphism.Dimorph.Prim (
   -- * Dimorph
   --
   -- | The Dimorph datatype is a representation of a Theseus-style

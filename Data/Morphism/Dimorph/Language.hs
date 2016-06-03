@@ -1,7 +1,7 @@
 {-# LANGUAGE DeriveDataTypeable #-}
 {-# LANGUAGE TemplateHaskell    #-}
 {-# LANGUAGE GADTs              #-}
-module Data.Dimorph.Language where
+module Data.Morphism.Dimorph.Language where
 
 import Language.Haskell.TH
 import Language.Haskell.TH.Syntax
@@ -9,12 +9,7 @@ import Language.Haskell.TH.Quote
 import Data.Data
 import Data.Typeable
 
-newtype TName = TName { t :: Name }
-  deriving (Data, Typeable, Show, Eq)
-newtype CName = CName { c :: Name }
-  deriving (Data, Typeable, Show, Eq)
-newtype VName = VName { v :: Name }
-  deriving (Data, Typeable, Show, Eq)
+import Data.Morphism.Language
 
 data Iso = Iso Isotype Isotype
     deriving (Data, Typeable, Show, Eq)
@@ -48,55 +43,23 @@ tyCompat t t' = case (t,t') of
                   (Mono _,
 -}
 
-
-data Atom = AVar VName
-          | ACon CName
-          deriving (Data, Typeable, Show, Eq)
-
-data Term = Constant Integer
-          | Var VName
-          | Unary CName
-          | Binary CName Atom --Term
-          | Ternary CName Atom Atom --Term Term
-    deriving (Data, Typeable, Show, Eq)
-
-
 termVarCollect :: Term -> [VName]
 termVarCollect x = case x of
                      Var v -> [v]
-                     Binary c a -> atomVar a
-                     Ternary c a b -> atomVar a ++ atomVar b
+                     Binary _ a -> termVarCollect a
+                     Ternary _ a b -> termVarCollect a ++ termVarCollect b
                      _ -> []
-  where
-    atomVar :: Atom -> [VName]
-    atomVar (AVar x) = [x]
-    atomVar (ACon _) = []
 
 
 {-
 tmCompat :: Term -> Term -> Bool
 -}
 
-newtype LHS = LHS { getL :: Term }
-    deriving (Data, Typeable, Show, Eq)
-
-newtype RHS = RHS { getR :: Term }
-    deriving (Data, Typeable, Show, Eq)
-
 data QMapping = QMap LHS RHS
     deriving (Data, Typeable, Show, Eq)
 
 data MDef = MDef Iso [QMapping]
     deriving (Data, Typeable, Show)
-
-instance Lift CName where
-  lift = return . AppE (ConE 'CName). ConE . c
-
-instance Lift TName where
-  lift = return . AppE (ConE 'TName). ConE . t
-
-instance Lift VName where
-  lift = return . AppE (ConE 'VName). ConE . v
 
 instance Lift Isotype where
   lift (Mono tn) = do
@@ -111,39 +74,6 @@ instance Lift Isotype where
     i <- lift it
     j <- lift jt
     return (AppE (AppE (AppE (ConE 'Bin) t) i) j)
-
-instance Lift Atom where
-  lift (AVar v) = lift v
-  lift (ACon c) = lift c
-
-instance Lift Term where
-  lift (Constant i) =
-    return (AppE (ConE 'Constant) (LitE (IntegerL i)))
-  lift (Var vn) = do
-    v <- lift vn
-    return (AppE (ConE 'Var) v)
-  lift (Unary cn) = do
-    c <- lift cn
-    return (AppE (ConE 'Unary) c)
-  lift (Binary cn vn) = do
-    c <- lift cn
-    v <- lift vn
-    return (AppE (AppE (ConE 'Binary) c) v)
-  lift (Ternary cn xn yn) = do
-    c <- lift cn
-    x <- lift xn
-    y <- lift yn
-    return (AppE (AppE (AppE (ConE 'Ternary) c) x) y)
-
-instance Lift LHS where
-  lift (LHS t) = do
-    l <- lift t
-    return (AppE (ConE 'LHS) l)
-
-instance Lift RHS where
-  lift (RHS t) = do
-    r <- lift t
-    return (AppE (ConE 'RHS) r)
 
 instance Lift QMapping where
   lift (QMap l r) = do

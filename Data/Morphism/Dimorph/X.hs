@@ -1,6 +1,6 @@
 {-# LANGUAGE TemplateHaskell #-}
 
-module Data.Dimorph.X where
+module Data.Morphism.Dimorph.X where
 
 import Language.Haskell.TH
 import Language.Haskell.TH.Syntax

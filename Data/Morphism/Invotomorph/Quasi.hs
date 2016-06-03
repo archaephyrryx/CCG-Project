@@ -1,22 +1,22 @@
 {-# Language TemplateHaskell, QuasiQuotes #-}
-module Data.Invotomorph.Quasi where
+module Data.Morphism.Invotomorph.Quasi where
 
 import qualified Language.Haskell.TH as TH
 import Language.Haskell.TH.Syntax
 import Language.Haskell.TH.Quote
-import Data.Invotomorph.Language
---import Data.Invotomorph.Language (Term(Unary))
-import Data.Invotomorph.Parse
-import Data.Invotomorph.Prim
-import Data.Invotomorph.Prim (Rule(..), Invotomorph(..))
+import Data.Morphism.Invotomorph.Language
+--import Data.Morphism.Invotomorph.Language (Term(Unary))
+import Data.Morphism.Invotomorph.Parse
+import Data.Morphism.Invotomorph.Prim
+import Data.Morphism.Invotomorph.Prim (Rule(..), Invotomorph(..))
 import Util.Conditional (if_)
 import Data.Either
 
 import qualified Language.Haskell.TH as TH
 import Language.Haskell.TH.Syntax
 import Language.Haskell.TH.Quote
-import Data.Invotomorph.Language
-import Data.Invotomorph.Parse
+import Data.Morphism.Invotomorph.Language
+import Data.Morphism.Invotomorph.Parse
 
 inv :: QuasiQuoter
 inv = QuasiQuoter

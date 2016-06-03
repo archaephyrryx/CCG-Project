@@ -1,7 +1,7 @@
 module Data.Dimorph (
-    module Data.Dimorph.Prim
-  , module Data.Dimorph.Quasi
+    module Data.Morphism.Dimorph.Prim
+  , module Data.Morphism.Dimorph.Quasi
   ) where
 
-import Data.Dimorph.Prim
-import Data.Dimorph.Quasi
+import Data.Morphism.Dimorph.Prim
+import Data.Morphism.Dimorph.Quasi

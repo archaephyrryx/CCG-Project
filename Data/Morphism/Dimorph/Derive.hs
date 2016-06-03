@@ -1,14 +1,14 @@
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 
-module Data.Dimorph.Derive where
+module Data.Morphism.Dimorph.Derive where
 
 import Language.Haskell.TH.Syntax
 import Language.Haskell.TH
-import Data.Dimorph.Prim hiding (to, from)
-import qualified Data.Dimorph.Prim as Prim (to, from)
-import Data.Dimorph.Alt hiding (to, from)
-import qualified Data.Dimorph.Alt as Alt (to, from)
+import Data.Morphism.Dimorph.Prim hiding (to, from)
+import qualified Data.Morphism.Dimorph.Prim as Prim (to, from)
+import Data.Morphism.Dimorph.Alt hiding (to, from)
+import qualified Data.Morphism.Dimorph.Alt as Alt (to, from)
 import Util
 import Control.Applicative
 

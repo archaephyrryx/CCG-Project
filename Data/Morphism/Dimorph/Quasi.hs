@@ -1,14 +1,14 @@
 {-# Language TemplateHaskell, QuasiQuotes #-}
-module Data.Dimorph.Quasi where
+module Data.Morphism.Dimorph.Quasi where
 
 import qualified Language.Haskell.TH as TH
 import Language.Haskell.TH.Syntax
 import Language.Haskell.TH.Quote
 import Data.TypeCast
-import Data.Dimorph.Language
-import Data.Dimorph.Parse
-import Data.Dimorph.Alt
-import Data.Dimorph.Prim
+import Data.Morphism.Dimorph.Language
+import Data.Morphism.Dimorph.Parse
+import Data.Morphism.Dimorph.Alt
+import Data.Morphism.Dimorph.Prim
 import Util
 import Control.Applicative
 

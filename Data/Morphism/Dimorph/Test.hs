@@ -4,15 +4,15 @@
 {-# LANGUAGE TypeSynonymInstances  #-}
 {-# LANGUAGE FlexibleInstances  #-}
 {-# LANGUAGE EmptyCase #-}
-module Data.Dimorph.Test where
+module Data.Morphism.Dimorph.Test where
 
-import Data.Dimorph.Quasi
-import Data.Dimorph.Prim
-import Data.Dimorph.Language
-import Data.Dimorph.Parse
-import Data.Dimorph.Alt
-import Data.Dimorph.Derive
-import Data.Dimorph.X
+import Data.Morphism.Dimorph.Quasi
+import Data.Morphism.Dimorph.Prim
+import Data.Morphism.Dimorph.Language
+import Data.Morphism.Dimorph.Parse
+import Data.Morphism.Dimorph.Alt
+import Data.Morphism.Dimorph.Derive
+import Data.Morphism.Dimorph.X
 
 [dimorph|
 iso X Integer

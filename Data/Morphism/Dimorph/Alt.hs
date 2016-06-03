@@ -1,9 +1,9 @@
 {-# LANGUAGE MultiParamTypeClasses #-}
-module Data.Dimorph.Alt (
+module Data.Morphism.Dimorph.Alt (
   Bijection(..)
   ) where
 
-import Data.Dimorph.Prim (Mapping, mapping, Dimorph(nat,inv), maps)
+import Data.Morphism.Dimorph.Prim (Mapping, mapping, Dimorph(nat,inv), maps)
 import Util.Tuple.Apply (each)
 
 class (Eq a, Eq b) => Bijection a b where
