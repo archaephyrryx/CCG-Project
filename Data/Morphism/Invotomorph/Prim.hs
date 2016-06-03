@@ -1,4 +1,4 @@
-module Data.Invotomorph.Prim (
+module Data.Morphism.Invotomorph.Prim (
     -- * Invotomorph
     --
     -- | The Invotomorph class is designed for ADT's with an inherent symmetry,
@@ -58,14 +58,31 @@ module Data.Invotomorph.Prim (
     regulate, ruling
     ) where
 
-import Data.List (nub)
+import Data.List (nub, nubBy)
 
 infixr 5 :<->:
 
 data Rule a = a :<->: a
 
+equiv :: (Eq a) => Rule a -> Rule a -> Bool
+equiv (l:<->:r) (l':<->:r') = (l == l' && r == r') || (l == r' && r == l')
+
+
+-- | The 'regulate' function performs a checked conversion of
+-- Rule-lists to transformations, first checking for consistency of the
+-- list of Rules, then proceeding to call 'ruling' if the check passes.
+-- If the initial check fails, a second check is performed, after first
+-- removing any functionally equivalent rules from the list to check for
+-- inconsitent overlaps rather than duplicated overlaps. If the second
+-- check passes, the duplicates are removed and the Rules are processed
+-- as normal; it if fails, an error is raised.
+--
+-- Consistency is checked for by ensuring that no pattern matches
+-- are present more than once among either side of all of the Rules in
+-- a list.
 regulate :: (Eq a) => [Rule a] -> (a -> a)
 regulate rs | consistent rs = ruling rs
+            | consistent . nubBy equiv $ rs = ruling . nubBy equiv $ rs
             | otherwise = error "Inconsistent"
 
 lhs :: Rule a -> a
@@ -77,6 +94,9 @@ rhs (x :<->: y) = y
 consistent :: (Eq a) => [Rule a] -> Bool
 consistent rs = let sides = ((map rhs rs)++(map lhs rs)) in (nub sides) == sides
 
+-- | Resolves a Rule-list into an invotomorphism, which is the identity
+-- on any pattern not matched on any side, and the obverse of any
+-- pattern for which there a Rule is defined.
 ruling :: (Eq a) => [Rule a] -> (a -> a)
 ruling [] = id
 ruling (r@(x :<->: y):rs) = (\a -> if a == x then y else (if a == y then x else ((ruling rs)$a)))
@@ -90,3 +110,4 @@ class (Eq a) => Invotomorph a where
     invoto = regulate rule
     rule :: [Rule a]
     rule = zipWith (:<->:) classX classY
+    {-# MINIMAL rule | classX, classY #-}

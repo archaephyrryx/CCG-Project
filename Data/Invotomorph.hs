@@ -1,3 +1,3 @@
-module Data.Invotomorph (module Data.Invotomorph.Prim) where
+module Data.Invotomorph (module Data.Morphism.Invotomorph.Prim) where
 
-import Data.Invotomorph.Prim
+import Data.Morphism.Invotomorph.Prim

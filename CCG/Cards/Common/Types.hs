@@ -1,6 +1,10 @@
-{-# LANGUAGE FlexibleInstances, DeriveDataTypeable,
-    GeneralizedNewtypeDeriving, MultiParamTypeClasses,
-    RecordWildCards #-}
+{-# LANGUAGE DeriveDataTypeable         #-}
+{-# LANGUAGE FlexibleInstances          #-}
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE MultiParamTypeClasses      #-}
+{-# LANGUAGE QuasiQuotes                #-}
+{-# LANGUAGE RecordWildCards            #-}
+{-# LANGUAGE TemplateHaskell            #-}
 
 module CCG.Cards.Common.Types (
     -- * Aliases
@@ -11,13 +15,13 @@ module CCG.Cards.Common.Types (
     -- globally.
 
     -- | 'Keywords' is an alias for a Keyword-list that abstracts away the
-    -- specific list-based implementation and allows for more convenient 
+    -- specific list-based implementation and allows for more convenient
     -- reimplementation using some other collection
     Keywords,
 
     -- | 'Name' is a simple alias to distinguish between Strings used in
     -- general, and Card-Names currently implemented as Strings but with
-    -- potential redefinition 
+    -- potential redefinition
     Name,
 
     -- * 'ProblemReq' is a type-alias used instead of the unwieldy type that
@@ -33,7 +37,7 @@ module CCG.Cards.Common.Types (
     -- for the primary purpose of creating IxSets of Cards with
     -- unambiguous key specification, as well as for allowing
     -- instantiation of various typeclasses.
-    
+
     -- ** Integral Newtypes
 
     -- | The following newtypes are all wrapped integers, all of which
@@ -147,8 +151,8 @@ module CCG.Cards.Common.Types (
     -- ** Number
 
     -- | A representation of card enumeration within each card-set, with
-    -- constructors for each mode of enumeration used in the CCG. 
-    Number(..), 
+    -- constructors for each mode of enumeration used in the CCG.
+    Number(..),
 
     -- | A basic string-reader for Number
     readN
@@ -156,7 +160,8 @@ module CCG.Cards.Common.Types (
     where
 
 import Data.Invotomorph
-import Data.Dimorph
+import Data.Dimorph hiding (to, from)
+import Data.Dimorph.Prim (to, from)
 import Data.Data (Data, Typeable)
 import Data.Char
 import Data.List
@@ -228,16 +233,21 @@ data CardType = TMane
               | TProblem
               deriving (Enum, Eq, Ord, Data, Typeable)
 
-transCT :: Dimorph CardType String
-transCT = let x = [ TMane  , TFriend  , TResource  , TEvent  , TTroublemaker  , TProblem  ]
-              y = [ "Mane" , "Friend" , "Resource" , "Event" , "Troublemaker" , "Problem" ]
-          in Dimorph x y
+[dimorph|
+  iso CardType String
+    TMane         <=> Mane
+    TFriend       <=> Friend
+    TResource     <=> Resource
+    TEvent        <=> Event
+    TTroublemaker <=> Troublemaker
+    TProblem      <=> Problem
+|]
 
 instance Show CardType where
-    show = to transCT
+    show = to di'CardType'String
 
 readsT :: ReadS CardType
-readsT = rdr $ from transCT
+readsT = rdr $ from di'CardType'String
 
 instance Read CardType where
     readsPrec = const readsT

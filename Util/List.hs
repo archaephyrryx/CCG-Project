@@ -1,8 +1,14 @@
-module Util.List where
+module Util.List
+  ( module Util.List
+  , module Util.List.Advanced
+  )
+  where
 
+import Util.List.Advanced
 import Util.Conditional
 import Data.Functor
-import Util.Tuple (repair)
+import Util.Tuple (repair, unfoil)
+import Data.Maybe(fromMaybe)
 
 infix 9 !?
 infix 9 ??
@@ -45,6 +51,20 @@ for = flip map
 -- |'one' converts a value to a singleton list
 one :: a -> [a]
 one = (:[])
+
+-- | 'eno' extracts a value from a singleton list, wrapped in a Maybe
+-- monad to allow for empty lists or lists with more than one element
+eno :: [a] -> Maybe a
+eno = \x -> case x of
+              v:[] -> Just v
+              _    -> Nothing
+
+-- | assertive version of 'eno', which is undefined on non-singleton lists
+only :: [a] -> a
+only = fromMaybe err . eno
+  where
+    err = error "Util.List.only: assertion failed on non-singleton list"
+
 
 -- |'once' wraps a function result in a singleton list
 once :: (a -> b) -> (a -> [b])
@@ -102,22 +122,3 @@ x!@[] = []
   | i == 0 = x:xs!@map pred is
   | i <  0 = []
   | otherwise = xs!@map pred (i:is)
-
-
--- |`fracture`: auxilliary function for `headTail` and `initLast` for easy casework on empty/non-empty lists
-fracture :: b -> (a -> [a] -> c) -> [a] -> Either b c
-fracture ~z f xs = case xs of
-                  [] -> Left z
-                  y:ys -> Right $ f y ys
-
--- |`headTail`: a fancy way of saying (,) to match the usage and naming pattern of `initLast`
-headTail :: a -> [a] -> (a,[a])
-headTail = (,)
-
--- | `initLast`: takes @x@ and @xs@, returns @(init (x:xs),last (x:xs))@ (efficiently)
-initLast :: a -> [a] -> ([a],a)
-initLast x xs = initLast' $ x:xs
-  where
-    initLast' :: [a] -> ([a],a)
-    initLast' [x] = ([],x)
-    initLast' (x:xs) = case initLast' xs of ~(zs,z) -> (x:zs,z)
