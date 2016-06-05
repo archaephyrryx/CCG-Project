@@ -35,18 +35,18 @@ test = do
 
     set f [layout := margin 10 $ grid 10 5 $ [[minsize (sz 200 300) $ widget choicer, glue, widget clear], [widget choice]] ]
 
-    let networkDescription :: MonadMoment m => m ()
+    let networkDescription :: MomentIO ()
         networkDescription = mdo
                 eClear <- event0 clear command
 
                 tSelections <- multiSelect choicer bAnthology bSelections bDisplay
 
                 let eSelections :: Event [String]
-                    eSelections = rumors tSelections
+                    eSelections = portents tSelections
 
-                    bSelections :: Behavior [String]
-                    bSelections = stepper [] $ unions [ eSelections, [] <$ eClear ]
+                bSelections <- stepper [] $ priorityUnion [ eSelections, [] <$ eClear ]
 
+                let
                     bResults :: Behavior String
                     bResults = intercalate ", " <$> bSelections
 

@@ -22,11 +22,14 @@ library
     Util.Advanced
     Util.Conditional
     Util.List
+    Util.List.Advanced
     Util.String
     Util.Tuple
     Util.Tuple.Apply
+    Util.TH
     Data.Invotomorph
     Data.Dimorph
+    Data.Morphism
     CCG
     CCG.Cards
     CCG.Deck
@@ -45,7 +48,10 @@ library
         array >=0.5 && <0.6,
         safecopy >=0.8 && <0.9,
         containers >= 0.5 && <0.6,
-        split >=0.2 && <0.3
+        split >=0.2 && <0.3,
+        extra >=1.4 && <1.5,
+        template-haskell >=2.9 && <2.10,
+        parsec
   default-language: Haskell2010
 
 executable ccgui
@@ -69,7 +75,8 @@ executable ccgui
         UndecidableInstances
   build-depends:
         base >=4.7 && <4.8,
-        wx >=0.91 && <0.92,
+        extra >=1.4 && <1.5,
+        wx >=0.92 && <0.93,
         template-haskell >=2.9 && <2.10,
         containers >=0.5 && <0.6,
         mtl >=2.1 && <2.2,

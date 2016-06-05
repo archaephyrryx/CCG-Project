@@ -9,6 +9,7 @@ import Widgets.Cast
 import Widgets.Table
 import Widgets.Ranger
 import Data.List
+import Data.Stringent
 
 main :: IO ()
 main = start test
