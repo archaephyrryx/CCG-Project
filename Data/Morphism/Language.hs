@@ -7,7 +7,6 @@ module Data.Morphism.Language where
 
 import Language.Haskell.TH
 import Language.Haskell.TH.Syntax
-import Language.Haskell.TH.Lift
 import Data.Data
 import Data.Typeable
 import Util.TH
@@ -22,20 +21,12 @@ newtype CName = CName { c :: Name }
 newtype VName = VName { v :: Name }
   deriving (Data, Typeable, Show, Eq)
 
---{-
-$(deriveLift ''TName)
-$(deriveLift ''CName)
-$(deriveLift ''VName)
----}
-{-
 instance Lift TName where
   lift (TName t) = return $ ConE 'TName $@ ConE t
 instance Lift CName where
-  lift (CName c) = return $ ConE 'CName $@ ConE t
+  lift (CName c) = return $ ConE 'CName $@ ConE c
 instance Lift VName where
   lift (VName v) = return $ ConE 'VName $@ ConE v
-
----}
 
 data Isotype = Poly VName
              | Mono TName

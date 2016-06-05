@@ -4,11 +4,8 @@ module Data.Stringent where
 
 import Util.List (one)
 
-class Stringent a where
+class (Show a) => Stringent a where
   stringify :: a -> String
-  stringify = const "_"
-
-instance (Show a) => Stringent a where
   stringify = show
 
 instance Stringent Int where

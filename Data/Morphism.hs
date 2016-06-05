@@ -1,6 +1,6 @@
-module Data.Morphism (module Data.Morphism.Dimorph
-                     ,module Data.Morphism.Invotomorph)
+module Data.Morphism (module Data.Dimorph
+                     ,module Data.Invotomorph)
                        where
 
-import Data.Morphism.Dimorph
-import Data.Morphism.Invotomorph
+import Data.Dimorph
+import Data.Invotomorph

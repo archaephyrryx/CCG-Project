@@ -160,8 +160,7 @@ module CCG.Cards.Common.Types (
     where
 
 import Data.Invotomorph
-import Data.Dimorph hiding (to, from)
-import Data.Dimorph.Prim (to, from)
+import Data.Dimorph
 import Data.Data (Data, Typeable)
 import Data.Char
 import Data.List

@@ -14,12 +14,6 @@ import Data.Morphism.Language
 data Iso = Iso Isotype Isotype
     deriving (Data, Typeable, Show, Eq)
 
-data Isotype = Poly VName
-             | Mono TName
-             | Bin TName VName --Isotype
-             | Tern TName VName VName --Isotype Isotype
-             deriving (Data, Typeable, Show, Eq)
-
 data Compat = Compat
             | Incompat String
             deriving (Show, Read, Eq)
@@ -60,20 +54,6 @@ data QMapping = QMap LHS RHS
 
 data MDef = MDef Iso [QMapping]
     deriving (Data, Typeable, Show)
-
-instance Lift Isotype where
-  lift (Mono tn) = do
-    t <- lift tn
-    return (AppE (ConE 'Mono) t)
-  lift (Bin tn it) = do
-    t <- lift tn
-    i <- lift it
-    return (AppE (AppE (ConE 'Bin) t) i)
-  lift (Tern tn it jt) = do
-    t <- lift tn
-    i <- lift it
-    j <- lift jt
-    return (AppE (AppE (AppE (ConE 'Bin) t) i) j)
 
 instance Lift QMapping where
   lift (QMap l r) = do

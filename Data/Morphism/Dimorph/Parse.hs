@@ -15,27 +15,33 @@ import Data.Morphism.Language
 import Data.Morphism.Parse
 
 defParse :: Parser MDef
-defParse = do m_whiteSpace
+defParse = do many space
               iso <- isoParse
               maps <- many (mappingParse)
               eof
               return (MDef iso maps)
 
 isoParse :: Parser Iso
-isoParse = do m_reserved "iso"
+isoParse = do whiteout $ string "iso"
               a <- (do
                        x <- typParse
                        return x)
               b <- (do
                        x <- typParse
                        return x)
+              try endOfLine
               return (Iso a b)
 
 mappingParse :: Parser QMapping
 mappingParse = do
-                  l <- m_lexeme termParse
-                  m_lexeme $ m_reservedOp "<=>"
-                  r <- m_lexeme termParse
+                  skipMany nbSpace
+                  l <- termParse
+                  skipMany nbSpace
+                  string "<=>"
+                  skipMany nbSpace
+                  r <- whiteout termParse
+                  skipMany nbSpace
+                  try endOfLine
                   return $ QMap (LHS l) (RHS r)
 
 dimorphParse :: String -> Either ParseError MDef

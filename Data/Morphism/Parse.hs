@@ -9,24 +9,9 @@ import Text.Parsec.Expr
 import Text.Parsec.Token
 import Text.Parsec.Language
 import Control.Applicative hiding (many, (<|>))
+import Control.Monad (void)
 
 import Data.Morphism.Language
-
-def = emptyDef { identStart = letter <|> char '_'
-               , identLetter = alphaNum <|> char '_'
-               , opStart = oneOf "<"
-               , opLetter = oneOf "<-=>"
-               , reservedOpNames = ["<=>","<->"]
-               , reservedNames = ["iso","auto"]
-               }
-
-TokenParser { parens = m_parens
-            , identifier = m_identifier
-            , reservedOp = m_reservedOp
-            , reserved = m_reserved
-            , semiSep1 = m_semiSep1
-            , whiteSpace = m_whiteSpace
-            , lexeme = m_lexeme } = makeTokenParser def
 
 typParse :: Parser Isotype
 typParse =
@@ -41,9 +26,9 @@ typParse' = vParse`chain`vParse
 {-
 termParse' :: Parser (Term,Term)
 termParse' =
-      try (m_parens typParse`chain`m_parens typParse)
-  <|> try (m_parens terParse`chain`         typParse)
-  <|> try (typParse         `chain`m_parens typParse)
+      try (parenth typParse`chain`parenth typParse)
+  <|> try (parenth terParse`chain`         typParse)
+  <|> try (typParse         `chain`parenth typParse)
   <|> try (tvParse          `chain`         typParse)
   <|> try (ttParse' (tvParse`chain`tvParse) `chain`  typParse)
   <|> try (ttParse          `chain`         typParse)
@@ -81,14 +66,28 @@ atomParse =
 diatomic :: Parser (Term,Term)
 diatomic = atomParse`chain`atomParse
 
+whiteout :: Parser a -> Parser a
+whiteout p = do { spaces; x <- p; nobreaks; return x; }
+
+nbSpace :: Parser Char
+nbSpace = tab <|> char ' '
+
+nobreaks :: Parser ()
+nobreaks = do
+  manyTill space (lookAhead $ (try (void endOfLine) <|> notFollowedBy nbSpace))
+  return ()
+
+parenth :: Parser a -> Parser a
+parenth p = between (whiteout.string $ "(") (whiteout.string $ ")") p
+
 chain :: Parser a -> Parser b -> Parser (a,b)
-chain p q = m_lexeme p >>= \x -> m_lexeme q >>= \y -> return (x,y)
+chain p q = whiteout p >>= \x -> whiteout q >>= \y -> return (x,y)
 
 termParse' :: Parser (Term,Term)
 termParse' =
-      try (m_parens termParse`chain`m_parens termParse)
-  <|> try (m_parens termParse`chain`         termParse)
-  <|> try (termParse         `chain`m_parens termParse)
+      try (parenth termParse`chain`parenth termParse)
+  <|> try (parenth termParse`chain`         termParse)
+  <|> try (termParse         `chain`parenth termParse)
   <|> try (constParse        `chain`         termParse)
   <|> try (varParse          `chain`         termParse)
   <|> try (ternaryParse' diatomic `chain`    termParse)
@@ -103,7 +102,7 @@ intParse = do
   seq n (return n)
 
 vParse :: Parser VName
-vParse = VName . mkName <$> m_lexeme var_ident
+vParse = VName . mkName <$> whiteout var_ident
   where
     var_ident :: Parser String
     var_ident = do
@@ -112,16 +111,16 @@ vParse = VName . mkName <$> m_lexeme var_ident
       return (x:l)
 
 tagParse :: Parser CName
-tagParse = CName . mkName <$> m_lexeme tag_ident
+tagParse = CName . mkName <$> whiteout tag_ident
 
 ttagParse :: Parser TName
-ttagParse = TName . mkName <$> m_lexeme tag_ident
+ttagParse = TName . mkName <$> whiteout tag_ident
 
 tag_ident :: Parser String
 tag_ident = do
   x <- upper
   l <- many (alphaNum <|> oneOf "_'")
-  m_whiteSpace
+  nobreaks
   return (x:l)
 
 
@@ -135,11 +134,11 @@ ternaryParse = ternaryParse' termParse'
 binaryParse' :: Parser Term -> Parser Term
 binaryParse' p = do
   c <- tagParse
-  x <- m_lexeme $ p
+  x <- whiteout $ p
   return $ Binary c x
 
 ternaryParse' :: Parser (Term,Term) -> Parser Term
 ternaryParse' p = do
   c <- tagParse
-  (x,y) <- m_lexeme $ p
+  (x,y) <- whiteout $ p
   return $ Ternary c x y

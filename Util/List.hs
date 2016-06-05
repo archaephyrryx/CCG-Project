@@ -122,3 +122,33 @@ x!@[] = []
   | i == 0 = x:xs!@map pred is
   | i <  0 = []
   | otherwise = xs!@map pred (i:is)
+
+-- |`shatter`: auxillary function for `headMidLast` for easy casework on sub-singleton/super-singleton lists
+shatter :: b -> (a -> a -> [a] -> c) -> [a] -> Either b c
+shatter ~z f xs = case xs of
+                    [] -> Left z
+                    _:[] -> Left z
+                    y:y':ys -> Right $ f y y' ys
+
+
+headMidLast :: a -> a -> [a] -> (a,[a],a)
+headMidLast x y zs = unfoil (x, initLast y zs)
+
+-- |`fracture`: auxilliary function for `headTail` and `initLast` for easy casework on empty/non-empty lists
+fracture :: b -> (a -> [a] -> c) -> [a] -> Either b c
+fracture ~z f xs = case xs of
+                  [] -> Left z
+                  y:ys -> Right $ f y ys
+
+-- |`headTail`: a fancy way of saying (,) to match the usage and naming pattern of `initLast`
+headTail :: a -> [a] -> (a,[a])
+headTail = (,)
+
+-- | `initLast`: takes @x@ and @xs@, returns @(init (x:xs),last (x:xs))@ (efficiently)
+initLast :: a -> [a] -> ([a],a)
+initLast x xs = il xs x
+  where
+    il :: [a] -> a -> ([a],a)
+    --il [] = \x -> ([],x)
+    --il (x:xs) = \x0 -> case (il xs) x of ~(zs,z) -> (x0:zs,z)
+    il = foldr (\x f x0 -> case f x of ~(zs,z) -> (x0:zs,z)) (\x -> ([],x))

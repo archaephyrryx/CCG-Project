@@ -2,8 +2,7 @@
 module CCG.Cards.Common.Instances where
 
 import CCG.Cards.Common.Types
-import Data.Dimorph hiding (to, from)
-import Data.Dimorph.Prim (to, from)
+import Data.Dimorph
 import Data.Maybe
 import Data.Char
 import Util

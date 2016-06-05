@@ -6,21 +6,12 @@ import Language.Haskell.TH.Syntax
 import Language.Haskell.TH.Quote
 import Data.TypeCast
 import Data.Morphism.Dimorph.Language
+import Data.Morphism.Language
 import Data.Morphism.Dimorph.Parse
 import Data.Morphism.Dimorph.Alt
 import Data.Morphism.Dimorph.Prim
 import Util
 import Control.Applicative
-
-infixl 2 $@
-infixl 2 @:@
-
-($@) :: Exp -> Exp -> Exp
-($@) = AppE
-
-(@:@) :: Type -> Type -> Type
-(@:@) = AppT
-
 
 diExp :: MDef -> Q Exp
 diExp m@(MDef i xs) = do
@@ -81,10 +72,6 @@ data QTerm = QInt Integer
            | QTer Name QTerm QTerm
            deriving (Eq, Show)
 
-fuse :: Atom -> QTerm
-fuse (AVar x) = QVar (v x)
-fuse (ACon x) = QUni (c x)
-
 ensig :: QTerm -> QTerm -> Type -> Match
 ensig x y b = Match (enpat x) (NormalB (reexp y b)) []
   where
@@ -140,8 +127,8 @@ sides (QMap (LHS l) (RHS r)) =
                    Constant i -> QInt i
                    Unary (CName c) -> QUni c
                    Var (VName x) -> QVar x
-                   Binary (CName c) v -> QBin c (fuse v)
-                   Ternary (CName c) v v' -> QTer c (fuse v) (fuse v')
+                   Binary (CName c) t -> QBin c (qterm t)
+                   Ternary (CName c) t t' -> QTer c (qterm t) (qterm t')
 
 quoteDiPat :: String -> Q Pat
 quoteDiPat = undefined
