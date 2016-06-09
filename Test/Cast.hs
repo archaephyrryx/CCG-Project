@@ -10,6 +10,7 @@ import Widgets.Table
 import Widgets.Ranger
 import Data.List
 import Data.Stringent
+import Util (verity, mono, for)
 
 main :: IO ()
 main = start test
@@ -46,6 +47,10 @@ test = do
         networkDescription = mdo
             let bAnthology = pure anthology
 
+ {-
+                caster = Cask { bContents = pure anthology
+                              , pagesize = 4
+ -}
                 caster = Case { contents = anthology
                               , bPagesize = bPage
                               , current = tidings bCurrent $ portents ranged
@@ -62,26 +67,28 @@ test = do
             incs <- eClick inc
             bPage <- restepper 4 (#) $ whenE ((<(length . contents $ caster)) <$> bCurrent) $ (+1) <$ incs
 
+--          bClicked <- stepper (-1) $ portents cast
             bClicked <- stepper (-1) $ priorityUnion ([0 <$ incs, portents cast])
             reactimate (refit tab <$ portents ranged)
             sink act [ text :== stringify <$> bClicked ]
             let
                 bDebug :: Behavior String
                 bDebug = show . map ((map _crux).unpack) <$> bRows
+                bRows :: Behavior [Row]
+                bRows = _rows . _elem . _cast $ cast
+                bShows :: [Behavior Bool]
+                bShows = for [0..] (\x -> (==x) <$> bCurrent)
+                unpack :: Row -> [Link Int]
+                unpack = \r -> extract $ _items r
                   where
-                    bRows :: Behavior [Row]
-                    bRows = _rows . _elem . _cast $ cast
-                    unpack :: Row -> [Link Int]
-                    unpack = \r -> extract $ _items r
-                      where
-                        extract :: [Item] -> [Link Int]
-                        extract [] = []
-                        extract ((Item x):t) = case Core.cast x of
-                                                 Just (x :: Link Int) -> x:(extract t)
-                                                 Nothing -> extract t
+                    extract :: [Item] -> [Link Int]
+                    extract [] = []
+                    extract ((Item x):t) = case Core.cast x of
+                                             Just (x :: Link Int) -> x:(extract t)
+                                             Nothing -> extract t
 
-                    bUnpacked :: Behavior [Link Int]
-                    bUnpacked = concatMap unpack <$> bRows
+                bUnpacked :: Behavior [Link Int]
+                bUnpacked = concatMap unpack <$> bRows
 
             sink debug [ text :== bDebug ]
 

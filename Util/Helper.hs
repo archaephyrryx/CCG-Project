@@ -40,6 +40,11 @@ proc = foldl1 (.)
 procmap :: [a -> b -> b] -> a -> b -> b
 procmap = (proc.).(.flip ($)).for
 
+-- |Constant on unit
+unity :: a -> (() -> a)
+unity x = (\() -> x)
+
+
 -- |Converts a string to titlecase (first character uppercase, all others
 -- lowercase)
 titleCase :: String -> String
