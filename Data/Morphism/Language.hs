@@ -49,6 +49,7 @@ instance Lift Isotype where
     return (AppE (AppE (AppE (ConE 'Bin) t) i) j)
 
 data Term = Constant Integer
+          | StrConst String
           | Var VName
           | Unary CName
           | Binary CName Term
@@ -57,6 +58,7 @@ data Term = Constant Integer
 
 instance Lift Term where
   lift (Constant i) = (ConE 'Constant $@) <$> lift i
+  lift (StrConst i) = (ConE 'StrConst $@) <$> lift i
   lift (Var vn) = (ConE 'Var $@) <$> lift vn
   lift (Unary cn) = (ConE 'Unary $@) <$> lift cn
   lift (Binary cn vn) = (\c v -> ConE 'Binary $@ c $@ v) <$> lift cn <*> lift vn

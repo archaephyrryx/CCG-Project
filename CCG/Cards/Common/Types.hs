@@ -144,7 +144,7 @@ module CCG.Cards.Common.Types (
     -- derivations are not possible due to the qualification of the
     -- constructor names; this Dimorph is a conversion between the
     -- constructor names and their unqualified string representations.
-    transCT,
+    di'CardType'String,
 
     -- * Non-Algebraic Data Types
 
@@ -159,8 +159,8 @@ module CCG.Cards.Common.Types (
     )
     where
 
-import Data.Invotomorph
 import Data.Dimorph
+import Data.Invotomorph
 import Data.Data (Data, Typeable)
 import Data.Char
 import Data.List

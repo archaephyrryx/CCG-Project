@@ -66,6 +66,7 @@ qMapping (t1,t2) x =
      in (InfixE (Just l) (ConE '(:<=>:)) (Just r))
 
 data QTerm = QInt Integer
+           | QStr String
            | QUni Name
            | QVar Name
            | QBin Name QTerm
@@ -81,6 +82,7 @@ ensig x y b = Match (enpat x) (NormalB (reexp y b)) []
                 QVar v -> VarP v
                 QBin c q -> ConP c [enpat q]
                 QTer c n m -> ConP c [enpat n, enpat m]
+                QStr s -> LitP (StringL s)
                 QInt i -> LitP (IntegerL i)
     reexp :: QTerm -> Type -> Exp
     reexp e t = SigE (enexp e) t
@@ -91,6 +93,7 @@ ensig x y b = Match (enpat x) (NormalB (reexp y b)) []
                     QVar v -> VarE v
                     QBin c n -> ConE c $@ enexp n
                     QTer c n m -> ConE c $@ enexp n $@ enexp m
+                    QStr s -> LitE (StringL s)
                     QInt i -> LitE (IntegerL i)
 
 
@@ -98,11 +101,13 @@ icon :: QTerm -> Either Integer Name
 icon x = case x of
            QInt x -> Left x
            QUni x -> Right x
+           QStr s -> Right $ mkName s
            _ -> error "non-QInt/QUni icon"
 
 exterm :: QTerm -> Bool
 exterm x = case x of
              (QInt _) -> False
+             (QStr _) -> False
              (QUni _) -> False
              _ -> True
 
@@ -125,6 +130,7 @@ sides (QMap (LHS l) (RHS r)) =
        qterm :: Term -> QTerm
        qterm x = case x of
                    Constant i -> QInt i
+                   StrConst s -> QStr s
                    Unary (CName c) -> QUni c
                    Var (VName x) -> QVar x
                    Binary (CName c) t -> QBin c (qterm t)

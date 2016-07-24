@@ -99,7 +99,7 @@ getPoints :: GenCard -> [Points]
 getPoints c@GenCard{..} = fromMaybe ([]) (mpoints >>= wrapped return)
 
 instance Indexable GenCard where
-    empty = ixSet
+    empty = ixSet 
                 [ ixFun getSetNum
                 , ixFun getSet
                 , ixFun getNum
