@@ -4,7 +4,7 @@
 name:                CCG-Project
 version:             0.1.0.0
 synopsis:            API for the MLP CCG
--- description:         
+description:         
 homepage:            http://www.github.com/archaephyrryx/CCG-Project
 license:             BSD3
 license-file:        LICENSE
@@ -48,7 +48,10 @@ library
         array >=0.5,
         safecopy >=0.8,
         containers >= 0.5,
-        split >=0.2
+        split >=0.2,
+        template-haskell >=2.9,
+        extra,
+        parsec
   default-language: Haskell2010
 
 executable ccgui

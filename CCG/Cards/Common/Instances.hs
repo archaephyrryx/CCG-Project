@@ -2,7 +2,7 @@
 module CCG.Cards.Common.Instances where
 
 import CCG.Cards.Common.Types
-import CCG.Cards.Common.Dimorph
+import Data.Dimorph
 import Data.Maybe
 import Data.Char
 import Util
@@ -14,7 +14,7 @@ class Hint a where
     val :: a -> Int -- ^ Extract an Int
     unval :: Int -> a -- ^ Encapsulate an Int
     readH :: String -> a -- ^ Read an Int, then encapsulate
-    readH = unval.read 
+    readH = unval.read
     showH :: a -> String -- ^ Extract, then Show an Int
     showH = show.val
 
@@ -117,26 +117,20 @@ instance Abbrev Rarity where
 
 -- *** Functions for Abbrev Instance Declarations
 
-transCS :: Dimorph CSet String
-transCS = let x = [ Premiere
-                  , CanterlotNights
-                  , RockNRave
-                  , CelestialSolstice
-                  , CrystalGames
-                  ]
-              y = [ "Premiere"
-                  , "Canterlot Nights"
-                  , "Rock and Rave"
-                  , "Celestial Solstice"
-                  , "Crystal Games"
-                  ]
-          in Dimorph x y
+[dimorph|
+  iso CSet String
+    Premiere           <=> Premiere
+    CanterlotNights    <=> Canterlot Nights
+    RockNRave          <=> Rock and Rave
+    CelestialSolstice  <=> Celestial Solstice
+    CrystalGames       <=> Crystal Games
+  |]
 
 instance Read CSet where
-    readsPrec = const $ rdr . from $ transCS
+    readsPrec = const $ rdr . from $ di'CSet'String
 
 instance Show CSet where
-    show = to transCS
+    show = to di'CSet'String
 
 instance Abbrev CSet where
     short = readCS
@@ -162,7 +156,7 @@ shorten :: String -> String
 shorten = map toLower . cond (length.=1) (take 2.head) (map head) . filter (isUpper.head) . words
 
 readR :: String -> Rarity
-readR x = case x of 
+readR x = case x of
     "C"  -> Common
     "U"  -> Uncommon
     "F"  -> Fixed
