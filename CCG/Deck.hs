@@ -1,4 +1,4 @@
-{-# LANGUAGE RecordWildCards #-} 
+{-# LANGUAGE RecordWildCards #-}
 module CCG.Deck where
 -------------------------------------------------
 import Prelude hiding (div)

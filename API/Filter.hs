@@ -4,7 +4,7 @@ module API.Filter (
     -- * Filtering Functions
     -- ** Transformers
     -- | Functions that take a "Filter" and return a transformation of an "GenCard"-"IxSet"
-    betwixt, mhfilter, mcfilter, 
+    betwixt, mhfilter, mcfilter,
     -- ** Applicators
     applyFilter
     ) where
@@ -56,7 +56,7 @@ blankCardFilter, blankDeckFilter :: Filter
 (blankCardFilter, blankDeckFilter) =
     let f = ($Nothing)
         g = ($[])
-    in tmup (g.g.g.g) $ f.<f.<f.<f.<f.<f$<(CardFilter, DeckFilter)
+    in both (g.g.g.g) $ f.f.f.f.f.f$<(CardFilter, DeckFilter)
 
 -- | Query on an "IxSet" of "GenCard"s for a min-max "Hint"-value range
 betwixt :: (Hint a, Typeable a) => (Maybe a, Maybe a) -> (IxSet GenCard -> IxSet GenCard)
@@ -68,9 +68,9 @@ mhfilter =
   ftype.=CFilter?$hfilter
   where
     hfilter :: Filter -> IxSet GenCard -> IxSet GenCard
-    hfilter = procmap [ betwixt.tap (powMin, powMax)
-                      , betwixt.tap (costMin, costMax)
-                      , betwixt.tap (reqMin, reqMax)
+    hfilter = procmap [ betwixt.each (powMin, powMax)
+                      , betwixt.each (costMin, costMax)
+                      , betwixt.each (reqMin, reqMax)
                       ]
 
 -- | Queries for choice-values among the options specified by a Filter

@@ -19,9 +19,9 @@ infixr 7 #:
 infixl 7 #$
 
 --- Operators
- 
+
 set :: String -> String -> (a, Mattrs) -> (a, Mattrs)
-set a v = (>$(atval a v))
+set a v = ((atval a v)>$)
 
 (#) :: a -> (a -> b) -> b
 (#) = flip ($)

@@ -1,4 +1,8 @@
-{-# Language FlexibleContexts, FlexibleInstances, GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE FlexibleContexts           #-}
+{-# LANGUAGE FlexibleInstances          #-}
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE QuasiQuotes                #-}
+
 module CCG.Cards.Common.Instances where
 
 import CCG.Cards.Common.Types
@@ -119,12 +123,12 @@ instance Abbrev Rarity where
 
 [dimorph|
   iso CSet String
-    Premiere           <=> Premiere
-    CanterlotNights    <=> Canterlot Nights
-    RockNRave          <=> Rock and Rave
-    CelestialSolstice  <=> Celestial Solstice
-    CrystalGames       <=> Crystal Games
-  |]
+    Premiere           <=> "Premiere"
+    CanterlotNights    <=> "Canterlot Nights"
+    RockNRave          <=> "Rock and Rave"
+    CelestialSolstice  <=> "Celestial Solstice"
+    CrystalGames       <=> "Crystal Games"
+|]
 
 instance Read CSet where
     readsPrec = const $ rdr . from $ di'CSet'String

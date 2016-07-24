@@ -54,12 +54,14 @@ termParse =
   <|> try binaryParse
   <|> try unaryParse
   <|> try varParse
+  <|> try strConstParse
   <|> try constParse
   <?> "unrecognized term expression"
 
 atomParse :: Parser Term
 atomParse =
       try varParse
+  <|> try strConstParse
   <|> try constParse
   <?> "unrecognized atom"
 
@@ -67,7 +69,7 @@ diatomic :: Parser (Term,Term)
 diatomic = atomParse`chain`atomParse
 
 whiteout :: Parser a -> Parser a
-whiteout p = do { spaces; x <- p; nobreaks; return x; }
+whiteout p = do { skipMany nbSpace; x <- p; nobreaks; return x; }
 
 nbSpace :: Parser Char
 nbSpace = tab <|> char ' '
@@ -87,9 +89,10 @@ termParse' :: Parser (Term,Term)
 termParse' =
       try (parenth termParse`chain`parenth termParse)
   <|> try (parenth termParse`chain`         termParse)
-  <|> try (termParse         `chain`parenth termParse)
-  <|> try (constParse        `chain`         termParse)
-  <|> try (varParse          `chain`         termParse)
+  <|> try (termParse        `chain`parenth termParse)
+  <|> try (constParse       `chain`         termParse)
+  <|> try (strConstParse    `chain`         termParse)
+  <|> try (varParse         `chain`         termParse)
   <|> try (ternaryParse' diatomic `chain`    termParse)
   <|> try (ternaryParse      `chain`         termParse)
   <|> try (binaryParse       `chain`         termParse)
@@ -100,6 +103,27 @@ intParse = do
   digits <- many1 digit
   let n = foldl (\x d -> 10*x + toInteger (digitToInt d)) 0 digits
   seq n (return n)
+
+strParse :: Parser String
+strParse = do
+  char '"'
+  chars <- many strChar
+  char '"'
+  return $ concat chars
+  where
+    strChar :: Parser String
+    strChar =
+          return <$> unescaped
+      <|> escaped
+      where
+        unescaped :: Parser Char
+        unescaped = noneOf "\\\"\0\n\r\v\t\b\f"
+        escaped :: Parser String
+        escaped = do
+          s <- char '\\'
+          c <- oneOf "\\\"\0\n\r\v\t\b\f"
+          return [s,c]
+
 
 vParse :: Parser VName
 vParse = VName . mkName <$> whiteout var_ident
@@ -124,8 +148,9 @@ tag_ident = do
   return (x:l)
 
 
-constParse, varParse, unaryParse, binaryParse, ternaryParse :: Parser Term
+constParse, strConstParse, varParse, unaryParse, binaryParse, ternaryParse :: Parser Term
 constParse = Constant <$> intParse
+strConstParse = StrConst <$> strParse
 varParse = Var <$> vParse
 unaryParse = Unary <$> tagParse
 binaryParse = binaryParse' termParse

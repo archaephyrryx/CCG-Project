@@ -17,7 +17,7 @@ type UCR = UniCard c => Renderer c
 type UCR' = UniCard c => Renderer' c
 
 iconic :: Renderer CardType
-iconic x = img #. "icon typeIcon" # set src ipath # zap
+iconic x = img #. "icon typeIcon" # set src ipath # act
   where
       ipath :: String
       ipath = ("static/icns/"++(show x)++".png")
@@ -42,7 +42,7 @@ cbox (Just s, c) = span #. (unwords ["element","label",(colorize c)]) #$ string 
     colorize = maybe "NoColor" show
 
 conf :: UCR
-conf = (span #+).map (cbox.zmap (pure,pure).(show.<val$<).swap).(fst?/).upreqs
+conf = (span #+).map (cbox.resp (pure,pure).(show.val$<).swap).(fst?/).upreqs
 
 conf' :: UCR
-conf' = (span #+).(once (cbox.(pure.<show.<val$<).(,Nothing).snd)?/).upreqs
+conf' = (span #+).(once (cbox.(pure.show.val$<).(,Nothing).snd)?/).upreqs

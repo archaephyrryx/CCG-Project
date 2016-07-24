@@ -77,8 +77,8 @@ setup window = void $ do
         element draftCheck # sink UI.checked bDMode
         bDMode <- stepper False $ UI.checkedChange draftCheck
 
-    let bQCFilter  = behaveBFilter fcbl 
-        bQDFilter  = behaveBFilter dbbl 
+    let bQCFilter  = behaveBFilter fcbl
+        bQDFilter  = behaveBFilter dbbl
 
         bQFilter = if_ <$> bMulti <*> bQCFilter <*> bQDFilter
         bQMatches = toList.applyFilter <$> bQFilter
@@ -100,10 +100,10 @@ setup window = void $ do
             bLast = (pred) <$> (cdiv <$> bNoMatches <*> bNpp)
         bCur <- stepper 0 $ head <$> unions [ eRanger, 0 <$ eModeChange ]
 
-    let 
+    let
         bcLabel = pure gname
         bLinker = pure (head.curls)
-        
+
         bLabel = if_ <$> bMulti <*> bcLabel <*> bLinker
 
         bcRower = pure tabulate
@@ -114,9 +114,9 @@ setup window = void $ do
 
         bcAggra = pure (theader:)
         bdAggra = pure (map (UI.tr #+) . chunksOf colSize . map (\x -> UI.td #+ [x]))
-        
+
         bAggra = if_ <$> bMulti <*> bcAggra <*> bdAggra
-        
+
     (qList,(qGrid,obscurae)) <- mpair $ knock6 (derangedCask,oculus) bQMatches pageSize stRanger bLabel bRower bAggra
 
     let tResults = if_  <$> (tidings bMulti never) <*> (userActive qList) <*> (userActive qGrid)
@@ -146,7 +146,7 @@ setup window = void $ do
 
     let eShowMode = head <$> unions [ False <$ eQCard, False <$ eAHome, False <$ eBDeck, True <$ eSCard ]
     bShow <- stepper False eShowMode
-    
+
     bSingle <- stepper Nothing $ head <$> unions
         [ Just <$> eSCard
         , Nothing <$ eQCard
@@ -216,7 +216,7 @@ setup window = void $ do
     footer <- UI.span
     sidebar <- UI.div
     dbg <- UI.span
-    
+
     element content # sink children (displayContent <$> bMode <*> bShow)
     element header # sink children (displayHeader <$> bMode <*> bShow)
     element footer # sink children (displayFooter <$> bMode <*> bShow)

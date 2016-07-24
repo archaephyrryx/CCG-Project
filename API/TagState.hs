@@ -1,11 +1,18 @@
-{-# LANGUAGE CPP, DeriveDataTypeable, FlexibleContexts,
-    GeneralizedNewtypeDeriving, MultiParamTypeClasses,
-    TemplateHaskell, TypeFamilies, RecordWildCards #-}
+{-# LANGUAGE CPP                        #-}
+{-# LANGUAGE DeriveDataTypeable         #-}
+{-# LANGUAGE FlexibleContexts           #-}
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE MultiParamTypeClasses      #-}
+{-# LANGUAGE RecordWildCards            #-}
+{-# LANGUAGE TemplateHaskell            #-}
+{-# LANGUAGE TypeFamilies               #-}
+{-# LANGUAGE StandaloneDeriving         #-}
+{-# LANGUAGE FlexibleInstances          #-}
 
 module API.TagState where
 
 import CCG
-import Util
+import Util hiding (get)
 --------------------------------------------
 import API.Database
 import API.IxMap
@@ -14,9 +21,11 @@ import Control.Applicative	( (<$>), (<*>) )
 import Control.Exception	( bracket )
 import Control.Monad		( msum )
 import Control.Monad.Reader	( ask )
+import Control.Monad.Reader.Class (MonadReader(..))
 import Control.Monad.State	( get, put )
+import Control.Monad.State.Class (MonadState(..))
 --------------------------------------------
-import Data.Acid			( AcidState, Query, Update , makeAcidic, openLocalState )
+import Data.Acid			( AcidState, Query(..), Update(..), makeAcidic, openLocalState )
 import Data.Acid.Advanced	( query', update' )
 import Data.Acid.Local 		( createCheckpointAndClose )
 import Data.Acid.Memory
@@ -50,7 +59,7 @@ data Assoc = Assoc { card :: GenCard, tags :: [Tag] }
     deriving (Eq, Ord, Show, Data, Typeable)
 
 instance Indexable Assoc where
-    empty = ixSet 
+    empty = ixSet
                 [ ixFun (one.fromGeneric.card) -- non-generic card-based lookup
                 , ixFun (one.card) -- generic card-based lookup
                 , ixFun (getCardType.card)
@@ -91,6 +100,10 @@ data DataState = DataState { assocs :: AssocList, tagt :: TagTable }
 
 instance Show DataState where
     show d@DataState{..} = "Tags: "++(intercalate ", " . map unravel . Set.toList $ tagt)++"\n"++showSum assocs
+
+instance Control.Monad.State.Class.MonadState DataState (Update DataState)
+instance Control.Monad.Reader.Class.MonadReader DataState (Query DataState)
+
 
 $(deriveSafeCopy 0 'base ''DataState)
 

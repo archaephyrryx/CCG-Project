@@ -12,10 +12,10 @@ case "$arg" in
 		find . -regex '.*\.\(dyn_\)?\(hi\|o\)$' | xargs rm
 		;;
 	unpack)
-		tar xzf jpgs.tgz
+		tar -x -C res -z -f res/cards.tgz
 		;;
 	depack)
-		rm -rf jpgs/
+		rm -rf res/cards/
 		;;
 	*)
 		echo $"Usage: $0 {main|clean|unpack|depack}"
