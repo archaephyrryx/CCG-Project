@@ -1,3 +1,4 @@
+-- | Module for highly specialized utility functions, and those with complex implementations
 module Util.Advanced where
 
 import Util.Tuple.Apply

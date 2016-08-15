@@ -25,7 +25,7 @@ data HFalse
 class Visible (f :: *) (a :: *) where
   visible :: f -> a -> String
 instance Show a => Visible HTrue a where
-  visible _ x = show x
+  visible _ = show
 instance Visible f a where
   visible _ _ = "_"
 
@@ -49,8 +49,8 @@ type family Visibility a where
   Visibility Char = HTrue
   Visibility [a] = Visibility a
   Visibility (a,b) = And (Visibility a) (Visibility b)
-  Visibility (Integral a => a) = HTrue
-  Visibility (Show a => a) = HTrue
+  Visibility (a,b,c) = And (Visibility a) (And (Visibility b) (Visibility c))
+  Visibility (a,b,c,d) = And (Visibility a) (And (Visibility b) (And (Visibility c) (Visibility d)))
   Visibility a = HFalse
 
 {-
@@ -67,7 +67,7 @@ class TypeCast' t a b | t a -> b, t b -> a where
 class TypeCast'' t a b | t a -> b, t b -> a where
   typeCast'' :: t -> a -> b
 instance TypeCast' () a b => TypeCast a b where
-  typeCast x = typeCast' () x
+  typeCast = typeCast' ()
 instance TypeCast'' t a b => TypeCast' t a b where
   typeCast' = typeCast''
 instance TypeCast'' () a a where

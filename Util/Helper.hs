@@ -19,11 +19,12 @@ x`cdiv`y | x`mod`y == 0 = x`div`y
 mpair :: Monad m => (m a, m b) -> m (a,b)
 mpair (mx, my) = do { x <- mx; y <- my; return (x, y) }
 
--- |A function that converts functors to functor pairs
+-- |A function that converts paired functors to functor pairs
 fpair :: Applicative f => (f a, f b) -> f (a,b)
 fpair (fx, fy) = (,) <$> fx <*> fy
 
 -- |A 'wrapped' function treats values as singleton lists
+--
 -- > wrapped f $ x = f [x]
 wrapped :: ([a] -> b) -> (a -> b)
 wrapped = (.one)
@@ -32,17 +33,26 @@ wrapped = (.one)
 rdr :: (String -> a) -> (ReadS a)
 rdr = (wrapped (`zip`[""]) .)
 
--- |Composes a list of same-type transformations
+-- | Composes a list of functions of type @a -> a@, effectively sequencially processing them in
+-- tail-to-head order
+--
+-- prop> proc (f:[]) = f
+-- prop> proc (f:fs) = f . proc fs
 proc :: [a -> a] -> a -> a
 proc = foldl1 (.)
 
--- |Composes transformation generators over the same seed
+-- | Composes a list of generators over the same seed-type for functions of type @a -> a@,
+-- effectively sequentially processing them in head-to-tail order over the same seed (see `proc`).
+--
+-- prop> procmap (map const fs) _ = proc fs
 procmap :: [a -> b -> b] -> a -> b -> b
 procmap = (proc.).(.flip ($)).for
 
 -- |Constant on unit
+{-# INLINE unity #-}
 unity :: a -> (() -> a)
 unity x = (\() -> x)
+
 
 
 -- |Converts a string to titlecase (first character uppercase, all others
@@ -53,22 +63,20 @@ titleCase xs = case xs of
                  y:ys -> toUpper y : map toLower ys
 
 
+-- | Partial function equivalent to (\(Left x) -> x), with informative error messages
 fromLeft :: Either a b -> a
 fromLeft x = case x of
                (Left x) -> x
                (Right y) -> error $ "fromLeft: (Right "++(reveal y)++")"
 
 
+-- | Partial function equivalent to (\(Right x) -> x), with informative error messages
 fromRight :: Either a b -> b
 fromRight x = case x of
                 (Left y) -> error $ "fromRight: (Left "++(reveal y)++")"
                 (Right x) -> x
 
-fromRight' :: Show a => Either a b -> b
-fromRight' x = case x of
-                 (Left y) -> error $ "fromRight: (Left "++(show y)++")"
-                 (Right x) -> x
-
+-- | Non-partial function that forgetfully maps @Either a a@ to @a@
 fromEither :: Either a a -> a
 fromEither x = case x of
                  (Left y) -> y

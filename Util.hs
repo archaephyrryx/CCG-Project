@@ -6,13 +6,15 @@ module Util ( module Util.Helper
             , module Util.Advanced
             , module Util.Generic
             , module Util.TH
+            , module Util.Applicative
             ) where
 
-import Util.Helper
-import Util.List
-import Util.Tuple
-import Util.Conditional
-import Util.String
-import Util.Advanced
-import Util.Generic
-import Util.TH
+import           Util.Advanced
+import           Util.Applicative
+import           Util.Conditional
+import           Util.Generic
+import           Util.Helper
+import           Util.List          hiding ((!!), get)
+import           Util.String
+import           Util.TH
+import           Util.Tuple

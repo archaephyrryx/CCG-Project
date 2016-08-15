@@ -159,11 +159,11 @@ biject = QuasiQuoter
        }
 
 quoteDiExp :: String -> Q Exp
-quoteDiExp = diExp . fromRight' . dimorphParse
+quoteDiExp = diExp . fromRight . dimorphParse
 
 quoteDiDec :: String -> Q [Dec]
 quoteDiDec s = do
-  let m@(MDef i _) = fromRight' $ dimorphParse s
+  let m@(MDef i _) = fromRight $ dimorphParse s
       (t1,t2) = entype i
       nam = mkName ("di" ++ '\'':(showType t1) ++ '\'':(showType t2))
   e <- diExp m
@@ -175,7 +175,7 @@ showType (VarT x) = showName x
 
 bijectDec :: String -> Q [Dec]
 bijectDec s =  do
-  let m@(MDef i x) = fromRight' $ dimorphParse s
+  let m@(MDef i x) = fromRight $ dimorphParse s
       (t1,t2) = entype i
       (e,(a,b)) = qMDef (t1,t2) x
   return [ InstanceD [] (ConT ''Bijection @:@ t1 @:@ t2)
