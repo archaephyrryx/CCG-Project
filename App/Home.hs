@@ -38,6 +38,6 @@ homeFoot = span #. "footer" #+ [ devel , code , proj ]
         devel = p #. "dev" #+ [string "Developer:", glue, gitarch]
             where gitarch = hlink base "Archaephyrryx"
         code =  p #. "cod" #+ [string "Project code on", glue, gitpage]
-            where gitpage = hlink (base++"/CCG-Project/tree/Happstack") "GitHub"
+            where gitpage = hlink (base++"/CCG-Project/tree/threepenny") "GitHub"
         proj = p #. "proj" #+ [string "Sister projects also on", glue, githome]
             where githome = hlink (base++"/CCG-Project") "GitHub"
