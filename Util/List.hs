@@ -4,7 +4,7 @@ module Util.List
   )
   where
 
-import Util.List.Advanced
+import Util.List.Advanced hiding ((!!))
 import Util.Conditional
 import Data.Functor
 import Util.Tuple (repair, unfoil)
@@ -16,6 +16,7 @@ infixr 8 ??.
 infixl 9 !@
 
 -- |Convenience function to test for non-emptiness
+full :: [a] -> Bool
 full = not . null
 
 -- |Filters list with simultaneously traversed boolean mask

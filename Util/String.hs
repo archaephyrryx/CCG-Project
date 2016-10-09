@@ -5,6 +5,8 @@ import Util.List
 import Util.Advanced
 import Control.Monad (join)
 
+
+
 -- | Remove optional delimiters from around a string
 undelim :: Char -> Char -> String -> String
 undelim o e = full?.hstrip o.estrip e
@@ -30,3 +32,5 @@ hstrip = flip (flip (hcond [].(==)) (const id)) (:)
 -- |End-Strip: Optionally strip a character from the end of a string
 estrip :: Char -> String -> String
 estrip = join.(.(const.const)).flip(lcond [].(==))const
+
+

@@ -76,6 +76,18 @@ fromRight x = case x of
                 (Left y) -> error $ "fromRight: (Left "++(reveal y)++")"
                 (Right x) -> x
 
+-- | Non-partial version of `fromLeft` with a lazy default value
+getLeft :: a -> Either a b -> a
+getLeft ~z x = case x of
+                 Left k -> k
+                 Right _ -> z
+
+-- | Non-partial version of `fromRight` with a lazy default value
+getRight :: b -> Either a b -> b
+getRight ~z x = case x of
+                  Left _ -> z
+                  Right k -> k
+
 -- | Non-partial function that forgetfully maps @Either a a@ to @a@
 fromEither :: Either a a -> a
 fromEither x = case x of

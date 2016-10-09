@@ -17,32 +17,45 @@ cabal-version:       >=1.10
 
 library
   exposed-modules:
+    CCG
+    CCG.Cards
+    CCG.Cards.Common
+    CCG.Cards.Common.Instances
+    CCG.Cards.Common.Types
+    CCG.Cards.Common.Values
+    CCG.Cards.Generic
+    CCG.Cards.Parser
+    CCG.Cards.Parser.Fields
+    CCG.Cards.Pretty
+    CCG.Cards.Safe
+    CCG.Cards.Universal
+    CCG.Deck
+    CCG.MLPCCG
+    Data.Dimorph
+    Data.Invotomorph
+    Data.Morphism
+    Data.Morphism.Dimorph.Alt
+    Data.Morphism.Dimorph.Language
+    Data.Morphism.Dimorph.Parse
+    Data.Morphism.Dimorph.Prim
+    Data.Morphism.Dimorph.Quasi
+    Data.Morphism.Invotomorph.Prim
+    Data.Morphism.Language
+    Data.Morphism.Parse
+    Data.TypeCast
     Util
-    Util.Helper
     Util.Advanced
+    Util.Applicative
     Util.Conditional
+    Util.Generic
+    Util.Helper
     Util.List
     Util.List.Advanced
     Util.String
+    Util.TH
     Util.Tuple
     Util.Tuple.Apply
-    Util.TH
-    Data.Invotomorph
-    Data.Dimorph
-    Data.Morphism
-    CCG
-    CCG.Cards
-    CCG.Deck
-    CCG.MLPCCG
-    CCG.Cards.Universal
-    CCG.Cards.Safe
-    CCG.Cards.Common
-    CCG.Cards.Common.Types
-    CCG.Cards.Common.Instances
-    CCG.Cards.Common.Values
-    CCG.Cards.Generic
-    CCG.Cards.Pretty
-    CCG.Cards.Parser
+    Util.Tuple.Rotate
   build-depends:
         base >=4.7 && <4.8,
         array >=0.5 && <0.6,
@@ -55,9 +68,31 @@ library
   default-language: Haskell2010
 
 executable ccgui
-  main-is:          
+  main-is:
         Main.hs
-  -- other-modules:       
+  other-modules:
+    Data.Stringent
+    Reactive.Banana.WX
+    Reactive.StaticDynamic
+    Reactive.Tidings
+    Reactive.Util
+    Util
+    Util.Advanced
+    Util.Applicative
+    Util.Conditional
+    Util.Generic
+    Util.Helper
+    Util.List
+    Util.List.Advanced
+    Util.String
+    Util.TH
+    Util.Tuple
+    Util.Tuple.Apply
+    Util.Tuple.Rotate
+    Widgets.Core
+    Widgets.Core.FRP
+    Widgets.Core.UI
+    Widgets.MultiSelect
   other-extensions:
         CPP,
         DeriveDataTypeable,
@@ -81,6 +116,7 @@ executable ccgui
         wxcore >=0.92 && <0.93,
         wxdirect >=0.92 && <0.93,
         template-haskell >=2.9 && <2.10,
+        reactive-banana >= 1.1 && <1.2,
         containers >=0.5 && <0.6,
         mtl >=2.1 && <2.2,
         acid-state >=0.12 && <0.13,
