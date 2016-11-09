@@ -89,10 +89,19 @@ executable ccgui
     Util.Tuple
     Util.Tuple.Apply
     Util.Tuple.Rotate
+    Widgets.Cast
     Widgets.Core
     Widgets.Core.FRP
     Widgets.Core.UI
+    Widgets.Group
+    Widgets.Links
+    Widgets.MonoSelect
     Widgets.MultiSelect
+    Widgets.Obscura
+    Widgets.Phantom
+    Widgets.Ranger
+    Widgets.Table
+    Widgets.Text
   other-extensions:
         CPP,
         DeriveDataTypeable,
