@@ -99,9 +99,11 @@ executable ccgui
     Widgets.MultiSelect
     Widgets.Obscura
     Widgets.Phantom
+    Widgets.Radio
     Widgets.Ranger
     Widgets.Table
     Widgets.Text
+    Widgets.Tower
   other-extensions:
         CPP,
         DeriveDataTypeable,
