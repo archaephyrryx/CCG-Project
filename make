@@ -9,7 +9,7 @@ case "$arg" in
 		;;
 	clean)
 		rm -rf ccgui
-		find . -regex '.*\.\(dyn_\)?\(hi\|o\)$' -delete
+                find . -regex '^\./[^.].*\.\(dyn_\)?\(hi\|o\)$' -delete
                 find ./res/test -regex '.*\.\(asy\|eps\|eps001\.ppm\|png\)'  -delete
 		;;
 	unpack)
