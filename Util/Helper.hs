@@ -3,12 +3,22 @@ module Util.Helper where
 import Control.Monad
 import Control.Applicative
 import Util.List (for, one)
+import Util.Conditional (if_)
 import Data.Char
 import Util.Generic
 
 -- |The @||@ operator lifted to applicative functors
 afor :: (Applicative f) => f Bool -> f Bool -> f Bool
 afor = liftA2 (||)
+
+-- |Lazy monadic variants of @and@ and @or@
+orM, andM :: (Monad m) => m Bool -> m Bool -> m Bool
+orM m n = do
+  x <- m
+  if_ x (return True) n
+andM m n = do
+  x <- m
+  if_ x n (return False)
 
 -- |Ceiling-division for calculating how many bins to use
 cdiv :: Int -> Int -> Int
