@@ -27,28 +27,12 @@ test = do
                 bPlus <- softLink plus 1
                 tInc <- liquidLink inc (pure (('+':).show)) (accumB 0 $ (+) <$> rumors bPlus)
 
-                let eSelections :: Event [String]
-                    eSelections = rumors tSelections
-
-                    bSelections :: Behavior [String]
-                    bSelections = stepper [] $ unions [ eSelections, [] <$ eClear ]
-
-                    bResults :: Behavior String
-                    bResults = intercalate ", " <$> bSelections
-
-                    bAnthology :: Behavior [String]
-                    bAnthology = pure anthology
-
-                    bDisplay :: Behavior (String -> String)
-                    bDisplay = pure id
-
-                    eInc :: Event Int
+                let eInc :: Event Int
                     eInc = rumors tInc
 
                     bCount :: Behavior Int
                     bCount = accumB 0 $ (+) <$> eInc
 
-                sink choice [ text :== bResults ]
                 sink counter [ text :== (show <$> bCount) ]
 
     network <- compile networkDescription
