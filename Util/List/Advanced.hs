@@ -1,6 +1,7 @@
-{-# LANGUAGE ExplicitForAll   #-}
-{-# LANGUAGE PostfixOperators #-}
-{-# LANGUAGE Rank2Types       #-}
+{-# LANGUAGE ExplicitForAll      #-}
+{-# LANGUAGE PostfixOperators    #-}
+{-# LANGUAGE Rank2Types          #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 -- | More advanced and specialized list functions, for highly specific applications
 module Util.List.Advanced (
   -- | Re-export of Prelude without (!!), in order to avoid conflicts for use of generic integral
@@ -76,12 +77,24 @@ module Util.List.Advanced (
   --
   -- prop> follow z = map $ const z
   follow,
+  -- | List-length truncation/repetition function on a list of values
+  --
+  -- prop> mimic (repeat z) = follow z
+  -- prop> mimic xs (repeat y) = xs ++ repeat (last xs)
+  -- prop> mimic [0..] = init . scanl (const.succ) 0
+  -- prop> mimic xs ys = take (length ys) $ xs ++ replicate (length ys - length xs) (last xs)
+  mimic,
   -- | "Stuttered" enumeration from 0, with the length of each run determined by the integer at the
   -- same index in the given list
   --
   -- prop> concat $ count is = [0..(sum is - 1)]
   -- prop> map length . count = id
-  count
+  count,
+  -- | Generate the list of indices corresponding to a list. Shorthand for @mimic [0..]@
+  --
+  --
+  -- prop> indicate = map fst . zip [0..]
+  indicate
                           ) where
 
 import Prelude hiding ((!!))
@@ -104,7 +117,7 @@ omit _ [] = []
 omit 0 (_:xs) = xs
 omit i (x:xs) = x:omit (i-1) xs
 
-shuffle :: Integral i => i -> i -> ([a] -> [a])
+shuffle :: (Num i, Integral i) => i -> i -> ([a] -> [a])
 shuffle 0 _ = id
 shuffle n i
   | q == 0 = \a -> case a of { [] -> []; x:xs -> x:shuffle m r xs }
@@ -129,14 +142,20 @@ permutes (x:xs) = concat $ map (splices x) $ permutes xs
 verity :: [Int] -> (forall a. [a] -> [Bool])
 i`verity`[] = []
 []`verity`x = follow False x
-(i:is)`verity`(x:xs)
+(i:is)`verity`(_:xs)
   | i == 0 = True : (map pred is)`verity`xs
   | i <  0 = []
   | otherwise = False : (map pred (i:is))`verity`xs
 
 follow :: b -> [a] -> [b]
 follow z [] = []
-follow z (x:xs) = z:follow z xs
+follow z (_:xs) = z:follow z xs
+
+mimic :: [b] -> [a] -> [b]
+mimic _ [] = []
+mimic (b:[]) (_:[]) = b:[]
+mimic (b:[]) (_:as) = b : follow b as
+mimic (b:bs) (_:as) = b : mimic bs as
 
 count :: [Int] -> [[Int]]
 count = count' 0
@@ -144,3 +163,7 @@ count = count' 0
     count' :: Int -> [Int] -> [[Int]]
     count' n []     = []
     count' n (i:js) = [n..(n+i-1)] : count' (n+i) js
+
+{-# INLINE indicate #-}
+indicate :: [a] -> [Int]
+indicate = mimic [0..]

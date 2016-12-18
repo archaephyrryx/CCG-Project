@@ -6,5 +6,5 @@ import Control.Applicative
 
 infixl 4 <^>
 
-(<^>) :: (x -> a -> b) -> (x -> a) -> x -> b
+(<^>) :: Applicative f => f (a -> b) -> f a -> f b
 f<^>g = ($) <$> f <*> g

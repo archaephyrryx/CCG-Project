@@ -11,6 +11,10 @@ import Util.Generic
 afor :: (Applicative f) => f Bool -> f Bool -> f Bool
 afor = liftA2 (||)
 
+-- |The @&&@ operator lifted to applicative functors
+afand :: (Applicative f) => f Bool -> f Bool -> f Bool
+afand = liftA2(&&)
+
 -- |Lazy monadic variants of @and@ and @or@
 orM, andM :: (Monad m) => m Bool -> m Bool -> m Bool
 orM m n = do
