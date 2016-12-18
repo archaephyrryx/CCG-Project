@@ -8,7 +8,7 @@ module Test.Mode where
 import           Control.Monad       (void)
 import           Data.List
 import           Data.Stringent
-import           Util                (for, mono, one, verity, full, cond)
+import           Util                (for, mono, one, verity, full, cond, afand)
 import           Widgets.Cast
 import           Widgets.Core        hiding (Row, cast, label, wrap)
 import qualified Widgets.Core        as Core (cast)
@@ -57,7 +57,7 @@ test = do
     rang <- range c
     tab <- table c []
     act <- staticText c []
-    --debug <- staticText c []
+    debug <- staticText c []
     inc <- preLink c
 
     counter <- preText c
@@ -85,13 +85,42 @@ test = do
             bMode <- stepper ModeA $ portents moder
 
             -- MODE A
-            ranged <- ranger rang bCurrent (pure 0) (bFinal caster) (pure stringify)
-            bCurrent <- stepper 0 $ portents ranged
+
+            let bLast = bFinal caster
+
+            ranged <- ranger rang bCurrent (pure 0) bLast (pure stringify)
+            bCurrent <- restepper 0 (#) $ pageChanges
+
 
             cast <- genCast caster tab
 
             incs <- voidLink inc "+"
-            bPage <- restepper 4 (#) $ whenE ((<(length . contents $ caster)) <$> bCurrent) $ (+1) <$ portents incs
+
+            let eInc :: Event ()
+                eInc = portents incs
+
+                pageChanges :: Event (Int -> Int)
+                pageChanges = priorityUnion [ pred <$ whenE (bThreshold) eInc
+                                            , const <$> portents ranged]
+
+            let nItems :: Int
+                nItems = length . contents $ caster
+
+                bOnLastPage :: Behavior Bool -- Are we on the last page
+                bOnLastPage = (==) <$> bCurrent <*> bLast
+                bLastPageSize :: Behavior Int -- How many items are on the last page
+                bLastPageSize = ((flip subtract nItems .) . (*)) <$> bLast <*> bPage
+
+                bThreshold :: Behavior Bool -- Have to go a page back
+                bThreshold = afand bOnLastPage ((<=) <$> bLastPageSize <*> bLast)
+
+            let eRawPagesizeIncrement = portents incs
+                bPageItems = (\cur pag -> (cur + 1) * pag)
+                eValidIncrement = whenE ((<nItems) <$> bPage) eInc
+
+            sink debug [ text :== (show.).(,) <$> bThreshold <*> bLastPageSize]
+
+            bPage <- restepper 4 (#) $ whenE ((<(length . contents $ caster)) <$> bCurrent) $ (+1) <$ eInc
             let eActua = priorityUnion ([0 <$ portents incs, portents cast])
             bClicked <- stepper (-1) $ eActua
             reactimate (refit (_tab tab) <$ portents ranged)
@@ -121,12 +150,12 @@ test = do
             bInc <- accumB 0 $ (+) <$> blood bPlus
             tInc <- liquidLink inc1 (pure (('+':).show)) bInc
 
-            let eInc :: Event Int
-                eInc = portents tInc
-            bCount <- accumB 0 $ (+) <$> eInc
+            let eTInc :: Event Int
+                eTInc = portents tInc
+            bCount <- accumB 0 $ (+) <$> eTInc
 
 
-            account <- rText counter (Dynamic (show <$> bCount)) (void eInc)
+            account <- rText counter (Dynamic (show <$> bCount)) (void eTInc)
 
             -- MODE C
             adder <- voidLink add "+"
