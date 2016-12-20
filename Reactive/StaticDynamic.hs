@@ -2,7 +2,7 @@ module Reactive.StaticDynamic where
 
 import Reactive.Banana
 import Control.Applicative
-import Util ((?.))
+import Util ((?.), (<^>))
 
 -- | Data type representing either a pure value of a certain type or a Behavior on that type
 --   Semantically,
@@ -45,3 +45,7 @@ instance Applicative StaticDynamic where
 combine :: StaticDynamic (a -> b) -> Behavior a -> Behavior b
 combine (Static f) = (f<$>)
 combine (Dynamic f) = (f<*>)
+
+compose :: Behavior (a -> b) -> StaticDynamic a -> Behavior b
+compose bf (Static x) = bf <^> x
+compose bf (Dynamic x) = bf <*> x

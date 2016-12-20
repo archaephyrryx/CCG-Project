@@ -94,7 +94,15 @@ module Util.List.Advanced (
   --
   --
   -- prop> indicate = map fst . zip [0..]
-  indicate
+  indicate,
+  -- | Variant of `foldr` with an internal state
+  foldS,
+  -- | Variant of `map` that evaluates an index-aware function
+  mapi,
+  -- | Efficient map-append function
+  --
+  -- prop> mappend ys f xs = (map f xs) ++ ys
+  mAppend
                           ) where
 
 import Prelude hiding ((!!))
@@ -167,3 +175,14 @@ count = count' 0
 {-# INLINE indicate #-}
 indicate :: [a] -> [Int]
 indicate = mimic [0..]
+
+foldS :: (s -> s) -> (s -> a -> b -> b) -> s -> b -> [a] -> b
+foldS i f s z xs = case xs of
+                     [] -> z
+                     x:xt -> f s x $ foldS i f (i s) z xt
+
+mapi :: (Int -> a -> b) -> [a] -> [b]
+mapi f = foldS succ (((:) .) . f) 0 []
+
+mAppend :: [b] -> (a -> b) -> [a] -> [b]
+mAppend = flip (foldr . ((:) .))
