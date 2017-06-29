@@ -9,6 +9,9 @@ import qualified Reactive.Banana.Internal.Combinators as Prim
 import Reactive.Banana.Types
 -}
 
+anyEvent :: [Event ()] -> Event ()
+anyEvent = foldl1 (unionWith (\_ _ -> ()))
+
 priorityUnion :: [Event a] -> Event a
 priorityUnion = foldl1 (unionWith const)
 

@@ -29,10 +29,11 @@ filtrate (p:ps) (x:xs) = (p?:(x:)) $ filtrate ps xs
 -- |Safe fetcher-applicator that returns default value for out-of-range indices
 --  Lazy on default value, in case it is @undefined@ or @error s@
 (!?) :: (a -> b) -> b -> Int -> ([a] -> b)
-(f!? ~y) n xs | n < 0 = y
-            | otherwise = case drop n xs of
-                            x:_ -> f x
-                            [] -> y
+(f!? ~y) n xs
+  | n < 0 = y
+  | otherwise = case drop n xs of
+                  x:_ -> f x
+                  [] -> y
 
 -- |Identity transformation for empty list, generated transformation
 -- otherwise (compare with '?')

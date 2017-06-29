@@ -13,18 +13,20 @@ module Util.List.Advanced (
   -- * Permutations
   -- ** Helper functions
 
-  (!!),
   -- | Infix-operator version of `genericIndex`, to allow for `Integer`-indexed lists; for large
   -- factorials, necessary in order to avoid overflow
+  (!!),
+  -- | Postfixable factorial operator (with PostfixOperators language pragma)o
+  --
+  -- Uses memoized implementation due to the repeated use of factorial in shuffle
   (!),
-  -- | Postfixable factorial operator (with PostfixOperators language pragma)
-  omit,
   -- | Complementary operation to (!!), which omits the indicated index, or preserves the list if
   -- the index is out of range
   --
   -- prop> omit 0 = tail
   -- prop> omit -1 = id
   -- prop> omit n xs = take n xs ++ drop (n+1) xs
+  omit,
   -- ** Permutation functions
 
   -- | Shuffles a list according to an index for the permutation to perform.
@@ -98,11 +100,22 @@ module Util.List.Advanced (
   -- | Variant of `foldr` with an internal state
   foldS,
   -- | Variant of `map` that evaluates an index-aware function
+  --
+  -- Implemented using `foldS`
   mapi,
   -- | Efficient map-append function
   --
-  -- prop> mappend ys f xs = (map f xs) ++ ys
-  mAppend
+  -- prop> mapend ys f xs = (map f xs) ++ ys
+  mapend,
+  -- | Efficient reverse-map function
+  --
+  -- prop> rmap f xs = reverse (map f xs)
+  rmap,
+  -- | Efficient reversemap-append function
+  --
+  -- prop> rmapend ys f xs = (rmap f xs) ++ ys
+  -- prop> rmapend ys f xs = mapend ys f (reverse xs)
+  rmapend
                           ) where
 
 import Prelude hiding ((!!))
@@ -155,11 +168,11 @@ i`verity`[] = []
   | i <  0 = []
   | otherwise = False : (map pred (i:is))`verity`xs
 
-follow :: b -> [a] -> [b]
+follow :: b -> (forall a. [a] -> [b])
 follow z [] = []
 follow z (_:xs) = z:follow z xs
 
-mimic :: [b] -> [a] -> [b]
+mimic :: [b] -> (forall a. [a] -> [b])
 mimic _ [] = []
 mimic (b:[]) (_:[]) = b:[]
 mimic (b:[]) (_:as) = b : follow b as
@@ -172,11 +185,16 @@ count = count' 0
     count' n []     = []
     count' n (i:js) = [n..(n+i-1)] : count' (n+i) js
 
-{-# INLINE indicate #-}
-indicate :: [a] -> [Int]
+indicate :: forall a. [a] -> [Int]
 indicate = mimic [0..]
+{-# INLINE indicate #-}
 
-foldS :: (s -> s) -> (s -> a -> b -> b) -> s -> b -> [a] -> b
+foldS :: (s -> s) -- ^ State-stepper function
+      -> (s -> a -> b -> b) -- ^ State-aware accumulator function
+      -> s -- ^ Initial state
+      -> b -- ^ Initial accumulator
+      -> [a] -- ^ List to fold over
+      -> b -- ^ Final accumulator
 foldS i f s z xs = case xs of
                      [] -> z
                      x:xt -> f s x $ foldS i f (i s) z xt
@@ -184,5 +202,11 @@ foldS i f s z xs = case xs of
 mapi :: (Int -> a -> b) -> [a] -> [b]
 mapi f = foldS succ (((:) .) . f) 0 []
 
-mAppend :: [b] -> (a -> b) -> [a] -> [b]
-mAppend = flip (foldr . ((:) .))
+mapend :: [b] -> (a -> b) -> [a] -> [b]
+mapend = flip (foldr . ((:) .))
+
+rmap :: (a -> b) -> [a] -> [b]
+rmap f = foldl (\acc x -> f x : acc) []
+
+rmapend :: [b] -> (a -> b) -> [a] -> [b]
+rmapend z f = foldl (\acc x -> f x : acc) z

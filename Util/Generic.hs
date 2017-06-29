@@ -11,6 +11,7 @@
 {-# LANGUAGE ScopedTypeVariables    #-}
 {-# LANGUAGE TypeFamilies           #-}
 {-# LANGUAGE UndecidableInstances   #-}
+-- |Voodoo for @show@ing un@Show@able types
 module Util.Generic where
 
 class Reveal a where

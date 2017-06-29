@@ -33,4 +33,5 @@ hstrip = flip (flip (hcond [].(==)) (const id)) (:)
 estrip :: Char -> String -> String
 estrip = join.(.(const.const)).flip(lcond [].(==))const
 
-
+surround :: String -> String -> String -> String
+surround pref suff s = pref ++ s ++ suff
