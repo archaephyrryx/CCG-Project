@@ -27,3 +27,8 @@ restepper z f e = mdo
     let eDelta = f <$> bDelta <@> e
     bDelta <- stepper z eDelta
     return bDelta
+
+override :: Behavior Bool -> Behavior a -> Event a -> Event a
+override on feed source = priorityUnion [ feed <@ whenE on source
+                                        , source
+                                        ]

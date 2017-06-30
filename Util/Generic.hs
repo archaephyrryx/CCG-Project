@@ -2,6 +2,7 @@
 {-# LANGUAGE DataKinds              #-}
 {-# LANGUAGE ExplicitForAll         #-}
 {-# LANGUAGE FlexibleInstances      #-}
+{-# LANGUAGE FlexibleContexts       #-}
 {-# LANGUAGE FunctionalDependencies #-}
 {-# LANGUAGE GADTs                  #-}
 {-# LANGUAGE IncoherentInstances    #-}
@@ -22,6 +23,13 @@ instance (Visibility a ~ f, Visible f a) => Reveal a where
 data HTrue
 data HFalse
 
+data Vision a where
+  Visionable :: forall a. (Show a) => a -> Vision HTrue
+  Unvisionable :: forall a. a -> Vision (Visibility a)
+
+instance Visible HTrue (Vision HTrue) where
+  visible _ (Visionable x) = show x
+  visible _ (Unvisionable x) = "_"
 
 class Visible (f :: *) (a :: *) where
   visible :: f -> a -> String
@@ -52,6 +60,7 @@ type family Visibility a where
   Visibility (a,b) = And (Visibility a) (Visibility b)
   Visibility (a,b,c) = And (Visibility a) (And (Visibility b) (Visibility c))
   Visibility (a,b,c,d) = And (Visibility a) (And (Visibility b) (And (Visibility c) (Visibility d)))
+  Visibility (Vision a) = a
   Visibility a = HFalse
 
 {-
