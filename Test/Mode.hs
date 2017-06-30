@@ -8,7 +8,7 @@ module Test.Mode where
 import           Control.Monad       (void, forM_)
 import           Data.List
 import           Data.Stringent
-import           Util                (for, mono, one, verity, full, cond, afand, mapi)
+import           Util                (for, mono, one, verity, full, cond, afand, mapi, cdiv)
 import           Widgets.Cast
 import           Widgets.Core        hiding (Row, cast, label, wrap)
 import qualified Widgets.Core        as Core (cast)
@@ -37,6 +37,8 @@ instance Visible Indexed where
 
 instance Widget Indexed where
   widget = widget . elment
+
+dynamate = dynamic . fill . expand
 
 main :: IO ()
 main = start test
@@ -115,26 +117,30 @@ test = do
                 eInc = portents incs
 
                 pageChanges :: Event (Int -> Int)
-                pageChanges = priorityUnion [ pred <$ whenE (bThreshold) eInc
+                pageChanges = priorityUnion [ min <$> bLast' <@ whenE (bThreshold) eInc
                                             , const <$> portents ranged]
 
             let nItems :: Int
                 nItems = length . contents $ caster
 
-                bOnLastPage :: Behavior Bool -- Are we on the last page
-                bOnLastPage = (==) <$> bCurrent <*> bLast
-                bLastPageSize :: Behavior Int -- How many items are on the last page
-                bLastPageSize = ((flip subtract nItems .) . (*)) <$> bLast <*> bPage
+                bTopReverseIndex :: Behavior Int
+                bTopReverseIndex = ((nItems -).).(*) <$> bCurrent <*> bPage
 
                 bThreshold :: Behavior Bool -- Have to go a page back
-                bThreshold = afand bOnLastPage ((<=) <$> bLastPageSize <*> bLast)
+                bThreshold = ((<=) <$> bTopReverseIndex <*> bCurrent)
+
+                -- what the last page would be, if we incremented the page sizeo
+                --
+                -- to find the pred, a great sacrifice was made
+                bLast' :: Behavior Int
+                bLast' = pred . cdiv nItems . succ <$> bPage
 
             let eRawPagesizeIncrement = portents incs
                 bPageItems = (\cur pag -> (cur + 1) * pag)
 
-            sink debug [ text :== (show.).(,) <$> bThreshold <*> bLastPageSize]
+            sink debug [ text :== (show.).(,) <$> bTopReverseIndex <*> bThreshold ]
 
-            bPage <- stepper 4 eInc
+            bPage <- stepper 1 eInc
 
             reactimate (refresh cast <$ eInc)
 
@@ -250,9 +256,10 @@ test = do
                              ] bMode
             grim <- reap content ghost
             reharvest grim (() <$ priorityUnion [ eInc, eMore ])
+            relay (_tab babel) (() <$ eAdd)
 
             -- sink debug [ text :== bDebug ]
-            liftIO $ set f [layout := margin 10 $ column 5 $ [widget nav, widget grim]]
+            liftIO $ set f [layout := margin 10 $ column 5 $ [widget nav, dynamate $ widget grim]]
 
     network <- compile networkDescription
     actuate network

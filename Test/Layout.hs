@@ -6,21 +6,18 @@
 module Test.Mode where
 
 import           Control.Monad       (void, forM_)
+import           Data.Bits
 import           Data.List
 import           Data.Stringent
 import           Util                (for, mono, one, verity, full, cond, afand, mapi)
-import           Widgets.Cast
-import           Widgets.Core        hiding (Row, cast, label, wrap)
+import           Widgets.Core        hiding (Row, cast, label, wrap, elastic)
 import qualified Widgets.Core        as Core (cast)
+import           Widgets.Counter
 import           Widgets.Group
 import           Widgets.Links
-import           Widgets.MultiSelect
 import           Widgets.Phantom
 import           Widgets.Radio
-import           Widgets.Ranger
 import           Widgets.Table
-import           Widgets.Text
-import           Widgets.Tower
 
 
 data Mode = ModeA | ModeB
@@ -57,120 +54,59 @@ anthology =
     , "Othello"
   ]
 
+nItems :: Int
+nItems = length anthology
+
 test :: IO ()
 test = do
+    vbox <- boxSizerCreate wxVERTICAL
+    hbox <- boxSizerCreate wxHORIZONTAL
+
     f <- frame [text := "Test"]
+    let a = f
+    -- a <- panel f []
 
-    nav <- table f []
-    content <- table f []
-    let c = _tab content
+    t <- table a []
+    more <- incre' a [ text := "More" ]
+    windowSetSizer a vbox
 
-    rang <- range c
-    tab <- table c []
-    act <- staticText c []
-    debug <- staticText c []
-    inc <- preLink c
+    sizerAddWindow vbox (_tab t)    1 (wxALL) 5 ptrNull
+    sizerAddWindow vbox (_inc more) 0 (wxALL) 5 ptrNull
+    -- set a [ layout := sizer vbox ]
+    -- windowSetSizer f hbox
+    -- sizerAddWindow hbox a 1 (wxALL .|. wxEXPAND) 5 ptrNull
+    -- set f [ layout := dynamic $ widget a ]
+    frameCenter f
 
     let networkDescription :: MomentIO ()
         networkDescription = mdo
-            let bAnthology = pure anthology
-                caster = Case { contents = anthology
-                              , bPagesize = bPage
-                              , current = tidings bCurrent $ portents ranged
-                              , format = Format { label = Static stringify
-                                                , wrap = Static (\s l -> Row [Item l])
-                                                , collect = Static id
-                                                }
-                              }
+            let relay = do
+                windowReLayout f
+                windowReLayout a
 
-            moder <- radio nav [ModeA .. ModeB] bMode show
-            bMode <- stepper ModeA $ portents moder
+            let coin :: Int -> String -> IO Indexed
+                coin i s = return . Indexed i =<< staticText (_tab t) [ text := s ]
 
-            -- MODE A
+                mint :: [IO Indexed]
+                mint = mapi coin anthology
 
-            let bLast = bFinal caster
+            coins <- liftIO $ sequence mint
 
-            ranged <- ranger rang bCurrent (pure 0) bLast (pure stringify)
-            bCurrent <- restepper 0 (#) $ pageChanges
+            forM_ coins (\x -> sink (elment x) [ visible :== (>=(index x)) <$> bRange ])
 
-            cast <- genCast caster tab
+            mores <- counter more bRange (Static nItems)
 
-            incs <- voidLink inc "+"
+            let eMore = portents mores
 
-            let eInc :: Event ()
-                eInc = portents incs
+            bRange <- stepper 0 eMore
 
-                pageChanges :: Event (Int -> Int)
-                pageChanges = priorityUnion [ pred <$ whenE (bThreshold) eInc
-                                            , const <$> portents ranged]
+            let bInRange = (\x -> filter ((<=x).index) coins) <$> bRange
 
-            let nItems :: Int
-                nItems = length . contents $ caster
+            sink t [ layout :== dynamic . column 5 . map (widget) <$> bInRange ]
 
-                bOnLastPage :: Behavior Bool -- Are we on the last page
-                bOnLastPage = (==) <$> bCurrent <*> bLast
-                bLastPageSize :: Behavior Int -- How many items are on the last page
-                bLastPageSize = ((flip subtract nItems .) . (*)) <$> bLast <*> bPage
+            -- reactimate (relay <$ eMore)
 
-                bThreshold :: Behavior Bool -- Have to go a page back
-                bThreshold = afand bOnLastPage ((<=) <$> bLastPageSize <*> bLast)
-
-            let eRawPagesizeIncrement = portents incs
-                bPageItems = (\cur pag -> (cur + 1) * pag)
-
-            let bCanInc = ((<nItems) <$> bPage)
-                eValidIncrement = whenE bCanInc eInc
-
-            sink debug [ text :== (show.).(,) <$> bThreshold <*> bLastPageSize ]
-
-            bPage <- restepper 4 (#) $ (+1) <$ eValidIncrement
-
-            reactimate (refresh cast <$ trueInc)
-
-            let eActua = priorityUnion ([0 <$ portents incs, portents cast])
-            bClicked <- stepper (-1) $ eActua
-            reactimate (refit (_tab tab) <$ portents ranged)
-            actor <- rText act (Dynamic (stringify <$> bClicked)) (void eActua)
-
-            let
-                --bDebug :: Behavior String
-                --bDebug = show . map ((map _crux).unpack) <$> bRows
-                bRows :: Behavior [Row]
-                bRows = _rows . _elem . _cast $ cast
-                bShows :: [Behavior Bool]
-                bShows = for [0..] (\x -> (==x) <$> bCurrent)
-                unpack :: Row -> [Link Int]
-                unpack = \r -> extract $ _items r
-                  where
-                    extract :: [Item] -> [Link Int]
-                    extract [] = []
-                    extract ((Item x):t) = case Core.cast x of
-                                             Just (x :: Link Int) -> x:(extract t)
-                                             Nothing -> extract t
-
-                bUnpacked :: Behavior [Link Int]
-                bUnpacked = concatMap unpack <$> bRows
-
-            let group1 = Group { _members = [ Item rang
-                                            , Item incs
-                                            , Item tab
-                                            , Item actor]
-                               , _layout = (\[a,b,c,d] -> margin 10 $
-                                 column 5 $
-                                   [row 5 [widget a, widget b]
-                                   , dynamic $ widget c
-                                   , widget d])
-                               }
-
-
-            ghost <- phantom [ aspect group1 ModeA Nothing
-                             , aspect nullGroup ModeB Nothing
-                             ] bMode
-            grim <- reap content ghost
-            reharvest grim eValidIncrement
-
-            -- sink debug [ text :== bDebug ]
-            liftIO $ set f [layout := dynamic $ margin 10 $ column 5 $ [widget nav, fill $ dynamic $ widget grim]]
-
+    windowReLayout f
+    windowReLayout a
     network <- compile networkDescription
     actuate network

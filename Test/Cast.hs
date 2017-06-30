@@ -69,7 +69,7 @@ test = do
 
 --          bClicked <- stepper (-1) $ portents cast
             bClicked <- stepper (-1) $ priorityUnion ([0 <$ incs, portents cast])
-            reactimate (refit tab <$ portents ranged)
+            reactimate (refit (_tab tab) <$ portents ranged)
             sink act [ text :== stringify <$> bClicked ]
             let
                 bDebug :: Behavior String
